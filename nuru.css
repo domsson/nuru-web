@@ -222,19 +222,19 @@ button .label {
 }
 
 button.save {
-	background-image: url(icon_save_omg.svg);
+	background-image: url(img/icon_save_omg.svg);
 }
 
 button.reset {
-	background-image: url(icon_reset_omg.svg);
+	background-image: url(img/icon_reset_omg.svg);
 }
 
 button.pencil {
-	background-image: url(icon_pencil_omg.svg);
+	background-image: url(img/icon_pencil_omg.svg);
 }
 
 button.eraser {
-	background-image: url(icon_eraser_omg.svg);
+	background-image: url(img/icon_eraser_omg.svg);
 }
 
 .term {
@@ -263,7 +263,7 @@ button.eraser {
 
 .nuru .cell {
 	display: table-cell;
-	cursor: url(crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
+	cursor: url(img/crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
 	user-select: none;
 	-moz-user-select: none;
 	color: inherit;
