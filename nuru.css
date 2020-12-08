@@ -1,0 +1,287 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap'); */
+/* @import url('https://fonts.googleapis.com/css2?family=Inconsolata&display=swap'); */
+/* @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap'); */
+/* @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap'); */
+
+html {
+	box-sizing: border-box;
+}
+
+*, *:before, *:after {
+	box-sizing: inherit;
+}
+
+body {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	grid-template-rows: auto 1fr auto;
+	height: 100vh;
+	margin: 0;
+	padding: 0;
+	font-family: sans-serif;
+	color: #cdcdcd;
+	background: #222;
+}
+
+main {
+	grid-column: 2;
+	grid-row: 2;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	font-size: 1.25em;
+}
+
+nav, aside {
+	display: flex;
+	margin: .25rem;
+	padding: .25rem;
+	justify-content: center;
+	align-items: center;
+	background: #444;
+	border-radius: .25rem;
+}
+
+nav {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+aside {
+	flex-direction: column;
+}
+
+nav button, aside button {
+	margin: .25rem;
+}
+
+.menu {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.toolbox {
+	grid-column: 2;
+	grid-row: 3;
+	justify-content: space-evenly;
+}
+
+.toolbox > div {
+	display: flex;
+}
+
+.options {
+	grid-column: 1;
+	grid-row: 1/4;
+	font-size: .75em;
+}
+
+.palettes {
+	grid-column: 3;
+	grid-row: 1/4;
+}
+
+.toolbox .nuru {
+	position: relative;
+	width: 3rem;
+	height: 3rem;
+	margin: .25rem;
+	display: flex;
+	border-radius: .25rem;
+	justify-content: center;
+	align-items: center;
+}
+
+.toolbox .saved-brushes .nuru:before {
+	content: attr(data-nuru-hotkey);
+	position: absolute;
+	top: -.25rem;
+	left: -.25rem;
+	color: #111;
+	background: #d0b153;
+	padding: .125rem;
+	border-radius: .125rem;
+}
+
+.toolbox .active-brush {
+	display: grid;
+	grid-template-columns: auto auto;
+	grid-template-rows: auto auto auto;
+	justify-content: center;
+	align-items: center;
+}
+
+.active-brush .brush {
+	grid-column: 1;
+	grid-row: 1/4;
+	font-size: 2em;
+}
+
+.active-brush .glyph,
+.active-brush .fgcol,
+.active-brush .bgcol {
+	grid-column: 2;
+	position: relative;
+	width: 1rem;
+	height: 1rem;
+	margin: 0; 
+	border: none;
+	margin-left: .25rem;
+}
+
+.active-brush .glyph:before,
+.active-brush .fgcol:before,
+.active-brush .bgcol:before {
+	content: "";
+	width: .5rem;
+	margin-left: -.5rem;
+	border-bottom: .125rem solid #283033;
+}
+
+.active-brush .glyph:after,
+.active-brush .fgcol:after,
+.active-brush .bgcol:after {
+	content: attr(title);
+	position: absolute;
+	left: 1.25rem;
+	font-family: sans-serif;
+	font-size: 0.675em;
+}
+
+.active-brush .glyph .cell,
+.active-brush .fgcol .cell,
+.active-brush .bgcol .cell {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+	border-radius: .25rem;
+}
+
+fieldset {
+	width: 100%;
+	margin: 1rem 0;
+	padding: 0;
+	border: none;
+}
+
+fieldset > label {
+	display: block;
+	padding: .25rem .5rem;
+	margin-bottom: 1rem;
+	color: #fff;
+	background: #555;
+	border-radius: .25rem;
+}
+
+.input {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: .25rem 0;
+}
+
+.input label {
+	margin: .25rem .5rem;
+}
+
+.input input,
+.input select {
+	width: 5rem;
+	min-height: 1.75rem;
+	margin: 0;
+	padding: .25rem;
+	text-align: right;
+	color: #ddd;
+	background: #333;
+	border: none;
+	border-radius: .25rem;
+}
+
+input[type="number"],
+select {
+	-webkit-appearance: textfield;
+	-moz-appearance: textfield;
+}
+
+button {
+	width: 3rem;
+	height: 3rem;
+	background-color: #ccc;
+	background-repeat: no-repeat;
+	background-position: center center;
+	border: none;
+	border-radius: 0.25rem;
+}
+
+button .label {
+	display: none;
+}
+
+button.save {
+	background-image: url(icon_save_omg.svg);
+}
+
+button.reset {
+	background-image: url(icon_reset_omg.svg);
+}
+
+button.pencil {
+	background-image: url(icon_pencil_omg.svg);
+}
+
+button.eraser {
+	background-image: url(icon_eraser_omg.svg);
+}
+
+.term {
+	border: 1px dashed #678cb1;
+}
+
+.term,
+.glyphs,
+.colors {
+	display: table;
+	position: relative;
+	margin: .25rem;
+	padding: .5rem;
+	border-collapse: collapse;
+	margin-top: 2rem;
+}
+
+.nuru {
+	font-family: monospace;
+	background: #283033;
+}
+
+.nuru .line {
+	display: table-row;
+}
+
+.nuru .cell {
+	display: table-cell;
+	cursor: url(crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
+	user-select: none;
+	-moz-user-select: none;
+	color: inherit;
+	background-color: inherit;
+}
+
+.glyphs .cell,
+.colors .cell {
+	padding: .125rem;
+	border: 1px solid #444;
+}
+
+.glyphs:before, 
+.colors:before {
+	content: attr(data-nuru-hotkey);
+	position: absolute;
+	margin-top: -1.25rem;
+	font-family: sans-serif;
+	font-size: .75rem;
+}
+
