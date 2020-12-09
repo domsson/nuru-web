@@ -12,9 +12,9 @@
 	</head>
 	<body>
 		<nav class="menu">
-			<button class="open" data-nuru-open="" data-nuru-hotkey="O" title="open"><span class="label">Open</label></button>
-			<button class="save" data-nuru-save="" data-nuru-hotkey="S" title="save"><span class="label">Save</label></button>
-			<button class="wipe" data-nuru-wipe="" data-nuru-hotkey="W" title="wipe"><span class="label">Wipe</label></button>
+			<button class="open" data-nuru-open="" title="open"><span class="label">Open</label></button>
+			<button class="save" data-nuru-save="" title="save"><span class="label">Save</label></button>
+			<button class="wipe" data-nuru-wipe="" title="wipe"><span class="label">Wipe</label></button>
 		</nav>
 		<nav class="toolbox">
 			<div class="tools">
@@ -50,11 +50,11 @@
 				<div class="fields">
 					<div class="input">
 						<label for="term-fg">Foreground</label>
-						<input id="term-fg" type="color" data-nuru-opt-fg="">
+						<input id="term-fg" type="color" data-nuru-opt="term-fg">
 					</div>
 					<div class="input">
 						<label for="term-bg">Background</label>
-						<input id="term-bg" type="color" data-nuru-opt-bg="">
+						<input id="term-bg" type="color" data-nuru-opt="term-bg">
 					</div>
 				</div>
 			</fieldset>
@@ -63,30 +63,30 @@
 				<div class="fields">
 					<div class="input">
 						<label for="img-cols">Width</label>
-						<input id="img-cols" type="number" data-nuru-opt-cols="" value="80">
+						<input id="img-cols" type="number" data-nuru-opt="cols" value="80">
 					</div>
 					<div class="input">
 						<label for="img-rows">Height</label>
-						<input id="img-rows" type="number" data-nuru-opt-rows="" value="25">
+						<input id="img-rows" type="number" data-nuru-opt="rows" value="25">
 					</div>
 					<div class="input">
 						<label for="img-dfg">FG key</label>
-						<input id="img-dfg" type="number" data-nuru-opt-dfg="" value="15">
+						<input id="img-dfg" type="number" data-nuru-opt="fg" value="15">
 					</div>
 					<div class="input">
 						<label for="img-dbg">BG key</label>
-						<input id="img-dbg" type="number" data-nuru-opt-dbg="" value="1">
+						<input id="img-dbg" type="number" data-nuru-opt="bg" value="1">
 					</div>
 					<div class="input">
 						<label for="glyph-mode">Glyphs</label>
-						<select id="glyph-mode">
+						<select id="glyph-mode" data-nuru-opt="glyph-mode">
 							<option value="8" selected>Palette</option>
 							<option value="16">Unicode</option>
 						</select>
 					</div>
 					<div class="input">
 						<label for="color-mode">Colors</label>
-						<select id="color-mode">
+						<select id="color-mode" data-nuru-opt="color-mode">
 							<option value="0">mono</option>
 							<option value="4">4-bit</option>
 							<option value="8" selected>8-bit</option>
@@ -94,7 +94,7 @@
 					</div>
 					<div class="input">
 						<label for="palette">Palette</label>
-						<select id="palette">
+						<select id="palette" data-nuru-opt="palette">
 							<option value="CP437" selected>CP437</option>
 						</select>
 					</div>

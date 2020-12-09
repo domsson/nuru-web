@@ -376,6 +376,14 @@ Nuru.prototype.init = function()
 		fieldset_labels[i].addEventListener('click', handler);
 	}
 
+	// INPUT fields
+	let opt_inputs = document.querySelectorAll("[data-nuru-opt]");
+	handler = this.on_click_input.bind(this);
+	for (let i = 0; i < opt_inputs.length; ++i)
+	{
+		opt_inputs[i].addEventListener('change', handler);
+	}
+
 	// MAKE SURE ALL COLORS ARE SET TO "inherit"
 	this.reset_term();
 };
@@ -388,6 +396,26 @@ Nuru.prototype.reset_term = function()
 		this.set_cell(cells[i], true);
 	}
 };
+
+Nuru.prototype.on_click_input = function(evt)
+{
+	let opt = evt.target.getAttribute("data-nuru-opt");
+	let val = evt.target.value;
+	let root = document.querySelector(":root");
+
+	switch (opt)
+	{
+		case "term-fg":
+			root.style.setProperty("--term-fg", evt.target.value);
+			break;
+		case "term-bg":
+			root.style.setProperty("--term-bg", evt.target.value);
+			break;
+		default:
+			console.log("Not implemented");
+			console.log(opt + ": " + val);
+	}
+}
 
 Nuru.prototype.on_click_fieldset = function(evt)
 {
@@ -416,7 +444,7 @@ Nuru.prototype.on_click_wipe = function(evt)
 
 Nuru.prototype.on_key = function(evt)
 {
-	console.log(evt);
+	//console.log(evt);
 	if (evt.type == "keydown")
 	{
 		if (evt.key == "Control")
