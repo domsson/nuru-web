@@ -215,6 +215,10 @@ fieldset.collapsed .fields {
 	display: none;
 }
 
+fieldset.collapsed label {
+	margin-bottom: 0;
+}
+
 fieldset.collapsed > label:after {
 	content: "▼";
 }
