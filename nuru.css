@@ -162,6 +162,7 @@ h1 {
 	padding: .125rem;
 	border-radius: .125rem;
 	font-size: .75rem;
+	box-shadow: 0 0 .125em #000;
 }
 
 .toolbox .active-brush {
