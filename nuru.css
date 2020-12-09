@@ -195,7 +195,7 @@ h1 {
 	content: "";
 	width: .5rem;
 	margin-left: -.5rem;
-	border-bottom: .125rem solid #283033;
+	border-bottom: .125rem solid var(--term-bg);
 }
 
 .active-brush .glyph:after,
