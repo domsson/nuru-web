@@ -415,6 +415,7 @@ button.eraser {
 	position: relative;
 	border-collapse: collapse;
 	font-family: monospace;
+	color: var(--term-fg);
 	background: var(--term-bg);
 }
 
