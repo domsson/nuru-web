@@ -14,12 +14,6 @@ function Nuru()
 	this.fgcol = null;
 	this.bgcol = null;
 
-	// main menu buttons
-	this.open = null;
-	this.save = null;
-	this.wipe = null;
-	this.test = null;
-
 	this.pal = [];
 
 	// current brush values
@@ -35,6 +29,10 @@ function Nuru()
 	this.nui_sig = "NURUIMG";
 	this.nup_sig = "NURUPAL";
 	this.own_sig = "NURUWEB";
+
+	this.options = {};
+	this.slots = [];
+	this.tools = {};
 };
 
 Nuru.prototype.CP437 = [
@@ -349,24 +347,44 @@ Nuru.prototype.init = function()
 	cell.innerHTML = " ";
 	this.bgcol.appendChild(cell);
 
+	// catch keyboard events
 	document.addEventListener('keydown', this.on_key.bind(this));
 	document.addEventListener('keyup', this.on_key.bind(this));
 
-	// OPEN BUTTON
-	this.open = document.querySelector("[data-nuru-open]");
-	this.open.addEventListener('click', this.on_click_open.bind(this));
-
-	// SAVE BUTTON
-	this.save = document.querySelector("[data-nuru-save]");
-	this.save.addEventListener('click', this.on_click_save.bind(this));
+	// buttons
+	let buttons = document.querySelectorAll("[data-nuru-btn]");
+	handler = this.on_button.bind(this);
+	for (let i = 0; i < buttons.length; ++i)
+	{
+		buttons[i].addEventListener('click', handler);
+	}
 	
-	// WIPE BUTTON
-	this.wipe = document.querySelector("[data-nuru-wipe]");
-	this.wipe.addEventListener('click', this.on_click_wipe.bind(this));
-
-	// PSAVE BUTTON
-	this.psave= document.querySelector("[data-nuru-psave]");
-	this.psave.addEventListener('click', this.on_click_psave.bind(this));
+	// toolbox buttons
+	let tools = document.querySelectorAll("[data-nuru-tool]");
+	handler = this.on_tool.bind(this);
+	for (let i = 0; i < tools.length; ++i)
+	{
+		tools[i].addEventListener('click', handler);
+		this.tools[tools[i].getAttribute("[data-nuru-tool]")] = tools[i];
+	}
+	
+	// brush slots
+	let slots = document.querySelectorAll("[data-nuru-slot]");
+	handler = this.on_slot.bind(this);
+	for (let i = 0; i < slots.length; ++i)
+	{
+		slots[i].addEventListener('click', handler);
+		this.slots.push(slots[i]);
+	}
+	
+	// input fields
+	let opt_inputs = document.querySelectorAll("[data-nuru-opt]");
+	handler = this.on_input.bind(this);
+	for (let i = 0; i < opt_inputs.length; ++i)
+	{
+		opt_inputs[i].addEventListener('change', handler);
+		this.options[opt_inputs[i].getAttribute("data-nuru-opt")] = opt_inputs[i].value;
+	}
 
 	// make fieldsets collapsible
 	let fieldset_labels = document.querySelectorAll("fieldset > label");
@@ -376,16 +394,17 @@ Nuru.prototype.init = function()
 		fieldset_labels[i].addEventListener('click', handler);
 	}
 
-	// INPUT fields
-	let opt_inputs = document.querySelectorAll("[data-nuru-opt]");
-	handler = this.on_click_input.bind(this);
-	for (let i = 0; i < opt_inputs.length; ++i)
-	{
-		opt_inputs[i].addEventListener('change', handler);
-	}
+	this.set_css_var("term-fg", this.options["term-fg"]);
+	this.set_css_var("term-bg", this.options["term-bg"]);
 
 	// MAKE SURE ALL COLORS ARE SET TO "inherit"
 	this.reset_term();
+};
+
+Nuru.prototype.set_css_var = function(name, value)
+{
+	let root = document.querySelector(":root");
+	root.style.setProperty("--" + name, value);
 };
 
 Nuru.prototype.reset_term = function()
@@ -397,49 +416,78 @@ Nuru.prototype.reset_term = function()
 	}
 };
 
-Nuru.prototype.on_click_input = function(evt)
+Nuru.prototype.on_slot = function(evt)
+{
+	let ele = evt.currentTarget;
+	let opt = ele.getAttribute("data-nuru-slot");
+
+	switch (opt)
+	{
+		default:
+			console.log("Not implemented: Slot " + opt);
+	}
+};
+
+Nuru.prototype.on_tool = function(evt)
+{
+	let btn = evt.currentTarget;
+	let opt = btn.getAttribute("data-nuru-tool");
+
+	switch (opt)
+	{
+		case "pencil":
+			console.log("Not implemented: " + opt);
+			break;
+		case "eraser":
+			console.log("Not implemented: " + opt);
+			break;
+	}
+};
+
+Nuru.prototype.on_button = function(evt)
+{
+	let btn = evt.currentTarget;
+	let opt = btn.getAttribute("data-nuru-btn");
+	
+	switch (opt)
+	{
+		case "open":
+			console.log("Not implemented");
+			break;
+		case "save":
+			this.save_as("test.nui");
+			break;
+		case "wipe":
+			this.reset_term();
+			break;
+		case "psave":
+			this.save_palette("test.nup");	
+			break;
+	}
+};
+
+Nuru.prototype.on_input = function(evt)
 {
 	let opt = evt.target.getAttribute("data-nuru-opt");
 	let val = evt.target.value;
-	let root = document.querySelector(":root");
 
 	switch (opt)
 	{
 		case "term-fg":
-			root.style.setProperty("--term-fg", evt.target.value);
+			this.set_css_var("term-fg", evt.target.value);
 			break;
 		case "term-bg":
-			root.style.setProperty("--term-bg", evt.target.value);
+			this.set_css_var("term-bg", evt.target.value);
 			break;
 		default:
 			console.log("Not implemented");
 			console.log(opt + ": " + val);
 	}
-}
+};
 
 Nuru.prototype.on_click_fieldset = function(evt)
 {
 	evt.currentTarget.parentNode.classList.toggle("collapsed");
-};
-
-Nuru.prototype.on_click_psave = function(evt)
-{
-	this.save_palette("test.nup");
-};
-
-Nuru.prototype.on_click_open = function(evt)
-{
-	console.log("Not implemented");
-};
-
-Nuru.prototype.on_click_save = function(evt)
-{
-	this.save_as("test.nui");
-};
-
-Nuru.prototype.on_click_wipe = function(evt)
-{
-	this.reset_term();
 };
 
 Nuru.prototype.on_key = function(evt)

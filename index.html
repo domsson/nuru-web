@@ -7,54 +7,28 @@
 		<script src="nuru.js"></script>
 		<script>
 			function init() { (new Nuru()).init(); }
-			document.addEventListener("DOMContentLoaded", init);
+			//document.addEventListener("DOMContentLoaded", init);
+			window.addEventListener("load", init);
 		</script>
 	</head>
 	<body>
+		<header><h1>ヌル</h1></header>
 		<nav class="menu">
-			<button class="open" data-nuru-open="" title="open"><span class="label">Open</label></button>
-			<button class="save" data-nuru-save="" title="save"><span class="label">Save</label></button>
-			<button class="wipe" data-nuru-wipe="" title="wipe"><span class="label">Wipe</label></button>
+			<button class="open" data-nuru-btn="open" title="open"><span class="label">Open</label></button>
+			<button class="save" data-nuru-btn="save" title="save"><span class="label">Save</label></button>
+			<button class="wipe" data-nuru-btn="wipe" title="wipe"><span class="label">Wipe</label></button>
 		</nav>
-		<nav class="toolbox">
-			<div class="tools">
-				<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="P"><span class="label">Pencil</label></button>
-				<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="E"><span class="label">Eraser</label></button>
-			</div>
-			<div class="active-brush">
-				<div class="nuru brush" data-nuru-brush="" title="Brush"></div>
-				<div class="nuru glyph" data-nuru-glyph="" title="Glyph"></div>
-				<div class="nuru fgcol" data-nuru-fgcol="" title="FG"></div>
-				<div class="nuru bgcol" data-nuru-bgcol="" title="BG"></div>
-			</div>
-			<div class="saved-brushes">
-				<div class="nuru brush-1" data-nuru-hotkey="1"></div>
-				<div class="nuru brush-2" data-nuru-hotkey="2"></div>
-				<div class="nuru brush-3" data-nuru-hotkey="3"></div>
-				<div class="nuru brush-4" data-nuru-hotkey="4"></div>
-				<div class="nuru brush-5" data-nuru-hotkey="5"></div>
-				<div class="nuru brush-6" data-nuru-hotkey="6"></div>
-				<div class="nuru brush-7" data-nuru-hotkey="7"></div>
-				<div class="nuru brush-8" data-nuru-hotkey="8"></div>
-				<div class="nuru brush-9" data-nuru-hotkey="9"></div>
-			</div>
-		</nav>
-		<main>
-			<div class="term">
-				<div class="nuru" data-nuru-term="" data-nuru-cols="80" data-nuru-rows="25"></div>
-			</div>
-		</main>
 		<aside class="options">
 			<fieldset>
 				<label>Terminal</label>
 				<div class="fields">
 					<div class="input">
 						<label for="term-fg">Foreground</label>
-						<input id="term-fg" type="color" data-nuru-opt="term-fg">
+						<input id="term-fg" type="color" data-nuru-opt="term-fg" value="#a8a8a8">
 					</div>
 					<div class="input">
 						<label for="term-bg">Background</label>
-						<input id="term-bg" type="color" data-nuru-opt="term-bg">
+						<input id="term-bg" type="color" data-nuru-opt="term-bg" value="#000000">
 					</div>
 				</div>
 			</fieldset>
@@ -101,6 +75,19 @@
 				</div>
 			</fieldset>
 			<fieldset>
+				<label>Meta data</label>
+				<div class="fields">
+					<div class="input">
+						<label for="img-sig">Signature</label>
+						<input type="text" id="img-sig" data-nuru-opt"img-sig" maxlength="7" value="NURUWEB">
+					</div>
+					<div class="input">
+						<label for="img-name">File name</label>
+						<input type="text" id="img-name" data-nuru-opt"img-name" value="drawing">
+					</div>
+				</div>
+			</fieldset>
+			<fieldset>
 				<label>Palettes</label>
 				<div class="fields">
 					<div class="input file">
@@ -109,11 +96,16 @@
 					</div>
 					<div class="input">
 						<label for="palette-save">Download</label>
-						<button id="palette-save" data-nuru-psave=""><span class="label">Download</span></button>
+						<button id="palette-save" data-nuru-btn="psave"><span class="label">Download</span></button>
 					</div>
 				</div>
 			</fieldset>
 		</aside>
+		<main>
+			<div class="term">
+				<div class="nuru" data-nuru-term="" data-nuru-cols="80" data-nuru-rows="25"></div>
+			</div>
+		</main>
 		<aside class="palettes">
 			<fieldset>
 				<label>Glyphs</label>
@@ -132,5 +124,31 @@
 				</div>
 			</fieldset>
 		</aside>
+		<nav class="toolbox">
+			<div class="tools">
+				<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="P"><span class="label">Pencil</label></button>
+				<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="E"><span class="label">Eraser</label></button>
+			</div>
+			<div class="active-brush">
+				<div class="nuru brush" data-nuru-brush="" title="Brush"></div>
+				<div class="nuru glyph" data-nuru-glyph="" title="Glyph"></div>
+				<div class="nuru fgcol" data-nuru-fgcol="" title="FG"></div>
+				<div class="nuru bgcol" data-nuru-bgcol="" title="BG"></div>
+			</div>
+			<div class="saved-brushes">
+				<div class="nuru brush-1" data-nuru-slot="1" data-nuru-hotkey="1"></div>
+				<div class="nuru brush-2" data-nuru-slot="2" data-nuru-hotkey="2"></div>
+				<div class="nuru brush-3" data-nuru-slot="3" data-nuru-hotkey="3"></div>
+				<div class="nuru brush-4" data-nuru-slot="4" data-nuru-hotkey="4"></div>
+				<div class="nuru brush-5" data-nuru-slot="5" data-nuru-hotkey="5"></div>
+				<div class="nuru brush-6" data-nuru-slot="6" data-nuru-hotkey="6"></div>
+				<div class="nuru brush-7" data-nuru-slot="7" data-nuru-hotkey="7"></div>
+				<div class="nuru brush-8" data-nuru-slot="8" data-nuru-hotkey="8"></div>
+				<div class="nuru brush-9" data-nuru-slot="9" data-nuru-hotkey="9"></div>
+			</div>
+		</nav>
+		<footer>
+			<span class="version"><a class="about" href="https://github.com/domsson/nuru-web" target="_blank">v0.0.3</a></span>
+		</footer>
 	</body>
 </html>
