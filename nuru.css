@@ -3,6 +3,23 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap'); */
 /* @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap'); */
 
+:root {
+	--term-fg: #cdcdcd; 
+	--term-bg: #283033;
+	--term-border: #678cb1;
+	--ui-fg: #ddd;
+	--ui-bg: #222;
+	--panel-fg: #ddd;
+	--panel-bg: #444;
+	--input-fg: #ddd;
+	--input-bg: #333;
+	--button-fg: #000;
+	--button-bg: #ccc;
+	--tooltip-fg: #111; 
+	--tooltip-bg: #d0b153;
+	--border-radius: .25rem;
+}
+
 html {
 	box-sizing: border-box;
 }
@@ -17,10 +34,10 @@ body {
 	grid-template-rows: auto 1fr auto;
 	height: 100vh;
 	margin: 0;
-	padding: 0;
+	padding: .125rem;
 	font-family: sans-serif;
-	color: #cdcdcd;
-	background: #222;
+	color: var(--ui-fg);
+	background: var(--ui-bg);
 }
 
 main {
@@ -36,21 +53,20 @@ main {
 
 nav, aside {
 	display: flex;
-	margin: .25rem;
+	margin: .125rem;
 	padding: .25rem;
 	justify-content: center;
 	align-items: center;
-	background: #444;
+	color: var(--panel-fg);
+	background: var(--panel-bg);
 	border-radius: .25rem;
-}
-
-nav {
-	margin-left: 0;
-	margin-right: 0;
 }
 
 aside {
 	flex-direction: column;
+	justify-content: flex-start;
+	font-size: .75em;
+	min-width: 13.25rem;
 }
 
 nav button, aside button {
@@ -58,7 +74,7 @@ nav button, aside button {
 }
 
 .menu {
-	grid-column: 2;
+	grid-column: 1/4;
 	grid-row: 1;
 }
 
@@ -74,13 +90,12 @@ nav button, aside button {
 
 .options {
 	grid-column: 1;
-	grid-row: 1/4;
-	font-size: .75em;
+	grid-row: 2/4;
 }
 
 .palettes {
 	grid-column: 3;
-	grid-row: 1/4;
+	grid-row: 2/4;
 }
 
 .toolbox .nuru {
@@ -94,15 +109,20 @@ nav button, aside button {
 	align-items: center;
 }
 
-.toolbox .saved-brushes .nuru:before {
+[data-nuru-hotkey] {
+	position: relative;
+}
+
+[data-nuru-hotkey]:before {
 	content: attr(data-nuru-hotkey);
 	position: absolute;
 	top: -.25rem;
 	left: -.25rem;
-	color: #111;
-	background: #d0b153;
+	color: var(--tooltip-fg);
+	background: var(--tooltip-bg);
 	padding: .125rem;
 	border-radius: .125rem;
+	font-size: .75rem;
 }
 
 .toolbox .active-brush {
@@ -126,9 +146,8 @@ nav button, aside button {
 	position: relative;
 	width: 1rem;
 	height: 1rem;
-	margin: 0; 
 	border: none;
-	margin-left: .25rem;
+	margin: 0 2.5rem 0 .25rem;
 }
 
 .active-brush .glyph:before,
@@ -158,23 +177,46 @@ nav button, aside button {
 	margin: 0;
 	padding: 0;
 	text-align: center;
-	border-radius: .25rem;
+	border-radius: var(--border-radius);
+}
+
+label {
+	user-select: none;
+	--moz-user-select: none;
+	--webkit-user-select: none;
 }
 
 fieldset {
 	width: 100%;
-	margin: 1rem 0;
+	margin: 0;
+	margin-bottom: .5rem;
 	padding: 0;
 	border: none;
 }
 
 fieldset > label {
 	display: block;
+	position: relative;
 	padding: .25rem .5rem;
-	margin-bottom: 1rem;
+	margin-bottom: .75rem;
 	color: #fff;
 	background: #555;
-	border-radius: .25rem;
+	border-radius: var(--border-radius);
+	cursor: pointer;
+}
+
+fieldset > label::after {
+	content: "▲";
+	position: absolute;
+	right: .5rem;
+}
+
+fieldset.collapsed .fields {
+	display: none;
+}
+
+fieldset.collapsed > label:after {
+	content: "▼";
 }
 
 .input {
@@ -195,10 +237,10 @@ fieldset > label {
 	margin: 0;
 	padding: .25rem;
 	text-align: right;
-	color: #ddd;
-	background: #333;
+	color: var(--input-fg);
+	background: var(--input-bg);
 	border: none;
-	border-radius: .25rem;
+	border-radius: var(--border-radius);
 }
 
 input[type="number"],
@@ -207,25 +249,88 @@ select {
 	-moz-appearance: textfield;
 }
 
+label[for="palette-open"] {
+	cursor: pointer;
+	width: 100%;
+	margin: .125rem 0;
+	padding: .5rem;
+	padding-left: 2.5rem;
+	color: var(--button-fg);
+	background-color: var(--button-bg);
+	border-radius: var(--border-radius);
+	background-repeat: no-repeat;
+	background-position: .5rem center;
+	background-size: 1.5rem 1.5rem;
+}
+
+label[for="palette-save"] {
+	display: none;
+}
+
+button#palette-save {
+	width: 100%;
+	height: auto;
+	margin: .125rem 0;
+	padding: .5rem;
+	padding-left: 2.5rem;
+	text-align: left;
+	color: var(--button-fg);
+	font-size: inherit;
+	background-image: url(img/icon_save_omg.svg);
+	background-position: .5rem center;
+	background-size: 1.5rem 1.5rem;
+}
+
+button#palette-save .label {
+	display: inherit;
+}
+
+.input label[for="palette-open"] {
+	background-image: url(img/icon_open_omg.svg);
+}
+
+.input.file input {
+	display: none;
+}
+
 button {
 	width: 3rem;
 	height: 3rem;
-	background-color: #ccc;
+	color: var(--button-fg);
+	background-color: var(--button-bg);
 	background-repeat: no-repeat;
 	background-position: center center;
 	border: none;
-	border-radius: 0.25rem;
+	border-radius: var(--border-radius);
+	cursor: pointer;
 }
 
-button .label {
+.menu button {
+	width: auto;
+	height: auto;
+	padding: .25rem .5rem;
+	padding-left: 2rem;
+	background-position: .5rem center;
+	background-size: 1rem 1rem;
+}
+
+.menu button:before {
+	font-size: .5rem;
+}
+
+.toolbox button .label {
 	display: none;
+}
+
+button.open {
+	background-image: url(img/icon_open_omg.svg);
 }
 
 button.save {
 	background-image: url(img/icon_save_omg.svg);
 }
 
-button.reset {
+button.wipe {
 	background-image: url(img/icon_reset_omg.svg);
 }
 
@@ -237,28 +342,42 @@ button.eraser {
 	background-image: url(img/icon_eraser_omg.svg);
 }
 
-.term {
-	border: 1px dashed #678cb1;
-}
-
 .term,
 .glyphs,
 .colors {
-	display: table;
-	position: relative;
 	margin: .25rem;
+}
+
+.term {
 	padding: .5rem;
-	border-collapse: collapse;
-	margin-top: 2rem;
+	color: var(--term-fg);
+	background-color: var(--term-bg);
+	border-radius: var(--border-radius);
+}
+
+.term .nuru {
+	border: 1px dotted #555;
+}
+
+.glyphs,
+.colors {
+	font-size: .75rem;
 }
 
 .nuru {
+	display: table;
+	position: relative;
+	border-collapse: collapse;
 	font-family: monospace;
-	background: #283033;
+	background: var(--term-bg);
 }
 
 .nuru .line {
 	display: table-row;
+}
+
+.colors .line {
+	line-height: 0.75;
 }
 
 .nuru .cell {
@@ -273,15 +392,6 @@ button.eraser {
 .glyphs .cell,
 .colors .cell {
 	padding: .125rem;
-	border: 1px solid #444;
-}
-
-.glyphs:before, 
-.colors:before {
-	content: attr(data-nuru-hotkey);
-	position: absolute;
-	margin-top: -1.25rem;
-	font-family: sans-serif;
-	font-size: .75rem;
+	border: 1px solid var(--panel-bg);
 }
 

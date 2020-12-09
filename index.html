@@ -12,20 +12,20 @@
 	</head>
 	<body>
 		<nav class="menu">
-			<button class="save" data-nuru-save="" data-nuru-hotkey="S"><span class="label">Save</label></button>
-			<button class="test" data-nuru-test="" data-nuru-hotkey="T"><span class="label">Test</label></button>
-			<button class="reset" data-nuru-reset="" data-nuru-hotkey="R"><span class="label">Reset</label></button>
+			<button class="open" data-nuru-open="" data-nuru-hotkey="O" title="open"><span class="label">Open</label></button>
+			<button class="save" data-nuru-save="" data-nuru-hotkey="S" title="save"><span class="label">Save</label></button>
+			<button class="wipe" data-nuru-wipe="" data-nuru-hotkey="W" title="wipe"><span class="label">Wipe</label></button>
 		</nav>
 		<nav class="toolbox">
 			<div class="tools">
-				<button class="pencil" data-nuru-tool="pencil"><span class="label">Pencil</label></button>
-				<button class="eraser" data-nuru-tool="eraser"><span class="label">Eraser</label></button>
+				<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="P"><span class="label">Pencil</label></button>
+				<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="E"><span class="label">Eraser</label></button>
 			</div>
 			<div class="active-brush">
-				<div class="nuru brush" data-nuru-brush="" data-nuru-hotkey="Brush"></div>
-				<div class="nuru glyph" data-nuru-glyph="" data-nuru-hotkey="Glyph"></div>
-				<div class="nuru fgcol" data-nuru-fgcol="" data-nuru-hotkey="FG"></div>
-				<div class="nuru bgcol" data-nuru-bgcol="" data-nuru-hotkey="BG"></div>
+				<div class="nuru brush" data-nuru-brush="" title="Brush"></div>
+				<div class="nuru glyph" data-nuru-glyph="" title="Glyph"></div>
+				<div class="nuru fgcol" data-nuru-fgcol="" title="FG"></div>
+				<div class="nuru bgcol" data-nuru-bgcol="" title="BG"></div>
 			</div>
 			<div class="saved-brushes">
 				<div class="nuru brush-1" data-nuru-hotkey="1"></div>
@@ -40,64 +40,97 @@
 			</div>
 		</nav>
 		<main>
-			<div class="nuru term" data-nuru-term="" data-nuru-cols="80" data-nuru-rows="25"></div>
+			<div class="term">
+				<div class="nuru" data-nuru-term="" data-nuru-cols="80" data-nuru-rows="25"></div>
+			</div>
 		</main>
 		<aside class="options">
 			<fieldset>
 				<label>Terminal</label>
-				<div class="input">
-					<label for="term-fg">Foreground</label>
-					<input id="term-fg" type="color" data-nuru-opt-fg="">
-				</div>
-				<div class="input">
-					<label for="term-bg">Background</label>
-					<input id="term-bg" type="color" data-nuru-opt-bg="">
+				<div class="fields">
+					<div class="input">
+						<label for="term-fg">Foreground</label>
+						<input id="term-fg" type="color" data-nuru-opt-fg="">
+					</div>
+					<div class="input">
+						<label for="term-bg">Background</label>
+						<input id="term-bg" type="color" data-nuru-opt-bg="">
+					</div>
 				</div>
 			</fieldset>
 			<fieldset>
 				<label>Image</label>
-				<div class="input">
-					<label for="img-cols">Width</label>
-					<input id="img-cols" type="number" data-nuru-opt-cols="" value="80">
+				<div class="fields">
+					<div class="input">
+						<label for="img-cols">Width</label>
+						<input id="img-cols" type="number" data-nuru-opt-cols="" value="80">
+					</div>
+					<div class="input">
+						<label for="img-rows">Height</label>
+						<input id="img-rows" type="number" data-nuru-opt-rows="" value="25">
+					</div>
+					<div class="input">
+						<label for="img-dfg">FG key</label>
+						<input id="img-dfg" type="number" data-nuru-opt-dfg="" value="15">
+					</div>
+					<div class="input">
+						<label for="img-dbg">BG key</label>
+						<input id="img-dbg" type="number" data-nuru-opt-dbg="" value="1">
+					</div>
+					<div class="input">
+						<label for="glyph-mode">Glyphs</label>
+						<select id="glyph-mode">
+							<option value="8" selected>Palette</option>
+							<option value="16">Unicode</option>
+						</select>
+					</div>
+					<div class="input">
+						<label for="color-mode">Colors</label>
+						<select id="color-mode">
+							<option value="0">mono</option>
+							<option value="4">4-bit</option>
+							<option value="8" selected>8-bit</option>
+						</select>
+					</div>
+					<div class="input">
+						<label for="palette">Palette</label>
+						<select id="palette">
+							<option value="CP437" selected>CP437</option>
+						</select>
+					</div>
 				</div>
-				<div class="input">
-					<label for="img-rows">Height</label>
-					<input id="img-rows" type="number" data-nuru-opt-rows="" value="25">
-				</div>
-				<div class="input">
-					<label for="img-dfg">FG key</label>
-					<input id="img-dfg" type="number" data-nuru-opt-dfg="" value="15">
-				</div>
-				<div class="input">
-					<label for="img-dbg">BG key</label>
-					<input id="img-dbg" type="number" data-nuru-opt-dbg="" value="1">
-				</div>
-				<div class="input">
-					<label for="glyph-mode">Glyphs</label>
-					<select id="glyph-mode">
-						<option value="8" selected>Palette</option>
-						<option value="16">Unicode</option>
-					</select>
-				</div>
-				<div class="input">
-					<label for="color-mode">Colors</label>
-					<select id="color-mode">
-						<option value="0">mono</option>
-						<option value="4">4-bit</option>
-						<option value="8" selected>8-bit</option>
-					</select>
-				</div>
-				<div class="input">
-					<label for="palette">Palette</label>
-					<select id="palette">
-						<option value="CP437" selected>CP437</option>
-					</select>
+			</fieldset>
+			<fieldset>
+				<label>Palettes</label>
+				<div class="fields">
+					<div class="input file">
+						<label for="palette-open">Upload</label>
+						<input id="palette-open" type="file">
+					</div>
+					<div class="input">
+						<label for="palette-save">Download</label>
+						<button id="palette-save" data-nuru-psave=""><span class="label">Download</span></button>
+					</div>
 				</div>
 			</fieldset>
 		</aside>
 		<aside class="palettes">
-			<div class="nuru glyphs" data-nuru-glyphs="" data-nuru-hotkey="Glyphs"></div>
-			<div class="nuru colors" data-nuru-colors="" data-nuru-hotkey="Colors"></div>
+			<fieldset>
+				<label>Glyphs</label>
+				<div class="fields">
+					<div class="glyphs">
+						<div class="nuru" data-nuru-glyphs=""></div>
+					</div>
+				</div>
+			</fieldset>
+			<fieldset>
+				<label>Colors</label>
+				<div class="fields">
+					<div class="colors">
+						<div class="nuru" data-nuru-colors=""></div>
+					</div>
+				</div>
+			</fieldset>
 		</aside>
 	</body>
 </html>

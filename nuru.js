@@ -1,25 +1,37 @@
 function Nuru()
 {
+	// term / canvas
 	this.term = null;
 	this.cols = 0;
 	this.rows = 0;
 
+	// palettes
 	this.glyphs = null;
 	this.colors = null;
+
+	// brush, brush atoms
 	this.brush = null;
 	this.fgcol = null;
 	this.bgcol = null;
-	this.reset = null;
+
+	// main menu buttons
+	this.open = null;
+	this.save = null;
+	this.wipe = null;
+	this.test = null;
 
 	this.pal = [];
 
+	// current brush values
 	this.ch = 32;
 	this.fg = -1;
 	this.bg = -1;
 
+	// keyboard / mouse
 	this.ctrl = false;
 	this.drag = false;
 
+	// file signatures etc
 	this.nui_sig = "NURUIMG";
 	this.nup_sig = "NURUPAL";
 	this.own_sig = "NURUWEB";
@@ -340,19 +352,29 @@ Nuru.prototype.init = function()
 	document.addEventListener('keydown', this.on_key.bind(this));
 	document.addEventListener('keyup', this.on_key.bind(this));
 
-	// RESET BUTTON
-	
-	this.reset = document.querySelector("[data-nuru-reset]");
-	this.reset.addEventListener('click', this.on_click_reset.bind(this));
+	// OPEN BUTTON
+	this.open = document.querySelector("[data-nuru-open]");
+	this.open.addEventListener('click', this.on_click_open.bind(this));
 
 	// SAVE BUTTON
 	this.save = document.querySelector("[data-nuru-save]");
 	this.save.addEventListener('click', this.on_click_save.bind(this));
+	
+	// WIPE BUTTON
+	this.wipe = document.querySelector("[data-nuru-wipe]");
+	this.wipe.addEventListener('click', this.on_click_wipe.bind(this));
 
-	// TEST BUTTON
-	this.test = document.querySelector("[data-nuru-test]");
-	this.test.addEventListener('click', this.on_click_test.bind(this));
+	// PSAVE BUTTON
+	this.psave= document.querySelector("[data-nuru-psave]");
+	this.psave.addEventListener('click', this.on_click_psave.bind(this));
 
+	// make fieldsets collapsible
+	let fieldset_labels = document.querySelectorAll("fieldset > label");
+	handler = this.on_click_fieldset.bind(this);
+	for (let i = 0; i < fieldset_labels.length; ++i)
+	{
+		fieldset_labels[i].addEventListener('click', handler);
+	}
 
 	// MAKE SURE ALL COLORS ARE SET TO "inherit"
 	this.reset_term();
@@ -367,9 +389,19 @@ Nuru.prototype.reset_term = function()
 	}
 };
 
-Nuru.prototype.on_click_test = function(evt)
+Nuru.prototype.on_click_fieldset = function(evt)
+{
+	evt.currentTarget.parentNode.classList.toggle("collapsed");
+};
+
+Nuru.prototype.on_click_psave = function(evt)
 {
 	this.save_palette("test.nup");
+};
+
+Nuru.prototype.on_click_open = function(evt)
+{
+	console.log("Not implemented");
 };
 
 Nuru.prototype.on_click_save = function(evt)
@@ -377,7 +409,7 @@ Nuru.prototype.on_click_save = function(evt)
 	this.save_as("test.nui");
 };
 
-Nuru.prototype.on_click_reset = function(evt)
+Nuru.prototype.on_click_wipe = function(evt)
 {
 	this.reset_term();
 };
