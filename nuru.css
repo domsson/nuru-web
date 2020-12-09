@@ -206,6 +206,7 @@ h1 {
 	content: attr(title);
 	position: absolute;
 	left: 1.25rem;
+	color: var(--panel-fg);
 	font-family: sans-serif;
 	font-size: 0.675em;
 }
