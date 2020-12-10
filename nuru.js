@@ -186,8 +186,8 @@ Nuru.prototype.save_as = function(filename)
 	data[i++] = (0x00FF & this.rows);      // image height
 
 	// default colors (2 bytes)
-	data[i++] = 0x0F; // foreground color
-	data[i++] = 0x01; // background color 
+	data[i++] = 0xFF & this.options["fg-key"]; // 0x0F; // foreground color
+	data[i++] = 0xFF & this.options["bg-key"]; // 0x01; // background color 
 
 	// default palette name (7 bytes)
 	data[i++] = 0x43; // C
