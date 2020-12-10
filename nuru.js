@@ -27,6 +27,9 @@ function Nuru()
 	this.ctrl = false;
 	this.drag = false;
 
+	// currently selected tool
+	this.tool = null;
+
 	// file signatures etc
 	this.nui_sig = "NURUIMG";
 	this.nup_sig = "NURUPAL";
@@ -124,7 +127,7 @@ Nuru.prototype.download_data = function(data, filename)
 	a.click();
 	window.URL.revokeObjectURL(url);
 };
-	
+
 Nuru.prototype.save_palette = function(filename)
 {
 	let size = (this.pal.length * 2) + 16;
@@ -242,6 +245,14 @@ Nuru.prototype.to_col = function(hex)
 	return "#" + col;
 };
 
+Nuru.prototype.printable = function(ch)
+{
+	let cp = ch.charCodeAt(0);
+	if (cp < 0x0020) return false;
+	if (cp > 0x007E && cp < 0x00A0) return false;
+	return true;
+};
+
 Nuru.prototype.init = function()
 {
 	// TODO load palette based on something lol
@@ -282,10 +293,18 @@ Nuru.prototype.init = function()
 			let ch = this.pal[r*16+c];
 			cell = document.createElement("pre");
 			cell.classList.add("cell", "r"+r, "c"+c);
+			cell.setAttribute("data-nuru-np", "0");
 			cell.setAttribute("data-nuru-row", r);
 			cell.setAttribute("data-nuru-col", c);
-			cell.setAttribute("title", r*16+c);
+			cell.setAttribute("title", (r*16+c) + ": U+" + ch.charCodeAt(0).toString(16));
 			cell.innerHTML = ch;
+
+			if (!this.printable(ch))
+			{
+				cell.classList.add("non-printable");
+				cell.setAttribute("data-nuru-np", "1");
+				cell.innerHTML = this.pal[this.space];
+			}
 			line.appendChild(cell);
 		}
 		this.glyphs.appendChild(line);
@@ -363,8 +382,11 @@ Nuru.prototype.init = function()
 	for (let i = 0; i < tools.length; ++i)
 	{
 		tools[i].addEventListener('click', handler);
-		this.tools[tools[i].getAttribute("[data-nuru-tool]")] = tools[i];
+		this.tools[tools[i].getAttribute("data-nuru-tool")] = tools[i];
 	}
+
+	this.tool = "pencil";
+	this.tools[this.tool].classList.add("selected");
 	
 	// brush slots
 	let slots = document.querySelectorAll("[data-nuru-slot]");
@@ -375,7 +397,6 @@ Nuru.prototype.init = function()
 		this.slots.push(slots[i]);
 	}
 	
-
 	// make fieldsets collapsible
 	let fieldset_labels = document.querySelectorAll("fieldset > label");
 	handler = this.on_click_fieldset.bind(this);
@@ -482,7 +503,7 @@ Nuru.prototype.reset_term = function()
 	let cells = this.term.querySelectorAll(".cell");
 	for (let i = 0; i < cells.length; ++i)
 	{
-		this.set_cell(cells[i], true);
+		this.del_cell(cells[i]);
 	}
 };
 
@@ -498,17 +519,25 @@ Nuru.prototype.on_slot = function(evt)
 	}
 };
 
+Nuru.prototype.select_tool = function(which)
+{
+	this.tools[this.tool].classList.remove("selected");
+	this.tool = which;
+	this.tools[this.tool].classList.add("selected");
+};
+
 Nuru.prototype.on_tool = function(evt)
 {
 	let btn = evt.currentTarget;
 	let opt = btn.getAttribute("data-nuru-tool");
 
+	this.select_tool(opt);
+
 	switch (opt)
 	{
 		case "pencil":
-			console.log("Not implemented: " + opt);
-			break;
 		case "eraser":
+		case "picker":
 			console.log("Not implemented: " + opt);
 			break;
 	}
@@ -612,16 +641,8 @@ Nuru.prototype.get_bg_css = function(col=null)
 	return (bg == this.options["bg-key"]) ? "inherit" : this.to_col(this.ANSI8[bg]);
 };
 
-Nuru.prototype.set_cell = function(cell, del=false)
+Nuru.prototype.set_cell = function(cell)
 {
-	if (del)
-	{
-		cell.innerHTML             = this.pal[this.space];
-		cell.style.color           = "inherit";
-		cell.style.backgroundColor = "inherit";
-		return;
-	}
-	
 	cell.innerHTML             = this.pal[this.ch];
 	cell.style.color           = this.get_fg_css(); 
 	cell.style.backgroundColor = this.get_bg_css(); 
@@ -629,6 +650,17 @@ Nuru.prototype.set_cell = function(cell, del=false)
 	cell.setAttribute("data-nuru-ch", this.ch);
 	cell.setAttribute("data-nuru-fg", this.fg);
 	cell.setAttribute("data-nuru-bg", this.bg);
+};
+
+Nuru.prototype.del_cell = function(cell)
+{
+	cell.innerHTML             = this.pal[this.space];
+	cell.style.color           = "inherit";
+	cell.style.backgroundColor = "inherit";
+
+	cell.setAttribute("data-nuru-ch", this.space);
+	cell.setAttribute("data-nuru-fg", this.options["fg-key"]);
+	cell.setAttribute("data-nuru-bg", this.options["bg-key"]);
 };
 
 Nuru.prototype.on_mouse_term = function(evt)
@@ -642,24 +674,38 @@ Nuru.prototype.on_mouse_term = function(evt)
 		return;
 	}
 
-	if (evt.type == "click")
+	if (evt.type == "click" || (evt.type == "mouseover" && this.drag))
 	{
-		this.set_cell(evt.target);
+		let cell = evt.target;
+
+		switch (this.tool)
+		{
+			case "pencil":
+				this.set_cell(cell);
+				break;
+			case "eraser":
+				this.del_cell(cell);
+				break;
+			case "picker":
+				this.set_brush(cell.getAttribute("data-nuru-ch"),
+				               cell.getAttribute("data-nuru-fg"),
+				               cell.getAttribute("data-nuru-bg"));
+				break;
+			default:
+				console.log("Not implemented");
+		}
 		return;
 	}
+
 	if (evt.type == "mousedown")
 	{
 		this.drag = true;
 		return;
 	}
+
 	if (evt.type == "mouseup")
 	{
 		this.drag = false;
-		return;
-	}
-	if (evt.type == "mouseover" && this.drag)
-	{
-		this.set_cell(evt.target);
 		return;
 	}
 };
@@ -681,9 +727,10 @@ Nuru.prototype.set_fgcol = function(fg=null)
 	let fgcol = this.fgcol.querySelector(".cell");
 
 	this.fg = fg == null ? this.options["fg-key"] : fg;
+	console.log("fg: " + fg + " -> " + this.fg);
 
 	brush.style.color           = this.get_fg_css(); 
-	fgcol.style.backgroundColor = this.get_bg_css();
+	fgcol.style.backgroundColor = this.get_fg_css();
 };
 
 Nuru.prototype.set_bgcol = function(bg=null)
@@ -692,6 +739,7 @@ Nuru.prototype.set_bgcol = function(bg=null)
 	let bgcol = this.bgcol.querySelector(".cell");
 
 	this.bg = bg == null ? this.options["bg-key"] : bg;
+	console.log("bg: " + bg + " -> " + this.bg);
 
 	brush.style.backgroundColor = this.get_bg_css();
 	bgcol.style.backgroundColor = this.get_bg_css();
@@ -717,21 +765,18 @@ Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
 
 Nuru.prototype.deselect_cells = function(panel)
 {
-	let lines = panel.childNodes;
-	let cells = null;
-
-	for (let r = 0; r < lines.length; ++r)
-	{
-		cells = lines[r].childNodes;
-		for (let c = 0; c < cells.length; ++c)
-		{
-			cells[c].classList.remove("selected");
-		}
-	}
 };
 
 Nuru.prototype.select_cell = function(panel, r, c)
 {
+	// deselect all cells first (should be only one)
+	let cells = panel.querySelectorAll(".selected");
+	for (let c = 0; c < cells.length; ++c)
+	{
+		cells[c].classList.remove("selected");
+	}
+
+	// select the desired cell
 	let line = this.glyphs.childNodes[r];
 	let cell = line.childNodes[c];
 	cell.classList.add("selected");
@@ -742,11 +787,15 @@ Nuru.prototype.on_click_glyphs = function(evt)
 	if (!evt.target.classList.contains("cell")) return;
 
 	let cell = evt.target;
+
+	// abort if this is a non-printable char
+	let np = parseInt(cell.getAttribute("data-nuru-np"));
+	if (np) return;
+
 	let c = parseInt(cell.getAttribute("data-nuru-col"));
 	let r = parseInt(cell.getAttribute("data-nuru-row"));
 	this.set_brush(r*16+c, null, null);
 
-	this.deselect_cells(this.glyphs);
 	this.select_cell(this.glyphs, r, c);
 };
 
@@ -767,6 +816,5 @@ Nuru.prototype.on_click_colors = function(evt)
 		this.set_brush(null, r*16+c, null);
 	}
 
-	this.deselect_cells(this.colors);
 	this.select_cell(this.colors, r, c);
 };

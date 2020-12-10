@@ -2,7 +2,8 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Nuru Web Editor</title>
+		<title>nuru web editor</title>
+		<link rel="icon" type="image/png" href="nuru.png">
 		<link rel="stylesheet" href="nuru.css">
 		<script src="nuru.js"></script>
 		<script>
@@ -41,7 +42,7 @@
 					</div>
 					<div class="input">
 						<label for="rows">Height</label>
-						<input id="rows" type="number" data-nuru-opt="rows" value="32">
+						<input id="rows" type="number" data-nuru-opt="rows" value="16">
 					</div>
 					<div class="input">
 						<label for="fg-key">FG key</label>
@@ -128,6 +129,7 @@
 			<div class="tools">
 				<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="P"><span class="label">Pencil</label></button>
 				<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="E"><span class="label">Eraser</label></button>
+				<button class="picker" data-nuru-tool="picker" data-nuru-hotkey="C"><span class="label">Picker</label></button>
 			</div>
 			<div class="active-brush">
 				<div class="nuru brush" data-nuru-brush="" title="Brush"></div>
@@ -136,19 +138,19 @@
 				<div class="nuru bgcol" data-nuru-bgcol="" title="BG"></div>
 			</div>
 			<div class="saved-brushes">
-				<div class="nuru brush-1" data-nuru-slot="1" data-nuru-hotkey="1"></div>
-				<div class="nuru brush-2" data-nuru-slot="2" data-nuru-hotkey="2"></div>
-				<div class="nuru brush-3" data-nuru-slot="3" data-nuru-hotkey="3"></div>
-				<div class="nuru brush-4" data-nuru-slot="4" data-nuru-hotkey="4"></div>
-				<div class="nuru brush-5" data-nuru-slot="5" data-nuru-hotkey="5"></div>
-				<div class="nuru brush-6" data-nuru-slot="6" data-nuru-hotkey="6"></div>
-				<div class="nuru brush-7" data-nuru-slot="7" data-nuru-hotkey="7"></div>
-				<div class="nuru brush-8" data-nuru-slot="8" data-nuru-hotkey="8"></div>
-				<div class="nuru brush-9" data-nuru-slot="9" data-nuru-hotkey="9"></div>
+				<div class="nuru slot" data-nuru-slot="1" data-nuru-hotkey="1"></div>
+				<div class="nuru slot" data-nuru-slot="2" data-nuru-hotkey="2"></div>
+				<div class="nuru slot" data-nuru-slot="3" data-nuru-hotkey="3"></div>
+				<div class="nuru slot" data-nuru-slot="4" data-nuru-hotkey="4"></div>
+				<div class="nuru slot" data-nuru-slot="5" data-nuru-hotkey="5"></div>
+				<div class="nuru slot" data-nuru-slot="6" data-nuru-hotkey="6"></div>
+				<div class="nuru slot" data-nuru-slot="7" data-nuru-hotkey="7"></div>
+				<div class="nuru slot" data-nuru-slot="8" data-nuru-hotkey="8"></div>
+				<div class="nuru slot" data-nuru-slot="9" data-nuru-hotkey="9"></div>
 			</div>
 		</nav>
 		<footer>
-			<span class="version"><a class="about" href="https://github.com/domsson/nuru-web" target="_blank">v0.0.3</a></span>
+			<span class="version"><a class="about" href="https://github.com/domsson/nuru-web" target="_blank">v0.0.4</a></span>
 		</footer>
 	</body>
 </html>
