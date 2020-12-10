@@ -25,6 +25,7 @@ function Nuru()
 
 	// keyboard / mouse
 	this.ctrl = false;
+	this.shift = false;
 	this.drag = false;
 
 	// currently selected tool
@@ -610,12 +611,16 @@ Nuru.prototype.on_click_fieldset = function(evt)
 
 Nuru.prototype.on_key = function(evt)
 {
-	//console.log(evt);
+	console.log(evt);
 	if (evt.type == "keydown")
 	{
 		if (evt.key == "Control")
 		{
 			this.ctrl = true;
+		}
+		if (evt.key == "Shift")
+		{
+			this.shift = true;
 		}
 		return;
 	}
@@ -624,6 +629,10 @@ Nuru.prototype.on_key = function(evt)
 		if (evt.key == "Control")
 		{
 			this.ctrl = false;
+		}
+		if (evt.key == "Shift")
+		{
+			this.shift = false;
 		}
 		return;
 	}
