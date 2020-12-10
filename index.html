@@ -14,9 +14,9 @@
 	<body>
 		<header><h1>ヌル</h1></header>
 		<nav class="menu">
-			<button class="open" data-nuru-btn="open" title="open"><span class="label">Open</label></button>
-			<button class="save" data-nuru-btn="save" title="save"><span class="label">Save</label></button>
-			<button class="wipe" data-nuru-btn="wipe" title="wipe"><span class="label">Wipe</label></button>
+			<button class="open" data-nuru-btn="open"><span class="label">Open</label></button>
+			<button class="save" data-nuru-btn="save"><span class="label">Save</label></button>
+			<button class="wipe" data-nuru-btn="wipe"><span class="label">Wipe</label></button>
 		</nav>
 		<aside class="options">
 			<fieldset>
@@ -36,31 +36,31 @@
 				<label>Image</label>
 				<div class="fields">
 					<div class="input">
-						<label for="img-cols">Width</label>
-						<input id="img-cols" type="number" data-nuru-opt="cols" value="80">
+						<label for="cols">Width</label>
+						<input id="cols" type="number" data-nuru-opt="cols" value="64">
 					</div>
 					<div class="input">
-						<label for="img-rows">Height</label>
-						<input id="img-rows" type="number" data-nuru-opt="rows" value="25">
+						<label for="rows">Height</label>
+						<input id="rows" type="number" data-nuru-opt="rows" value="32">
 					</div>
 					<div class="input">
-						<label for="img-dfg">FG key</label>
-						<input id="img-dfg" type="number" data-nuru-opt="fg" value="15">
+						<label for="fg-key">FG key</label>
+						<input id="fg-key" type="number" data-nuru-opt="fg-key" value="15">
 					</div>
 					<div class="input">
-						<label for="img-dbg">BG key</label>
-						<input id="img-dbg" type="number" data-nuru-opt="bg" value="1">
+						<label for="bg-key">BG key</label>
+						<input id="bg-key" type="number" data-nuru-opt="bg-key" value="0">
 					</div>
 					<div class="input">
 						<label for="glyph-mode">Glyphs</label>
-						<select id="glyph-mode" data-nuru-opt="glyph-mode">
+						<select id="glyph-mode" data-nuru-opt="glyph-mode" disabled>
 							<option value="8" selected>Palette</option>
 							<option value="16">Unicode</option>
 						</select>
 					</div>
 					<div class="input">
 						<label for="color-mode">Colors</label>
-						<select id="color-mode" data-nuru-opt="color-mode">
+						<select id="color-mode" data-nuru-opt="color-mode" disabled>
 							<option value="0">mono</option>
 							<option value="4">4-bit</option>
 							<option value="8" selected>8-bit</option>
@@ -78,12 +78,12 @@
 				<label>Meta data</label>
 				<div class="fields">
 					<div class="input">
-						<label for="img-sig">Signature</label>
-						<input type="text" id="img-sig" data-nuru-opt"img-sig" maxlength="7" value="NURUWEB">
+						<label for="signature">Signature</label>
+						<input type="text" id="signature" data-nuru-opt="signature" maxlength="7" value="nuruweb">
 					</div>
 					<div class="input">
-						<label for="img-name">File name</label>
-						<input type="text" id="img-name" data-nuru-opt"img-name" value="drawing">
+						<label for="filename">File name</label>
+						<input type="text" id="filename" data-nuru-opt="filename" value="drawing">
 					</div>
 				</div>
 			</fieldset>
@@ -103,7 +103,7 @@
 		</aside>
 		<main>
 			<div class="term">
-				<div class="nuru" data-nuru-term="" data-nuru-cols="80" data-nuru-rows="25"></div>
+				<div class="nuru" data-nuru-term=""></div>
 			</div>
 		</main>
 		<aside class="palettes">

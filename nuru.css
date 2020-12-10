@@ -56,14 +56,15 @@ main {
 	font-size: 1.25em;
 }
 
-nav, aside {
+nav, aside, header, footer {
 	display: flex;
 	margin: .125rem;
 	padding: .25rem;
+	justify-content: center;
 	align-items: center;
 	color: var(--panel-fg);
 	background: var(--panel-bg);
-	border-radius: .25rem;
+	border-radius: var(--border-radius);
 }
 
 aside {
@@ -80,25 +81,13 @@ nav button, aside button {
 header {
 	grid-column: 1;
 	grid-row: 1;
-	margin: .125rem;
-	padding: .25rem;
-	text-align: center;
 	color: var(--tooltip-fg);
 	background-color: var(--tooltip-bg);
-	border-radius: var(--border-radius);
 }
 
 footer {
-	display: flex;
-	justify-content: center;
-	align-items: center;
 	grid-column: 3;
 	grid-row: 1;
-	margin: .125rem;
-	padding: .25rem;
-	color: var(--panel-fg);
-	background-color: var(--panel-bg);
-	border-radius: var(--border-radius);
 }
 
 footer .version {
