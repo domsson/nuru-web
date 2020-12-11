@@ -44,6 +44,11 @@ a:active {
 	border-bottom: 1px dashed var(--highlight);
 }
 
+kbd {
+	font-family: monospace;
+	padding: .125rem .25rem;
+}
+
 body {
 	display: grid;
 	grid-template-columns: auto 1fr auto;
