@@ -21,18 +21,15 @@ function Nuru()
 	this.fg = 15;
 	this.bg = 0;
 
-	this.layer = "fg";
-
 	this.space = 32; // TODO needs to come from palette object/file
 
 	// keyboard / mouse
-	this.alt = false;
-	this.ctrl = false;
-	this.shift = false;
 	this.drag = false;
 
 	// currently selected tool
 	this.tool = null;
+	this.action = "get";
+	this.layer = "fg";
 
 	// file signatures etc
 	this.nui_sig = "NURUIMG";
@@ -47,6 +44,7 @@ function Nuru()
 	this.slots = [];
 	this.tools = {};
 	this.layers = {};
+	this.actions = {};
 	this.hotkeys = {};
 };
 
@@ -415,8 +413,18 @@ Nuru.prototype.init = function()
 		this.layers[layers[i].getAttribute("data-nuru-layer")] = layers[i];
 		layers[i].addEventListener("click", handler);
 	}
-
 	this.select_layer();
+
+	// action buttons
+	let actions = document.querySelectorAll("[data-nuru-action]");
+	handler = this.on_action.bind(this);
+	for (let i = 0; i < actions.length; ++i)
+	{
+		console.log(actions[i]);
+		this.actions[actions[i].getAttribute("data-nuru-action")] = actions[i];
+		actions[i].addEventListener("click", handler);
+	}
+	this.select_action();
 	
 	// toolbox buttons
 	let tools = document.querySelectorAll("[data-nuru-tool]");
@@ -569,7 +577,7 @@ Nuru.prototype.on_slot = function(evt)
 	let fg = parseInt(cell.getAttribute("data-nuru-fg"));
 	let bg = parseInt(cell.getAttribute("data-nuru-bg"));
 
-	if (this.alt)
+	if (this.action == "set")
 	{
 		this.set_cell(ele.querySelector(".cell"));
 	}
@@ -577,6 +585,13 @@ Nuru.prototype.on_slot = function(evt)
 	{
 		this.set_brush(ch, fg, bg);
 	}
+};
+
+Nuru.prototype.select_action = function(which="set")
+{
+	this.actions[this.action].classList.remove("selected");
+	this.action = which;
+	this.actions[this.action].classList.add("selected")
 };
 
 Nuru.prototype.select_layer = function(which="fg")
@@ -605,6 +620,14 @@ Nuru.prototype.get_opt = function(opt, fallback)
 {
 	return this.options[opt] ? this.options[opt] : fallback;
 };
+
+Nuru.prototype.on_action = function(evt)
+{
+	let btn = evt.currentTarget;
+	let opt = btn.getAttribute("data-nuru-action");
+
+	this.select_action(opt);
+}
 
 Nuru.prototype.on_layer = function(evt)
 {
@@ -676,24 +699,10 @@ Nuru.prototype.on_click_fieldset = function(evt)
 
 Nuru.prototype.on_key = function(evt)
 {
-	evt.preventDefault();
-	let keydown = (evt.type == "keydown");
+	//evt.preventDefault();
 	let key = evt.key.toLowerCase();
-
 	//console.log("key = " + evt.key + " | code = " + evt.code);
-
-	switch (key)
-	{
-		case "alt":
-			this.alt = keydown;
-			break;
-		case "control":
-			this.ctrl = keydown;
-			break;
-		case "shift":
-			this.shift = keydown;
-	}
-
+	
 	if (keydown)
 	{
 		if (this.hotkeys.hasOwnProperty(key))

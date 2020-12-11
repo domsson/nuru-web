@@ -134,7 +134,8 @@ h1 {
 	justify-content: space-evenly;
 }
 
-.toolbox > div {
+.toolbox fieldset,
+.toolbox .fields {
 	display: flex;
 }
 
@@ -177,7 +178,7 @@ h1 {
 	box-shadow: 0 0 .125em #000;
 }
 
-.toolbox .active-brush {
+.toolbox .active-brush .fields {
 	display: grid;
 	grid-template-columns: auto auto;
 	grid-template-rows: auto auto auto;
@@ -245,14 +246,25 @@ label {
 }
 
 fieldset {
-	width: 100%;
 	margin: 0;
-	margin-bottom: var(--gap-l);
 	padding: 0;
 	border: none;
 }
 
-fieldset > label {
+aside fieldset {
+	width: 100%;
+	margin-bottom: var(--gap-l);
+}
+
+fieldset.collapsed .fields {
+	display: none;
+}
+
+nav fieldset > label {
+	display: none;
+}
+
+aside fieldset > label {
 	display: block;
 	position: relative;
 	padding: var(--gap-m) var(--gap-l);
@@ -263,22 +275,24 @@ fieldset > label {
 	cursor: pointer;
 }
 
-fieldset > label::after {
+aside fieldset > label::after {
 	content: "▲";
 	position: absolute;
 	right: var(--gap-l);
 }
 
-fieldset.collapsed .fields {
-	display: none;
-}
-
-fieldset.collapsed label {
+aside fieldset.collapsed label {
 	margin-bottom: 0;
 }
 
-fieldset.collapsed > label:after {
+aside fieldset.collapsed > label:after {
 	content: "▼";
+}
+
+.palettes .fields {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .input {
@@ -399,7 +413,14 @@ button:focus,
 	justify-content: space-between;
 }
 
-.layers button {
+.actions {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.layers button,
+.actions button {
 	width: auto;
 	height: auto;
 	padding: var(--gap-m) var(--gap-l);
@@ -409,17 +430,32 @@ button:focus,
 	font-size: .675rem;
 }
 
+.actions button {
+	padding: var(--gap-s) var(--gap-l);
+	padding-right: 1.5rem;
+	background-position: right var(--gap-l) center;
+}
+
 .menu button[data-nuru-hotkey]:before,
-.layers button[data-nuru-hotkey]:before {
+.layers button[data-nuru-hotkey]:before,
+.actions button[data-nuru-hotkey]:before {
 	font-size: .625rem;
 }
 
-.toolbox button .label {
+.tools button .label {
 	display: none;
 }
 
 button.selected {
 	background-color: var(--highlight);
+}
+
+button.set {
+	background-image: url(img/icon_arrow_right.svg);
+}
+
+button.get {
+	background-image: url(img/icon_arrow_left.svg);
 }
 
 button.fg {

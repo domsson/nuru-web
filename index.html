@@ -130,28 +130,41 @@
 			</fieldset>
 		</aside>
 		<nav class="toolbox">
-			<div class="tools">
-				<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="Q"><span class="label">Pencil</label></button>
-				<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="E"><span class="label">Eraser</label></button>
-				<button class="picker" data-nuru-tool="picker" data-nuru-hotkey="C"><span class="label">Picker</label></button>
-			</div>
-			<div class="active-brush">
-				<div class="nuru brush" data-nuru-brush="" title="Brush"></div>
-				<div class="nuru glyph" data-nuru-glyph="" title="Glyph"></div>
-				<div class="nuru fgcol" data-nuru-fgcol="" title="FG"></div>
-				<div class="nuru bgcol" data-nuru-bgcol="" title="BG"></div>
-			</div>
-			<div class="saved-brushes">
-				<div class="nuru slot" data-nuru-slot="1" data-nuru-hotkey="1"></div>
-				<div class="nuru slot" data-nuru-slot="2" data-nuru-hotkey="2"></div>
-				<div class="nuru slot" data-nuru-slot="3" data-nuru-hotkey="3"></div>
-				<div class="nuru slot" data-nuru-slot="4" data-nuru-hotkey="4"></div>
-				<div class="nuru slot" data-nuru-slot="5" data-nuru-hotkey="5"></div>
-				<div class="nuru slot" data-nuru-slot="6" data-nuru-hotkey="6"></div>
-				<div class="nuru slot" data-nuru-slot="7" data-nuru-hotkey="7"></div>
-				<div class="nuru slot" data-nuru-slot="8" data-nuru-hotkey="8"></div>
-				<div class="nuru slot" data-nuru-slot="9" data-nuru-hotkey="9"></div>
-			</div>
+			<fieldset class="tools">
+				<label>Tools</label>
+				<div class="fields">
+					<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="Q"><span class="label">Pencil</label></button>
+					<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="E"><span class="label">Eraser</label></button>
+					<button class="picker" data-nuru-tool="picker" data-nuru-hotkey="C"><span class="label">Picker</label></button>
+				</div>
+			</fieldset>
+			<fieldset class="active-brush">
+				<label>Brush</label>
+				<div class="fields">
+					<div class="nuru brush" data-nuru-brush="" title="Brush"></div>
+					<div class="nuru glyph" data-nuru-glyph="" title="Glyph"></div>
+					<div class="nuru fgcol" data-nuru-fgcol="" title="FG"></div>
+					<div class="nuru bgcol" data-nuru-bgcol="" title="BG"></div>
+				</div>
+			</fieldset>
+			<fieldset class="saved-brushes">
+				<label>Slots</label>
+				<div class="actions">
+					<button class="set" data-nuru-action="set" data-nuru-hotkey="S"><span class="label">set</span></button>
+					<button class="get" data-nuru-action="get" data-nuru-hotkey="G"><span class="label">get</span></button>
+				</div>
+				<div class="fields">
+					<div class="nuru slot" data-nuru-slot="1" data-nuru-hotkey="1"></div>
+					<div class="nuru slot" data-nuru-slot="2" data-nuru-hotkey="2"></div>
+					<div class="nuru slot" data-nuru-slot="3" data-nuru-hotkey="3"></div>
+					<div class="nuru slot" data-nuru-slot="4" data-nuru-hotkey="4"></div>
+					<div class="nuru slot" data-nuru-slot="5" data-nuru-hotkey="5"></div>
+					<div class="nuru slot" data-nuru-slot="6" data-nuru-hotkey="6"></div>
+					<div class="nuru slot" data-nuru-slot="7" data-nuru-hotkey="7"></div>
+					<div class="nuru slot" data-nuru-slot="8" data-nuru-hotkey="8"></div>
+					<div class="nuru slot" data-nuru-slot="9" data-nuru-hotkey="9"></div>
+				</div>
+			</fieldset>
 		</nav>
 		<footer>
 			<span class="version"><a class="about" href="https://github.com/domsson/nuru-web" target="_blank">v0.0.4</a></span>
