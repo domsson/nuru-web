@@ -57,7 +57,6 @@ body {
 }
 
 main {
-	position: relative;
 	grid-column: 2;
 	grid-row: 2;
 	display: flex;
@@ -66,20 +65,6 @@ main {
 	width: 100%;
 	height: 100%;
 	font-size: 1.25em;
-}
-
-.help {
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	font-size: .75rem;
-	color: #555;
-	padding: var(--gap-l);
-}
-
-.help ul {
-	padding: 0;
-	margin: 0;
 }
 
 nav, aside, header, footer {
@@ -408,10 +393,7 @@ button:focus,
 	width: auto;
 	height: auto;
 	padding: var(--gap-m) var(--gap-l);
-	padding-left: 1.5rem;
-	background-position: var(--gap-l) center;
-	background-size: .5rem .5rem;
-	font-size: .675rem;
+	font-size: .75rem;
 }
 
 .menu button[data-nuru-hotkey]:before,
@@ -425,14 +407,6 @@ button:focus,
 
 button.selected {
 	background-color: var(--highlight);
-}
-
-button.fg {
-	background-image: url(img/icon_fg.svg);
-}
-
-button.bg {
-	background-image: url(img/icon_bg.svg);
 }
 
 button.open {
@@ -476,6 +450,11 @@ button.picker {
 	border: 1px dotted #555;
 }
 
+.glyphs,
+.colors {
+	font-size: .75rem;
+}
+
 .nuru {
 	display: table;
 	position: relative;
@@ -483,16 +462,6 @@ button.picker {
 	font-family: monospace;
 	color: var(--term-fg);
 	background: var(--term-bg);
-}
-
-.glyphs,
-.colors {
-	font-size: .75rem;
-}
-
-.palettes .nuru {
-	color: inherit;
-	background: inherit;
 }
 
 .nuru .line {
@@ -518,24 +487,26 @@ button.picker {
 	border: 1px solid var(--panel-bg);
 }
 
-.glyphs .cell.selected {
-	color: var(--tooltip-fg);
-	background-color: var(--tooltip-bg);
+.cell.selected {
+	line-height: 0;
 }
 
 .colors .cell.selected {
 	background-repeat: no-repeat;
 	background-position: center center;
-	background-size: .5rem;
+	/*background-size: .5rem;*/
 }
 
 .colors .cell.selected.fg {
 	background-image: url(img/icon_fg.svg);
+	border: 3px solid red;
 }
 
 .colors .cell.selected.bg {
 	background-image: url(img/icon_bg.svg);
 }
+
+
 
 .glyphs .cell.non-printable {
 	cursor: not-allowed;

@@ -21,6 +21,8 @@ function Nuru()
 	this.fg = 15;
 	this.bg = 0;
 
+	this.layer = "fg";
+
 	this.space = 32; // TODO needs to come from palette object/file
 
 	// keyboard / mouse
@@ -44,6 +46,7 @@ function Nuru()
 	this.options = {};
 	this.slots = [];
 	this.tools = {};
+	this.layers = {};
 	this.hotkeys = {};
 };
 
@@ -302,6 +305,11 @@ Nuru.prototype.init = function()
 			cell.setAttribute("title", (r*16+c) + ": U+" + ch.charCodeAt(0).toString(16));
 			cell.innerHTML = ch;
 
+			if (r*16+c == this.ch)
+			{
+				cell.classList.add("selected");
+			}
+
 			if (!this.printable(ch))
 			{
 				cell.classList.add("non-printable");
@@ -318,6 +326,7 @@ Nuru.prototype.init = function()
 	// COLORS PALETTE
 
 	this.colors = document.querySelector("[data-nuru-colors]");
+	this.idx = null;
 	for (let r = 0; r < 16; ++r)
 	{
 		line = document.createElement("div");
@@ -325,15 +334,26 @@ Nuru.prototype.init = function()
 
 		for (let c = 0; c < 16; ++c)
 		{
-			let col = this.to_col(this.ANSI8[r*16+c]);
+			idx = r * 16 +c;
+			let col = this.to_col(this.ANSI8[idx]);
 			cell = document.createElement("pre");
 			cell.classList.add("cell", "r"+r, "c"+c);
+
+			if (idx == this.fg)
+			{
+				cell.classList.add("selected", "fg");
+			}
+			if (idx == this.bg)
+			{
+				cell.classList.add("selected", "bg");
+			}
+
 			cell.setAttribute("data-nuru-row", r);
 			cell.setAttribute("data-nuru-col", c);
 			cell.setAttribute("data-nuru-ch", 32);
 			cell.setAttribute("data-nuru-fg", "");
 			cell.setAttribute("data-nuru-bg", "");
-			cell.setAttribute("title", r*16+c + ": " + col);
+			cell.setAttribute("title", idx + ": " + col);
 			cell.innerHTML = " ";
 			cell.style.backgroundColor = col;
 			line.appendChild(cell);
@@ -376,23 +396,34 @@ Nuru.prototype.init = function()
 	}
 
 	// catch keyboard events
-	document.addEventListener('keydown', this.on_key.bind(this));
-	document.addEventListener('keyup', this.on_key.bind(this));
+	document.addEventListener("keydown", this.on_key.bind(this));
+	document.addEventListener("keyup", this.on_key.bind(this));
 
 	// buttons
 	let buttons = document.querySelectorAll("[data-nuru-btn]");
 	handler = this.on_button.bind(this);
 	for (let i = 0; i < buttons.length; ++i)
 	{
-		buttons[i].addEventListener('click', handler);
+		buttons[i].addEventListener("click", handler);
 	}
+
+	// layer buttons
+	let layers = document.querySelectorAll("[data-nuru-layer]");
+	handler = this.on_layer.bind(this);
+	for (let i = 0; i < layers.length; ++i)
+	{
+		this.layers[layers[i].getAttribute("data-nuru-layer")] = layers[i];
+		layers[i].addEventListener("click", handler);
+	}
+
+	this.select_layer();
 	
 	// toolbox buttons
 	let tools = document.querySelectorAll("[data-nuru-tool]");
 	handler = this.on_tool.bind(this);
 	for (let i = 0; i < tools.length; ++i)
 	{
-		tools[i].addEventListener('click', handler);
+		tools[i].addEventListener("click", handler);
 		this.tools[tools[i].getAttribute("data-nuru-tool")] = tools[i];
 	}
 
@@ -404,7 +435,7 @@ Nuru.prototype.init = function()
 	handler = this.on_slot.bind(this);
 	for (let i = 0; i < slots.length; ++i)
 	{
-		slots[i].addEventListener('click', handler);
+		slots[i].addEventListener("click", handler);
 		this.slots.push(slots[i]);
 		slots[i].appendChild(this.new_cell());
 	}
@@ -414,11 +445,13 @@ Nuru.prototype.init = function()
 	handler = this.on_click_fieldset.bind(this);
 	for (let i = 0; i < fieldset_labels.length; ++i)
 	{
-		fieldset_labels[i].addEventListener('click', handler);
+		fieldset_labels[i].addEventListener("click", handler);
 	}
 
 	this.set_css_var("term-fg", this.options["term-fg"]);
 	this.set_css_var("term-bg", this.options["term-bg"]);
+	
+	this.set_brush(this.ch, this.fg, this.bg);
 
 	// MAKE SURE ALL COLORS ARE SET TO "inherit"
 	this.reset_term();
@@ -469,9 +502,16 @@ Nuru.prototype.new_line = function(row)
 Nuru.prototype.new_cell = function(row, col)
 {
 	let cell = document.createElement("pre");
-	cell.classList.add("cell", "r"+row, "c"+col);
-	cell.setAttribute("data-nuru-row", row);
-	cell.setAttribute("data-nuru-col", col);
+	cell.classList.add("cell");
+	if (row) {
+		cell.classList.add("r"+row);
+		cell.setAttribute("data-nuru-row", row);
+
+	}
+	if (col) {
+		cell.classList.add("c"+col);
+		cell.setAttribute("data-nuru-col", col);
+	}
 	cell.setAttribute("data-nuru-ch", this.space);
 	cell.setAttribute("data-nuru-fg", this.options["fg-key"]);
 	cell.setAttribute("data-nuru-bg", this.options["bg-key"]); 
@@ -539,6 +579,13 @@ Nuru.prototype.on_slot = function(evt)
 	}
 };
 
+Nuru.prototype.select_layer = function(which="fg")
+{
+	this.layers[this.layer].classList.remove("selected");
+	this.layer = which;
+	this.layers[this.layer].classList.add("selected")
+};
+
 Nuru.prototype.select_tool = function(which)
 {
 	this.tools[this.tool].classList.remove("selected");
@@ -558,6 +605,14 @@ Nuru.prototype.get_opt = function(opt, fallback)
 {
 	return this.options[opt] ? this.options[opt] : fallback;
 };
+
+Nuru.prototype.on_layer = function(evt)
+{
+	let btn = evt.currentTarget;
+	let opt = btn.getAttribute("data-nuru-layer");
+
+	this.select_layer(opt);
+}
 
 Nuru.prototype.on_button = function(evt)
 {
@@ -623,46 +678,47 @@ Nuru.prototype.on_key = function(evt)
 {
 	evt.preventDefault();
 	let keydown = (evt.type == "keydown");
+	let key = evt.key.toLowerCase();
 
 	//console.log("key = " + evt.key + " | code = " + evt.code);
 
-	switch (evt.key)
+	switch (key)
 	{
-		case "Alt":
+		case "alt":
 			this.alt = keydown;
 			break;
-		case "Control":
+		case "control":
 			this.ctrl = keydown;
 			break;
-		case "Shift":
+		case "shift":
 			this.shift = keydown;
 	}
 
 	if (keydown)
 	{
-		if (this.hotkeys.hasOwnProperty(evt.key))
+		if (this.hotkeys.hasOwnProperty(key))
 		{
-			this.hotkeys[evt.key].focus();
+			this.hotkeys[key].focus();
 		}
 	}
 	else // keyup
 	{
-		if (this.hotkeys.hasOwnProperty(evt.key))
+		if (this.hotkeys.hasOwnProperty(key))
 		{
-			this.hotkeys[evt.key].click();
+			this.hotkeys[key].click();
 		}
 	}
 };
 
-Nuru.prototype.get_fg_css = function(col=null)
+Nuru.prototype.get_fg_css = function(color=null)
 {
-	let fg = col == null ? this.fg : col;
+	let fg = color == null ? this.fg : color;
 	return (fg == this.options["fg-key"]) ? "inherit" : this.to_col(this.ANSI8[fg]);
 };
 
-Nuru.prototype.get_bg_css = function(col=null)
+Nuru.prototype.get_bg_css = function(color=null)
 {
-	let bg = col == null ? this.bg : col;
+	let bg = color == null ? this.bg : color;
 	return (bg == this.options["bg-key"]) ? "inherit" : this.to_col(this.ANSI8[bg]);
 };
 
@@ -755,7 +811,7 @@ Nuru.prototype.set_fgcol = function(fg=null)
 	//console.log("fg: " + fg + " -> " + this.fg);
 
 	brush.style.color           = this.get_fg_css(); 
-	fgcol.style.backgroundColor = this.get_fg_css();
+	fgcol.style.backgroundColor = this.to_col(this.ANSI8[fg]); //this.get_fg_css();
 };
 
 Nuru.prototype.set_bgcol = function(bg=null)
@@ -791,16 +847,18 @@ Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
 Nuru.prototype.select_cell = function(panel, r, c, classname=undefined)
 {
 	// deselect all cells first (should be only one)
-	let cells = panel.querySelectorAll(".selected");
+	let other = classname ? "."+classname : "";
+	let cells = panel.querySelectorAll(".selected" + other);
 	for (let c = 0; c < cells.length; ++c)
 	{
 		cells[c].classList.remove("selected", classname);
 	}
 
 	// select the desired cell
-	let line = this.glyphs.childNodes[r];
+	let line = panel.childNodes[r];
 	let cell = line.childNodes[c];
 	cell.classList.add("selected", classname);
+	console.log(cell);
 };
 
 Nuru.prototype.on_click_glyphs = function(evt)
@@ -828,14 +886,14 @@ Nuru.prototype.on_click_colors = function(evt)
 	let c = parseInt(cell.getAttribute("data-nuru-col"));
 	let r = parseInt(cell.getAttribute("data-nuru-row"));
 
-	if (this.alt)
-	{
-		this.set_brush(null, null, r*16+c);
-		this.select_cell(this.colors, r, c, "bg");
-	}
-	else
+	if (this.layer == "fg")
 	{
 		this.set_brush(null, r*16+c, null);
 		this.select_cell(this.colors, r, c, "fg");
+	}
+	else
+	{
+		this.set_brush(null, null, r*16+c);
+		this.select_cell(this.colors, r, c, "bg");
 	}
 };
