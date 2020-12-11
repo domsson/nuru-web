@@ -17,8 +17,11 @@
 	--button-bg: #ccc;
 	--tooltip-fg: #111; 
 	--tooltip-bg: #d0b153;
-	--border-radius: .25rem;
 	--highlight: #d0b153;
+	--border-radius: .25rem;
+	--gap-s: .125rem;
+	--gap-m: .25rem;
+	--gap-l: .5rem;
 }
 
 html {
@@ -47,7 +50,7 @@ body {
 	grid-template-rows: auto 1fr auto;
 	height: 100vh;
 	margin: 0;
-	padding: .125rem;
+	padding: var(--gap-s);
 	font-family: sans-serif;
 	color: var(--ui-fg);
 	background: var(--ui-bg);
@@ -66,8 +69,8 @@ main {
 
 nav, aside, header, footer {
 	display: flex;
-	margin: .125rem;
-	padding: .25rem;
+	margin: var(--gap-s);
+	padding: var(--gap-m);
 	justify-content: center;
 	align-items: center;
 	color: var(--panel-fg);
@@ -83,7 +86,7 @@ aside {
 }
 
 nav button, aside button {
-	margin: .25rem;
+	margin: var(--gap-m);
 }
 
 header {
@@ -91,7 +94,7 @@ header {
 	grid-row: 1;
 	color: var(--tooltip-fg);
 	background-color: var(--tooltip-bg);
-	background-image: url(img/nuru-horizontal-outline_omg.svg);
+	background-image: url(img/nuru_logo_outline.svg);
 	background-repeat: no-repeat;
 	background-position: center center;
 	background-size: auto 2rem;
@@ -108,11 +111,6 @@ footer .version {
 
 h1 {
 	display: none;
-	/*
-	line-height: 1;
-	margin: 0;
-	padding: 0;
-	*/
 }
 
 .menu {
@@ -144,9 +142,9 @@ h1 {
 	position: relative;
 	width: 3rem;
 	height: 3rem;
-	margin: .25rem;
+	margin: var(--gap-m);
 	display: flex;
-	border-radius: .25rem;
+	border-radius: var(--border-radius);
 	justify-content: center;
 	align-items: center;
 	box-shadow: 0 0 .25rem inset rgba(0,0,0,0.5);
@@ -163,7 +161,7 @@ h1 {
 	left: -.25rem;
 	color: var(--tooltip-fg);
 	background: var(--tooltip-bg);
-	padding: .125rem;
+	padding: var(--gap-s);
 	border-radius: .125rem;
 	font-size: .75rem;
 	box-shadow: 0 0 .125em #000;
@@ -195,7 +193,7 @@ h1 {
 	width: 1rem;
 	height: 1rem;
 	border: none;
-	margin: 0 2.5rem 0 .25rem;
+	margin: 0 2.5rem 0 var(--gap-m);
 }
 
 .active-brush .glyph:before,
@@ -239,7 +237,7 @@ label {
 fieldset {
 	width: 100%;
 	margin: 0;
-	margin-bottom: .5rem;
+	margin-bottom: var(--gap-l);
 	padding: 0;
 	border: none;
 }
@@ -247,7 +245,7 @@ fieldset {
 fieldset > label {
 	display: block;
 	position: relative;
-	padding: .25rem .5rem;
+	padding: var(--gap-m) var(--gap-l);
 	margin-bottom: .75rem;
 	color: #fff;
 	background: #555;
@@ -258,7 +256,7 @@ fieldset > label {
 fieldset > label::after {
 	content: "▲";
 	position: absolute;
-	right: .5rem;
+	right: var(--gap-l);
 }
 
 fieldset.collapsed .fields {
@@ -277,11 +275,11 @@ fieldset.collapsed > label:after {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin: .25rem 0;
+	margin: var(--gap-m) 0;
 }
 
 .input label {
-	margin: .25rem .5rem;
+	margin: var(--gap-m) var(--gap-l);
 }
 
 .input input,
@@ -289,7 +287,7 @@ fieldset.collapsed > label:after {
 	width: 5rem;
 	min-height: 1.75rem;
 	margin: 0;
-	padding: .25rem;
+	padding: var(--gap-m);
 	text-align: right;
 	color: var(--input-fg);
 	background: var(--input-bg);
@@ -306,14 +304,14 @@ select {
 label[for="palette-open"] {
 	cursor: pointer;
 	width: 100%;
-	margin: .125rem 0;
-	padding: .5rem;
+	margin: var(--gap-s) 0;
+	padding: var(--gap-l);
 	padding-left: 2.5rem;
 	color: var(--button-fg);
 	background-color: var(--button-bg);
 	border-radius: var(--border-radius);
 	background-repeat: no-repeat;
-	background-position: .5rem center;
+	background-position: var(--gap-l) center;
 	background-size: 1.5rem 1.5rem;
 }
 
@@ -324,14 +322,14 @@ label[for="palette-save"] {
 button#palette-save {
 	width: 100%;
 	height: auto;
-	margin: .125rem 0;
-	padding: .5rem;
+	margin: var(--gap-s) 0;
+	padding: var(--gap-l);
 	padding-left: 2.5rem;
 	text-align: left;
 	color: var(--button-fg);
 	font-size: inherit;
-	background-image: url(img/icon_save_omg.svg);
-	background-position: .5rem center;
+	background-image: url(img/icon_save.svg);
+	background-position: var(--gap-l) center;
 	background-size: 1.5rem 1.5rem;
 }
 
@@ -340,7 +338,7 @@ button#palette-save .label {
 }
 
 .input label[for="palette-open"] {
-	background-image: url(img/icon_open_omg.svg);
+	background-image: url(img/icon_open.svg);
 }
 
 .input.file input {
@@ -377,9 +375,9 @@ button:active,
 .menu button {
 	width: auto;
 	height: auto;
-	padding: .25rem .5rem;
+	padding: var(--gap-m) var(--gap-l);
 	padding-left: 2rem;
-	background-position: .5rem center;
+	background-position: var(--gap-l) center;
 	background-size: 1rem 1rem;
 }
 
@@ -396,37 +394,37 @@ button:active,
 }
 
 button.open {
-	background-image: url(img/icon_open_omg.svg);
+	background-image: url(img/icon_open.svg);
 }
 
 button.save {
-	background-image: url(img/icon_save_omg.svg);
+	background-image: url(img/icon_save.svg);
 }
 
 button.wipe {
-	background-image: url(img/icon_reset_omg.svg);
+	background-image: url(img/icon_reset.svg);
 }
 
 button.pencil {
-	background-image: url(img/icon_pencil_omg.svg);
+	background-image: url(img/icon_pencil.svg);
 }
 
 button.eraser {
-	background-image: url(img/icon_eraser_omg.svg);
+	background-image: url(img/icon_eraser.svg);
 }
 
 button.picker {
-	background-image: url(img/icon_pipette_omg.svg);
+	background-image: url(img/icon_pipette.svg);
 }
 
 .term,
 .glyphs,
 .colors {
-	margin: .25rem;
+	margin: var(--gap-m);
 }
 
 .term {
-	padding: .5rem;
+	padding: var(--gap-l);
 	color: var(--term-fg);
 	background-color: var(--term-bg);
 	border-radius: var(--border-radius);
@@ -460,7 +458,7 @@ button.picker {
 
 .nuru .cell {
 	display: table-cell;
-	cursor: url(img/crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
+	cursor: url(img/cursor_crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
 	user-select: none;
 	-moz-user-select: none;
 	color: inherit;
@@ -469,7 +467,7 @@ button.picker {
 
 .glyphs .cell,
 .colors .cell {
-	padding: .125rem;
+	padding: var(--gap-s);
 	border: 1px solid var(--panel-bg);
 }
 
