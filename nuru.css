@@ -363,8 +363,11 @@ button:focus {
 
 button:hover,
 button:active,
+button:focus,
 .input label[for="palette-open"]:hover,
-.slot:hover {
+.input label[for="palette-open"]:focus,
+.slot:hover,
+.slot:focus {
 	box-shadow: 0 0 0 .125rem var(--highlight);
 }
 

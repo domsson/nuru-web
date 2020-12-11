@@ -24,6 +24,7 @@ function Nuru()
 	this.space = 32; // TODO needs to come from palette object/file
 
 	// keyboard / mouse
+	this.alt = false;
 	this.ctrl = false;
 	this.shift = false;
 	this.drag = false;
@@ -43,6 +44,7 @@ function Nuru()
 	this.options = {};
 	this.slots = [];
 	this.tools = {};
+	this.hotkeys = {};
 };
 
 Nuru.prototype.CP437 = [
@@ -365,6 +367,14 @@ Nuru.prototype.init = function()
 	cell.innerHTML = " ";
 	this.bgcol.appendChild(cell);
 
+	let hotkey_elements = document.querySelectorAll("[data-nuru-hotkey]");
+	let key = null;
+	for (let i = 0; i < hotkey_elements.length; ++i)
+	{
+		key = hotkey_elements[i].getAttribute("data-nuru-hotkey").toLowerCase();
+		this.hotkeys[key] = hotkey_elements[i];
+	}
+
 	// catch keyboard events
 	document.addEventListener('keydown', this.on_key.bind(this));
 	document.addEventListener('keyup', this.on_key.bind(this));
@@ -396,6 +406,7 @@ Nuru.prototype.init = function()
 	{
 		slots[i].addEventListener('click', handler);
 		this.slots.push(slots[i]);
+		slots[i].appendChild(this.new_cell());
 	}
 	
 	// make fieldsets collapsible
@@ -513,10 +524,18 @@ Nuru.prototype.on_slot = function(evt)
 	let ele = evt.currentTarget;
 	let opt = ele.getAttribute("data-nuru-slot");
 
-	switch (opt)
+	let cell = ele.querySelector(".cell");
+	let ch = parseInt(cell.getAttribute("data-nuru-ch"));
+	let fg = parseInt(cell.getAttribute("data-nuru-fg"));
+	let bg = parseInt(cell.getAttribute("data-nuru-bg"));
+
+	if (this.alt)
 	{
-		default:
-			console.log("Not implemented: Slot " + opt);
+		this.set_cell(ele.querySelector(".cell"));
+	}
+	else
+	{
+		this.set_brush(ch, fg, bg);
 	}
 };
 
@@ -611,30 +630,36 @@ Nuru.prototype.on_click_fieldset = function(evt)
 
 Nuru.prototype.on_key = function(evt)
 {
-	console.log(evt);
-	if (evt.type == "keydown")
+	evt.preventDefault();
+	let keydown = (evt.type == "keydown");
+
+	console.log("key = " + evt.key + " | code = " + evt.code);
+
+	switch (evt.key)
 	{
-		if (evt.key == "Control")
-		{
-			this.ctrl = true;
-		}
-		if (evt.key == "Shift")
-		{
-			this.shift = true;
-		}
-		return;
+		case "Alt":
+			this.alt = keydown;
+			break;
+		case "Control":
+			this.ctrl = keydown;
+			break;
+		case "Shift":
+			this.shift = keydown;
 	}
-	if (evt.type == "keyup")
+
+	if (keydown)
 	{
-		if (evt.key == "Control")
+		if (this.hotkeys.hasOwnProperty(evt.key))
 		{
-			this.ctrl = false;
+			this.hotkeys[evt.key].focus();
 		}
-		if (evt.key == "Shift")
+	}
+	else // keyup
+	{
+		if (this.hotkeys.hasOwnProperty(evt.key))
 		{
-			this.shift = false;
+			this.hotkeys[evt.key].click();
 		}
-		return;
 	}
 };
 
@@ -772,23 +797,19 @@ Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
 	}
 };
 
-Nuru.prototype.deselect_cells = function(panel)
-{
-};
-
-Nuru.prototype.select_cell = function(panel, r, c)
+Nuru.prototype.select_cell = function(panel, r, c, classname=undefined)
 {
 	// deselect all cells first (should be only one)
 	let cells = panel.querySelectorAll(".selected");
 	for (let c = 0; c < cells.length; ++c)
 	{
-		cells[c].classList.remove("selected");
+		cells[c].classList.remove("selected", classname);
 	}
 
 	// select the desired cell
 	let line = this.glyphs.childNodes[r];
 	let cell = line.childNodes[c];
-	cell.classList.add("selected");
+	cell.classList.add("selected", classname);
 };
 
 Nuru.prototype.on_click_glyphs = function(evt)
@@ -816,14 +837,14 @@ Nuru.prototype.on_click_colors = function(evt)
 	let c = parseInt(cell.getAttribute("data-nuru-col"));
 	let r = parseInt(cell.getAttribute("data-nuru-row"));
 
-	if (this.ctrl)
+	if (this.alt)
 	{
 		this.set_brush(null, null, r*16+c);
+		this.select_cell(this.colors, r, c, "bg");
 	}
 	else
 	{
 		this.set_brush(null, r*16+c, null);
+		this.select_cell(this.colors, r, c, "fg");
 	}
-
-	this.select_cell(this.colors, r, c);
 };
