@@ -552,15 +552,6 @@ Nuru.prototype.on_tool = function(evt)
 	let opt = btn.getAttribute("data-nuru-tool");
 
 	this.select_tool(opt);
-
-	switch (opt)
-	{
-		case "pencil":
-		case "eraser":
-		case "picker":
-			console.log("Not implemented: " + opt);
-			break;
-	}
 };
 
 Nuru.prototype.get_opt = function(opt, fallback)
@@ -633,7 +624,7 @@ Nuru.prototype.on_key = function(evt)
 	evt.preventDefault();
 	let keydown = (evt.type == "keydown");
 
-	console.log("key = " + evt.key + " | code = " + evt.code);
+	//console.log("key = " + evt.key + " | code = " + evt.code);
 
 	switch (evt.key)
 	{
@@ -761,7 +752,7 @@ Nuru.prototype.set_fgcol = function(fg=null)
 	let fgcol = this.fgcol.querySelector(".cell");
 
 	this.fg = fg == null ? this.options["fg-key"] : fg;
-	console.log("fg: " + fg + " -> " + this.fg);
+	//console.log("fg: " + fg + " -> " + this.fg);
 
 	brush.style.color           = this.get_fg_css(); 
 	fgcol.style.backgroundColor = this.get_fg_css();
@@ -773,7 +764,7 @@ Nuru.prototype.set_bgcol = function(bg=null)
 	let bgcol = this.bgcol.querySelector(".cell");
 
 	this.bg = bg == null ? this.options["bg-key"] : bg;
-	console.log("bg: " + bg + " -> " + this.bg);
+	//console.log("bg: " + bg + " -> " + this.bg);
 
 	brush.style.backgroundColor = this.get_bg_css();
 	bgcol.style.backgroundColor = this.get_bg_css();
