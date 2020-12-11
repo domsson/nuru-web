@@ -62,7 +62,6 @@ body {
 }
 
 main {
-	position: relative;
 	grid-column: 2;
 	grid-row: 2;
 	display: flex;
@@ -71,15 +70,6 @@ main {
 	width: 100%;
 	height: 100%;
 	font-size: 1.25em;
-}
-
-.help {
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	font-size: .75rem;
-	color: #555;
-	padding: var(--gap-l);
 }
 
 .help ul {
