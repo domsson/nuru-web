@@ -55,21 +55,31 @@
 					<div class="input">
 						<label for="glyph-mode">Glyphs</label>
 						<select id="glyph-mode" data-nuru-opt="glyph-mode" disabled>
-							<option value="8" selected>Palette</option>
-							<option value="16">Unicode</option>
+							<option value="0">None</option>
+							<option value="1" selected>Palette</option>
+							<option value="2">Unicode</option>
 						</select>
 					</div>
 					<div class="input">
 						<label for="color-mode">Colors</label>
 						<select id="color-mode" data-nuru-opt="color-mode" disabled>
-							<option value="0">mono</option>
-							<option value="4">4-bit</option>
-							<option value="8" selected>8-bit</option>
+							<option value="0">Mono</option>
+							<option value="1">4-bit</option>
+							<option value="2" selected>8-bit</option>
+						</select>
+					</div>
+					<div class="input">
+						<label for="mdata-mode">Meta Data</label>
+						<select id="mdata-mode" data-nuru-opt="mdata-mode" disabled>
+							<option value="0" selected>None</option>
+							<option value="1">1 byte</option>
+							<option value="2">2 bytes</option>
 						</select>
 					</div>
 					<div class="input">
 						<label for="palette">Palette</label>
 						<select id="palette" data-nuru-opt="palette">
+							<option value="default">default</option>
 							<option value="CP437" selected>CP437</option>
 						</select>
 					</div>
@@ -79,8 +89,8 @@
 				<label>Meta data</label>
 				<div class="fields">
 					<div class="input">
-						<label for="signature">Signature</label>
-						<input type="text" id="signature" data-nuru-opt="signature" maxlength="7" value="nuruweb">
+						<label for="comment">Comment</label>
+						<input type="text" id="comment" data-nuru-opt="comment" maxlength="7" value="nuruweb">
 					</div>
 					<div class="input">
 						<label for="filename">File name</label>

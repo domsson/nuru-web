@@ -139,7 +139,7 @@ Nuru.prototype.save_palette = function(filename)
 	let i = 0;
 
 	// header: file format signature (8 bytes)
-	data.set(this.str_to_uint8arr(this.nup_sig), i);
+	data.set(this.str_to_uint8arr(this.nup_sig, 8), i);
 	i += 7;
 	data[i++] = 0x01; // 1 - file format version
 
@@ -147,7 +147,7 @@ Nuru.prototype.save_palette = function(filename)
 	data[i++] = 0x20; // index 32, space in ASCII
 
 	// header: palette name (7 bytes)
-	data.set(this.str_to_uint8arr("CP437  "), i);
+	data.set(this.str_to_uint8arr("CP437", 7), i);
 	i += 7;
 
 	// body: palette data
@@ -168,40 +168,39 @@ Nuru.prototype.save_as = function(filename)
 	// header is 16 bytes
 	// each cell = 1 byte for char, 2 bytes for color
 
-	let size = (this.rows * this.cols * 3) + 32;
+	let cols = this.options["cols"];
+	let rows = this.options["rows"];
+
+	let size = (cols * rows * 3) + 32;
 	let data = new Uint8Array(size);
 	let i = 0;
 
 	// file format signaturei (8 bytes)
-	data.set(this.str_to_uint8arr(this.nui_sig), i);
+	data.set(this.str_to_uint8arr(this.nui_sig, 8), i);
 	i += 7;
 	data[i++] = 0x01; // 1 - file format version
 
 	// data format (3 bytes)
-	data[i++] = 0x08; // colors: 8 bit = 256 colors
-	data[i++] = 0x08; // glyphs: 8 bit = 256 chars from palette
+	data[i++] = 0x01; // glyphs: 8 bit = 256 chars from palette
+	data[i++] = 0x01; // colors: 8 bit = 256 colors
 	data[i++] = 0x00; // meta data: 0 bit = no metadata
 
 	// image format (4 bytes)
-	data[i++] = (0xFF00 & this.cols) >> 8; // image width
-	data[i++] = (0x00FF & this.cols);      // image width
-	data[i++] = (0xFF00 & this.rows) >> 8; // image height
-	data[i++] = (0x00FF & this.rows);      // image height
+	data[i++] = (0xFF00 & cols) >> 8; // image width
+	data[i++] = (0x00FF & cols);      // image width
+	data[i++] = (0xFF00 & rows) >> 8; // image height
+	data[i++] = (0x00FF & rows);      // image height
 
 	// default colors (2 bytes)
 	data[i++] = 0xFF & this.options["fg-key"]; // 0x0F; // foreground color
 	data[i++] = 0xFF & this.options["bg-key"]; // 0x01; // background color 
 
 	// default palette name (7 bytes)
-	data[i++] = 0x43; // C
-	data[i++] = 0x50; // P
-	data[i++] = 0x34; // 4
-	data[i++] = 0x33; // 3
-	data[i++] = 0x37; // 7
-	data[i++] = 0x00; // _
-	data[i++] = 0x00; // _
+	data.set(this.str_to_uint8arr("CP437", 7), i);
+	i += 7;
 
 	// meta / signature / padding (8 bytes, leave empty)
+	data.set(this.str_to_uint8arr(this.options["comment"], 7), i);
 	i += 8;
 
 	// image data
@@ -213,10 +212,21 @@ Nuru.prototype.save_as = function(filename)
 	let lines = this.term.childNodes;
 	let cells = null;
 
-	for (let r = 0; r < this.rows; ++r)
+	if (lines.length != rows)
+	{
+		console.log("Discrepancy between actual and assumed image size!");
+		return false;
+	}
+
+	for (let r = 0; r < rows; ++r)
 	{
 		let cells = lines[r].childNodes;
-		for (let c = 0; c < this.cols; ++c)
+		if (cells.length != cols)
+		{
+			console.log("Discrepancy between actual and assumed image size!");
+			return false;
+		}
+		for (let c = 0; c < cols; ++c)
 		{
 			ch = parseInt(cells[c].getAttribute("data-nuru-ch"));
 			fg = parseInt(cells[c].getAttribute("data-nuru-fg"));
@@ -231,13 +241,13 @@ Nuru.prototype.save_as = function(filename)
 	this.download_data(data, filename);
 };
 
-Nuru.prototype.str_to_uint8arr = function(str)
+Nuru.prototype.str_to_uint8arr = function(str, len, space=32)
 {
-	let len = str.length;
+	let strlen = str.length;
 	let arr = new Uint8Array(len);
 	for (let i = 0; i < len; ++i)
 	{
-		arr[i] = str.charCodeAt(i);
+		arr[i] = i < strlen ? str.charCodeAt(i) : 32;
 	}
 	return arr;
 };
@@ -648,7 +658,7 @@ Nuru.prototype.on_button = function(evt)
 			console.log("Not implemented: " + opt);
 			break;
 		case "save":
-			this.save_as(this.get_opt("filename", this.filename));
+			this.save_as(this.get_opt("filename", this.filename) + ".nui");
 			break;
 		case "wipe":
 			this.reset_term();
@@ -700,17 +710,18 @@ Nuru.prototype.on_click_fieldset = function(evt)
 Nuru.prototype.on_key = function(evt)
 {
 	//evt.preventDefault();
-	let key = evt.key.toLowerCase();
 	//console.log("key = " + evt.key + " | code = " + evt.code);
+
+	let key = evt.key.toLowerCase();
 	
-	if (keydown)
+	if (evt.type == "keydown")
 	{
 		if (this.hotkeys.hasOwnProperty(key))
 		{
 			this.hotkeys[key].focus();
 		}
 	}
-	else // keyup
+	if (evt.type == "keyup")
 	{
 		if (this.hotkeys.hasOwnProperty(key))
 		{
