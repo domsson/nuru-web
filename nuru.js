@@ -704,6 +704,9 @@ Nuru.prototype.on_button = function(evt)
 		case "save":
 			this.save_img(this.get_opt("filename", this.filename) + ".nui");
 			break;
+		case "crop":
+			console.log("Not implemented: " + opt);
+			break;
 		case "wipe":
 			this.reset_term();
 			break;

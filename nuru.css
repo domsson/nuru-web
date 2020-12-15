@@ -478,8 +478,12 @@ button.save {
 	background-image: url(img/icon_save.svg);
 }
 
+button.crop {
+	background-image: url(img/icon_crop.svg);
+}
+
 button.wipe {
-	background-image: url(img/icon_reset.svg);
+	background-image: url(img/icon_wipe.svg);
 }
 
 button.pencil {
