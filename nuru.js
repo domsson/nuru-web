@@ -391,11 +391,11 @@ Nuru.prototype.init = function()
 
 			if (idx == this.fg)
 			{
-				cell.classList.add("selected", "fg");
+				cell.classList.add("selected-fg");
 			}
 			if (idx == this.bg)
 			{
-				cell.classList.add("selected", "bg");
+				cell.classList.add("selected-bg");
 			}
 
 			cell.setAttribute("data-nuru-row", r);
@@ -878,7 +878,7 @@ Nuru.prototype.set_fgcol = function(fg=null)
 	brush.style.color           = this.get_fg_css(); 
 	fgcol.style.backgroundColor = this.to_col(this.ANSI8[fg]); //this.get_fg_css();
 
-	this.select_cell_idx(this.colors, this.fg, "fg");
+	this.select_cell_idx(this.colors, this.fg, "selected-fg");
 };
 
 Nuru.prototype.set_bgcol = function(bg=null)
@@ -891,7 +891,7 @@ Nuru.prototype.set_bgcol = function(bg=null)
 	brush.style.backgroundColor = this.get_bg_css();
 	bgcol.style.backgroundColor = this.get_bg_css();
 
-	this.select_cell_idx(this.colors, this.bg, "bg");
+	this.select_cell_idx(this.colors, this.bg, "selected-bg");
 };
 
 Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
@@ -912,7 +912,7 @@ Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
 	}
 };
 
-Nuru.prototype.select_cell_idx = function(panel, idx, classname=undefined)
+Nuru.prototype.select_cell_idx = function(panel, idx, classname="selected")
 {
 	let lines = panel.childNodes;
 	let cells = lines[0].childNodes;
@@ -924,20 +924,19 @@ Nuru.prototype.select_cell_idx = function(panel, idx, classname=undefined)
 	this.select_cell(panel, row, col, classname);
 };
 
-Nuru.prototype.select_cell = function(panel, r, c, classname=undefined)
+Nuru.prototype.select_cell = function(panel, r, c, classname="selected")
 {
 	// deselect all cells first (should be only one)
-	let other = classname ? "."+classname : "";
-	let cells = panel.querySelectorAll(".selected" + other);
+	let cells = panel.querySelectorAll("." + classname);
 	for (let c = 0; c < cells.length; ++c)
 	{
-		cells[c].classList.remove("selected", classname);
+		cells[c].classList.remove(classname);
 	}
 
 	// select the desired cell
 	let line = panel.childNodes[r];
 	let cell = line.childNodes[c];
-	cell.classList.add("selected", classname);
+	cell.classList.add(classname);
 };
 
 Nuru.prototype.on_click_glyphs = function(evt)

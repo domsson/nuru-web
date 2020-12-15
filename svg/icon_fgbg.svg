@@ -11,7 +11,7 @@
    width="8"
    version="1.1"
    id="svg889"
-   sodipodi:docname="icon_bg.svg"
+   sodipodi:docname="icon_fgbg.svg"
    inkscape:version="1.0rc1 (09960d6f05, 2020-04-09)">
   <metadata
      id="metadata895">
@@ -41,9 +41,9 @@
      inkscape:window-height="1034"
      id="namedview891"
      showgrid="true"
-     inkscape:zoom="36.396911"
-     inkscape:cx="3.9384333"
-     inkscape:cy="5.7407365"
+     inkscape:zoom="27.639554"
+     inkscape:cx="4.0738828"
+     inkscape:cy="3.8574325"
      inkscape:window-x="964"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
@@ -54,15 +54,15 @@
        id="grid917" />
   </sodipodi:namedview>
   <path
-     sodipodi:nodetypes="ccc"
-     style="fill:none;stroke:#ffffff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-     d="M 2,2 V 6 H 6 V 2"
-     id="path992-7-3"
-     inkscape:connector-curvature="0" />
+     style="fill:#ffffff;stroke:#ffffff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+     d="M 1,1 V 7 H 7 V 1 Z"
+     id="path992"
+     inkscape:connector-curvature="0"
+     sodipodi:nodetypes="ccccc" />
   <path
      inkscape:connector-curvature="0"
      id="path992-7"
-     d="M 2,2 V 6 H 6 V 1.9658944"
+     d="M 2,6 H 6 V 2 H 2 Z"
      style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-     sodipodi:nodetypes="ccc" />
+     sodipodi:nodetypes="cc" />
 </svg>

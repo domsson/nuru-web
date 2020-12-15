@@ -570,18 +570,23 @@ button.picker {
 	background-color: var(--tooltip-bg);
 }
 
-.colors .cell.selected {
+.colors .cell.selected-fg,
+.colors .cell.selected-bg {
 	background-repeat: no-repeat;
 	background-position: center center;
 	background-size: .5rem;
 }
 
-.colors .cell.selected.fg {
+.colors .cell.selected-fg {
 	background-image: url(img/icon_fg.svg);
 }
 
-.colors .cell.selected.bg {
+.colors .cell.selected-bg {
 	background-image: url(img/icon_bg.svg);
+}
+
+.colors .cell.selected-fg.selected-bg {
+	background-image: url(img/icon_fgbg.svg);
 }
 
 .glyphs .cell.non-printable {
