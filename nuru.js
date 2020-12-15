@@ -864,6 +864,8 @@ Nuru.prototype.set_glyph = function(ch=null)
 
 	brush.innerHTML = this.pal.codepoints[this.ch];
 	glyph.innerHTML = this.pal.codepoints[this.ch];
+
+	this.select_cell_idx(this.glyphs, this.ch);
 };
 
 Nuru.prototype.set_fgcol = function(fg=null)
@@ -872,10 +874,11 @@ Nuru.prototype.set_fgcol = function(fg=null)
 	let fgcol = this.fgcol.querySelector(".cell");
 
 	this.fg = fg == null ? this.options["fg-key"] : fg;
-	//console.log("fg: " + fg + " -> " + this.fg);
 
 	brush.style.color           = this.get_fg_css(); 
 	fgcol.style.backgroundColor = this.to_col(this.ANSI8[fg]); //this.get_fg_css();
+
+	this.select_cell_idx(this.colors, this.fg, "fg");
 };
 
 Nuru.prototype.set_bgcol = function(bg=null)
@@ -884,10 +887,11 @@ Nuru.prototype.set_bgcol = function(bg=null)
 	let bgcol = this.bgcol.querySelector(".cell");
 
 	this.bg = bg == null ? this.options["bg-key"] : bg;
-	//console.log("bg: " + bg + " -> " + this.bg);
 
 	brush.style.backgroundColor = this.get_bg_css();
 	bgcol.style.backgroundColor = this.get_bg_css();
+
+	this.select_cell_idx(this.colors, this.bg, "bg");
 };
 
 Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
@@ -908,6 +912,18 @@ Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
 	}
 };
 
+Nuru.prototype.select_cell_idx = function(panel, idx, classname=undefined)
+{
+	let lines = panel.childNodes;
+	let cells = lines[0].childNodes;
+	let width = cells.length;
+
+	let row = Math.floor(idx / width);
+	let col = idx % width;
+
+	this.select_cell(panel, row, col, classname);
+};
+
 Nuru.prototype.select_cell = function(panel, r, c, classname=undefined)
 {
 	// deselect all cells first (should be only one)
@@ -922,7 +938,6 @@ Nuru.prototype.select_cell = function(panel, r, c, classname=undefined)
 	let line = panel.childNodes[r];
 	let cell = line.childNodes[c];
 	cell.classList.add("selected", classname);
-	console.log(cell);
 };
 
 Nuru.prototype.on_click_glyphs = function(evt)
@@ -938,8 +953,6 @@ Nuru.prototype.on_click_glyphs = function(evt)
 	let c = parseInt(cell.getAttribute("data-nuru-col"));
 	let r = parseInt(cell.getAttribute("data-nuru-row"));
 	this.set_brush(r*16+c, null, null);
-
-	this.select_cell(this.glyphs, r, c);
 };
 
 Nuru.prototype.on_click_colors = function(evt)
@@ -953,11 +966,9 @@ Nuru.prototype.on_click_colors = function(evt)
 	if (this.layer == "fg")
 	{
 		this.set_brush(null, r*16+c, null);
-		this.select_cell(this.colors, r, c, "fg");
 	}
 	else
 	{
 		this.set_brush(null, null, r*16+c);
-		this.select_cell(this.colors, r, c, "bg");
 	}
 };
