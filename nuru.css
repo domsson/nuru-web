@@ -309,7 +309,7 @@ aside fieldset.collapsed > label:after {
 
 .input input,
 .input select {
-	width: 5rem;
+	width: 6rem;
 	min-height: 1.75rem;
 	margin: 0;
 	padding: var(--gap-m);
