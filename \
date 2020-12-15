@@ -516,7 +516,6 @@ button.picker {
 	position: relative;
 	border-collapse: collapse;
 	font-family: monospace;
-	cursor: url(img/cursor_crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
 	color: var(--term-fg);
 	background: var(--term-bg);
 }
@@ -549,14 +548,6 @@ button.picker {
 
 .term .pencil {
 	cursor: url(img/cursor_pencil.png) 0 0, crosshair;
-}
-
-.term .eraser {
-	cursor: url(img/cursor_eraser.png) 1 6, crosshair;
-}
-
-.term .picker {
-	cursor: url(img/cursor_picker.png) 0 0, crosshair;
 }
 
 .glyphs .cell,

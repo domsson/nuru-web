@@ -511,6 +511,7 @@ Nuru.prototype.init = function()
 	this.set_css_var("term-bg", this.options["term-bg"]);
 	
 	this.set_brush(this.ch, this.fg, this.bg);
+	this.select_tool(this.tool);
 
 	// MAKE SURE ALL COLORS ARE SET TO "inherit"
 	this.reset_term();
@@ -655,8 +656,10 @@ Nuru.prototype.select_layer = function(which="fg")
 Nuru.prototype.select_tool = function(which)
 {
 	this.tools[this.tool].classList.remove("selected");
+	this.term.classList.remove(this.tool);
 	this.tool = which;
 	this.tools[this.tool].classList.add("selected");
+	this.term.classList.add(this.tool);
 };
 
 Nuru.prototype.on_tool = function(evt)
