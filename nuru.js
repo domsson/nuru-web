@@ -41,6 +41,7 @@ function Nuru()
 
 	// will be filled during init
 	this.options = {};
+	this.inputs = {};
 	this.slots = [];
 	this.tools = {};
 	this.layers = {};
@@ -320,6 +321,7 @@ Nuru.prototype.init = function()
 	for (let i = 0; i < opt_inputs.length; ++i)
 	{
 		opt_inputs[i].addEventListener('change', input_handler);
+		this.inputs[opt_inputs[i].getAttribute("data-nuru-opt")] = opt_inputs[i];
 		this.options[opt_inputs[i].getAttribute("data-nuru-opt")] = opt_inputs[i].value;
 	}
 
@@ -619,6 +621,46 @@ Nuru.prototype.reset_term = function()
 	}
 };
 
+Nuru.prototype.crop_term = function()
+{
+	let rows = 1;
+	let cols = 1;
+
+	let lines = this.term.childNodes;
+	let cells = null;
+
+	let ch_none = this.pal.space;
+	let fg_none = this.options["fg-key"];
+	let bg_none = this.options["bg-key"];
+
+	let ch = null;
+	let fg = null;
+	let bg = null;
+
+	for (let r = 0; r < lines.length; ++r)
+	{
+		cells = lines[r].childNodes;
+		for (let c = 0; c < cells.length; ++c)
+		{
+			ch = parseInt(cells[c].getAttribute("data-nuru-ch"));
+			fg = parseInt(cells[c].getAttribute("data-nuru-fg"));
+			bg = parseInt(cells[c].getAttribute("data-nuru-bg"));
+
+			if (ch != ch_none || fg != fg_none || bg != bg_none)
+			{
+				rows = Math.max(rows, r+1);
+				cols = Math.max(cols, c+1);
+			}
+		}
+	}
+
+	this.inputs["rows"].value = rows;
+	this.inputs["cols"].value = cols;
+	this.options["rows"] = rows;
+	this.options["cols"] = cols;
+	this.resize_term();
+};
+
 Nuru.prototype.on_slot = function(evt)
 {
 	let ele = evt.currentTarget;
@@ -705,7 +747,7 @@ Nuru.prototype.on_button = function(evt)
 			this.save_img(this.get_opt("filename", this.filename) + ".nui");
 			break;
 		case "crop":
-			console.log("Not implemented: " + opt);
+			this.crop_term();
 			break;
 		case "wipe":
 			this.reset_term();
