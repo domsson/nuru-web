@@ -1,5 +1,5 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap'); */
-/* @import url('https://fonts.googleapis.com/css2?family=Inconsolata&display=swap'); */
+/* @import url('https://fonts.googleapis.com/css2?family=Inconsolata&display=swap'); */ 
 /* @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap'); */
 /* @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap'); */
 
@@ -417,6 +417,10 @@ button:focus,
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+}
+
+.slots {
+	display: flex;
 }
 
 .layers button,
