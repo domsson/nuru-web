@@ -273,6 +273,7 @@ aside fieldset > label {
 	background: #555;
 	border-radius: var(--border-radius);
 	cursor: pointer;
+	text-shadow: 0 -1px #222;
 }
 
 aside fieldset > label::after {
@@ -379,6 +380,7 @@ button {
 	border: none;
 	border-radius: var(--border-radius);
 	cursor: pointer;
+	text-shadow: 0 1px #eee;
 }
 
 button:focus {
