@@ -34,6 +34,8 @@ function Nuru()
 	// file signatures etc
 	this.nui_sig = "NURUIMG";
 	this.nup_sig = "NURUPAL";
+	this.nui_ver = 1;
+	this.nup_ver = 1;
 
 	// some other defaults
 	this.filename  = "drawing";
@@ -184,7 +186,7 @@ Nuru.prototype.save_pal = function(filename)
 	// header: file format signature (8 bytes)
 	data.set(this.str_to_uint8arr(this.nup_sig, 8), i);
 	i += 7;
-	data[i++] = 0x01; // 1 - file format version
+	data[i++] = this.nup_sig; // 1 - file format version
 
 	// header: default fill character (1 byte)
 	data[i++] = this.pal.space; // index 32, space in ASCII
@@ -221,7 +223,7 @@ Nuru.prototype.save_img = function(filename)
 	// file format signaturei (8 bytes)
 	data.set(this.str_to_uint8arr(this.nui_sig, 8), i);
 	i += 7;
-	data[i++] = 0x01; // 1 - file format version
+	data[i++] = this.nui_ver; // 1 - file format version
 
 	// data format (3 bytes)
 	data[i++] = 0xFF & this.options["glyph-mode"];
@@ -282,6 +284,154 @@ Nuru.prototype.save_img = function(filename)
 	}
 
 	this.download_data(data, filename);
+};
+
+Nuru.prototype.prompt_file = function(type, multiple)
+{
+	let input = document.createElement("input");
+	input.setAttribute("type", "file");
+	input.setAttribute("data-nuru-type", type);
+	if (multiple)
+	{
+		input.setAttribute("multiple", "");
+	}
+	input.click();
+	input.addEventListener("change", this.on_files.bind(this));
+};
+
+Nuru.prototype.on_files = function(evt)
+{
+	let files = evt.target.files;
+	let type = evt.target.getAttribute("data-nuru-type");
+	let handler = this["load_" + type].bind(this);
+	let num_files = files.length;
+
+	for (let i = 0; i < num_files; ++i)
+	{
+		let reader = new FileReader();
+		reader.addEventListener("load", handler);
+		reader.readAsArrayBuffer(files[i]);
+	}
+};
+
+Nuru.prototype.open_img = function()
+{
+	this.prompt_file("img", false);
+};
+
+Nuru.prototype.open_pal = function()
+{
+	this.prompt_file("pal", true);
+};
+
+Nuru.prototype.load_img = function(evt)
+{
+	let buffer = evt.target.result;
+	let filesize = buffer.byteLength;
+
+	if (filesize < 32)
+	{
+		console.log("File too small");
+		return false;
+	}
+
+	let view = new DataView(buffer);
+
+	let signature = this.uint8arr_to_str(new Uint8Array(buffer.slice(0, 7)));
+	if (signature != this.nui_sig)
+	{
+		console.log("File is not a nuru image file");
+		return false;
+	}
+	let version = view.getUint8(7);
+	if (version > this.nui_ver)
+	{
+		console.log("File is of newer version than can be parsed");
+		return false;
+	}
+
+	let glyph_mode = view.getUint8(8);
+	if (glyph_mode != 1)
+	{
+		console.log("Glyph mode currently not supported");
+		return false;
+	}
+	let color_mode = view.getUint8(9);
+	if (color_mode != 2)
+	{
+		console.log("Color mode currently not supported");
+		return false;
+	}
+	let mdata_mode = view.getUint8(10);
+	if (mdata_mode != 0)
+	{
+		console.log("Mdata mode currently not supported");
+		return false;
+	}
+	
+	let cols = view.getUint16(11, false);
+	let rows = view.getUint16(13, false);
+	let size = cols * rows;
+
+	if (filesize < (size + 32))
+	{
+		console.log("File smaller than advertised");
+		return false;
+	}
+
+	let fg_key = view.getUint8(15);
+	let bg_key = view.getUint8(16);
+
+	let palette = this.uint8arr_to_str(new Uint8Array(buffer.slice(17, 24)));
+	let comment = this.uint8arr_to_str(new Uint8Array(buffer.slice(24, 31)));
+
+	if (palette.toLowerCase() != this.options["palette"].toLowerCase())
+	{
+		console.log("Palette mismatch");
+		//return false;
+	}
+
+	this.options["cols"] = cols;
+	this.options["rows"] = rows;
+	this.inputs["cols"].value = cols;
+	this.inputs["rows"].value = rows;
+	this.resize_term();
+
+	this.options["fg-key"] = fg_key;
+	this.options["bg-key"] = bg_key;
+	this.inputs["fg-key"].value = fg_key;
+	this.inputs["bg-key"].value = bg_key; 
+
+	// payload
+	let ch = null;
+	let fg = null;
+	let bg = null;
+
+	let lines = this.term.childNodes;
+	let cells = null;
+	let i = 32;
+	for (let r = 0; r < rows; ++r)
+	{
+		cells = lines[r].childNodes;
+		for (let c = 0; c < cols; ++c)
+		{
+			ch = view.getUint8(i++);
+			fg = view.getUint8(i++);
+			bg = view.getUint8(i++);
+			this.set_cell(cells[c], ch, fg, bg);
+		}
+	}
+};
+
+Nuru.prototype.load_pal = function(evt)
+{
+	let buffer = evt.target.result;
+	console.log(buffer);
+};
+
+Nuru.prototype.uint8arr_to_str = function(array)
+{
+	return String.fromCharCode(...array);
 };
 
 Nuru.prototype.str_to_uint8arr = function(str, len, space=32)
@@ -741,7 +891,7 @@ Nuru.prototype.on_button = function(evt)
 	switch (opt)
 	{
 		case "open":
-			console.log("Not implemented: " + opt);
+			this.open_img();
 			break;
 		case "save":
 			this.save_img(this.get_opt("filename", this.filename) + ".nui");
@@ -752,11 +902,11 @@ Nuru.prototype.on_button = function(evt)
 		case "wipe":
 			this.reset_term();
 			break;
-		case "psave":
+		case "pal-save":
 			this.save_pal(this.options["palette"] + ".nup");	
 			break;
-		case "popen":
-			console.log(evt);
+		case "pal-open":
+			this.open_pal();
 			break;
 		default:
 			console.log("Not implemented: " + opt);
@@ -824,25 +974,29 @@ Nuru.prototype.on_key = function(evt)
 
 Nuru.prototype.get_fg_css = function(color=null)
 {
-	let fg = color == null ? this.fg : color;
+	let fg = color === null ? this.fg : color;
 	return (fg == this.options["fg-key"]) ? "inherit" : this.to_col(this.ANSI8[fg]);
 };
 
 Nuru.prototype.get_bg_css = function(color=null)
 {
-	let bg = color == null ? this.bg : color;
+	let bg = color === null ? this.bg : color;
 	return (bg == this.options["bg-key"]) ? "inherit" : this.to_col(this.ANSI8[bg]);
 };
 
-Nuru.prototype.set_cell = function(cell)
+Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
 {
-	cell.innerHTML             = this.pal.codepoints[this.ch];
-	cell.style.color           = this.get_fg_css(); 
-	cell.style.backgroundColor = this.get_bg_css(); 
+	let new_ch = ch===null ? this.ch : ch;
+	let new_fg = fg===null ? this.fg : fg;
+	let new_bg = bg===null ? this.bg : bg;
 
-	cell.setAttribute("data-nuru-ch", this.ch);
-	cell.setAttribute("data-nuru-fg", this.fg);
-	cell.setAttribute("data-nuru-bg", this.bg);
+	cell.innerHTML             = this.pal.codepoints[new_ch];
+	cell.style.color           = this.get_fg_css(fg); 
+	cell.style.backgroundColor = this.get_bg_css(bg); 
+
+	cell.setAttribute("data-nuru-ch", new_ch);
+	cell.setAttribute("data-nuru-fg", new_fg);
+	cell.setAttribute("data-nuru-bg", new_bg);
 };
 
 Nuru.prototype.del_cell = function(cell)
