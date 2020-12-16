@@ -326,50 +326,6 @@ select {
 	-moz-appearance: textfield;
 }
 
-label[for="palette-open"] {
-	cursor: pointer;
-	width: 100%;
-	margin: var(--gap-s) 0;
-	padding: var(--gap-l);
-	padding-left: 2.5rem;
-	color: var(--button-fg);
-	background-color: var(--button-bg);
-	border-radius: var(--border-radius);
-	background-repeat: no-repeat;
-	background-position: var(--gap-l) center;
-	background-size: 1.5rem 1.5rem;
-}
-
-label[for="palette-save"] {
-	display: none;
-}
-
-button#palette-save {
-	width: 100%;
-	height: auto;
-	margin: var(--gap-s) 0;
-	padding: var(--gap-l);
-	padding-left: 2.5rem;
-	text-align: left;
-	color: var(--button-fg);
-	font-size: inherit;
-	background-image: url(img/icon_save.svg);
-	background-position: var(--gap-l) center;
-	background-size: 1.5rem 1.5rem;
-}
-
-button#palette-save .label {
-	display: inherit;
-}
-
-.input label[for="palette-open"] {
-	background-image: url(img/icon_open.svg);
-}
-
-.input.file input {
-	display: none;
-}
-
 button {
 	width: 3rem;
 	height: 3rem;
@@ -397,17 +353,36 @@ button:focus,
 	box-shadow: 0 0 0 .125rem var(--highlight);
 }
 
-.slot {
-	cursor: pointer;
-}
-
-.menu button {
+.menu button,
+.options button {
 	width: auto;
 	height: auto;
 	padding: var(--gap-m) var(--gap-l);
 	padding-left: 2rem;
+	color: var(--button-fg);
 	background-position: var(--gap-l) center;
 	background-size: 1rem 1rem;
+}
+
+button.pal-save {
+	background-image: url(img/icon_save.svg);
+}
+
+button.pal-open {
+	background-image: url(img/icon_open.svg);
+}
+
+.palettes-options .fields {
+	display: flex;
+	justify-content: space-around;
+}
+
+.palettes-options button {
+	margin: 0 var(--gap-m);
+}
+
+.slot {
+	cursor: pointer;
 }
 
 .layers {

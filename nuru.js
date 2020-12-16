@@ -755,6 +755,9 @@ Nuru.prototype.on_button = function(evt)
 		case "psave":
 			this.save_pal(this.options["palette"] + ".nup");	
 			break;
+		case "popen":
+			console.log(evt);
+			break;
 		default:
 			console.log("Not implemented: " + opt);
 	}

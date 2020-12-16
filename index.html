@@ -21,7 +21,7 @@
 			<button class="wipe" data-nuru-btn="wipe" title="Erase the entire canvas"><span class="label">Wipe</label></button>
 		</nav>
 		<aside class="options">
-			<fieldset>
+			<fieldset class="terminal-options">
 				<label>Terminal</label>
 				<div class="fields">
 					<div class="input">
@@ -34,7 +34,7 @@
 					</div>
 				</div>
 			</fieldset>
-			<fieldset>
+			<fieldset class="image-options">
 				<label>Image</label>
 				<div class="fields">
 					<div class="input">
@@ -87,7 +87,7 @@
 					</div>
 				</div>
 			</fieldset>
-			<fieldset>
+			<fieldset class="mdata-options">
 				<label>Meta data</label>
 				<div class="fields">
 					<div class="input">
@@ -100,17 +100,11 @@
 					</div>
 				</div>
 			</fieldset>
-			<fieldset>
+			<fieldset class="palettes-options">
 				<label>Palettes</label>
 				<div class="fields">
-					<div class="input file">
-						<label for="palette-open">Import</label>
-						<input id="palette-open" data-nuru-btn="pload" type="file">
-					</div>
-					<div class="input">
-						<label for="palette-save">Export</label>
-						<button id="palette-save" data-nuru-btn="psave"><span class="label">Export</span></button>
-					</div>
+					<button class="pal-open" data-nuru-btn="pal-open"><span class="label">Import</span></button>
+					<button class="pal-save" data-nuru-btn="pal-save"><span class="label">Export</span></button>
 				</div>
 			</fieldset>
 		</aside>
