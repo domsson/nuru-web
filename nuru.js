@@ -1,3 +1,275 @@
+class NuruUtils
+{
+	static array_to_string(array)
+	{
+		return String.fromCharCode(...array);
+	}
+	
+	static string_to_array(str, len=0, space=32)
+	{
+		let strlen = str.length;
+		let arrlen = len ? len : strlen;
+		let arr = new Uint8Array(arrlen);
+		for (let i = 0; i < arrlen; ++i)
+		{
+			arr[i] = i < strlen ? str.charCodeAt(i) : space;
+		}
+		return arr;
+	}
+
+	static download_data(data, filename, mime="application/octet-stream")
+	{
+		let link = document.createElement("a");
+		let blob = new Blob([data], {type: mime});
+		let ourl = window.URL.createObjectURL(blob);
+		link.href = ourl;
+		link.download = filename;
+		link.click();
+		window.URL.revokeObjectURL(ourl);
+	}
+
+	static codepoint_is_printable = function(cp)
+	{
+		if (cp < 0x0020) return false;
+		if (cp > 0x007E && cp < 0x00A0) return false;
+		return true;
+	}
+
+	static glyph_is_printable = function(ch)
+	{
+		return this.codepoint_is_printable(ch.charCodeAt(0));
+	}
+
+	static prompt_for_file = function(type, multiple, handler)
+	{
+		let input = document.createElement("input");
+		input.setAttribute("type", "file");
+		input.setAttribute("data-nuru-type", type);
+		if (multiple)
+		{
+			input.setAttribute("multiple", "");
+		}
+		input.click();
+		input.addEventListener("change", handler);
+	}
+};
+
+class NuruPalette
+{
+	// supported file format
+	static SIGNATURE = "NURUPAL";
+	static VERSION   = 1;
+
+	// default nuru palette
+	static NURUSTD   = {
+		"name": "nurustd",
+		"space": 32,
+		"codepoints": [
+			0x2580, 0x2581, 0x2582, 0x2583, 0x2584, 0x2585, 0x2586, 0x2587,
+			0x2588, 0x2589, 0x258A, 0x258B, 0x258C, 0x258D, 0x258E, 0x258F,
+			0x2590, 0x2591, 0x2592, 0x2593, 0x2594, 0x2595, 0x2596, 0x2597,
+			0x2598, 0x2599, 0x259A, 0x259B, 0x259C, 0x259D, 0x259E, 0x259F,
+			0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027,
+			0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F,
+			0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,
+			0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,
+			0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+			0x0048, 0x0049, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F,
+			0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,
+			0x0058, 0x0059, 0x005A, 0x005B, 0x005C, 0x005D, 0x005E, 0x005F,
+			0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,
+			0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,
+			0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,
+			0x0078, 0x0079, 0x007A, 0x007B, 0x007C, 0x007D, 0x007E, 0x2302,
+			0x2500, 0x2501, 0x2502, 0x2503, 0x2504, 0x2505, 0x2506, 0x2507,
+			0x2508, 0x2509, 0x250A, 0x250B, 0x250C, 0x250D, 0x250E, 0x250F,
+			0x2510, 0x2511, 0x2512, 0x2513, 0x2514, 0x2515, 0x2516, 0x2517,
+			0x2518, 0x2519, 0x251A, 0x251B, 0x251C, 0x251D, 0x251E, 0x251F,
+			0x2520, 0x2521, 0x2522, 0x2523, 0x2524, 0x2525, 0x2526, 0x2527,
+			0x2528, 0x2529, 0x252A, 0x252B, 0x252C, 0x252D, 0x252E, 0x252F,
+			0x2530, 0x2531, 0x2532, 0x2533, 0x2534, 0x2535, 0x2536, 0x2537,
+			0x2538, 0x2539, 0x253A, 0x253B, 0x253C, 0x253D, 0x253E, 0x253F,
+			0x2540, 0x2541, 0x2542, 0x2543, 0x2544, 0x2545, 0x2546, 0x2547,
+			0x2548, 0x2549, 0x254A, 0x254B, 0x254C, 0x254D, 0x254E, 0x254F,
+			0x2550, 0x2551, 0x2552, 0x2553, 0x2554, 0x2555, 0x2556, 0x2557,
+			0x2558, 0x2559, 0x255A, 0x255B, 0x255C, 0x255D, 0x255E, 0x255F,
+			0x2560, 0x2561, 0x2562, 0x2563, 0x2564, 0x2565, 0x2566, 0x2567,
+			0x2568, 0x2569, 0x256A, 0x256B, 0x256C, 0x256D, 0x256E, 0x256F,
+			0x2570, 0x2571, 0x2572, 0x2573, 0x2574, 0x2575, 0x2576, 0x2577,
+			0x2578, 0x2579, 0x257A, 0x257B, 0x257C, 0x257D, 0x257E, 0x257F
+		]
+	};
+
+	constructor(buffer=null)
+	{
+		this.name       = null;
+		this.space      = null;
+		this.codepoints = null;
+
+		if (buffer)
+		{
+			this.load_from_buffer(buffer);
+		}
+		else
+		{
+			this.name       = NuruPalette.NURUSTD.name;
+			this.space      = NuruPalette.NURUSTD.space;
+			this.codepoints = NuruPalette.NURUSTD.codepoints;
+		}
+	}
+
+	get signature()
+	{
+		return NuruPalette.SIGNATURE;
+	}
+
+	get version()
+	{
+		return NuruPalette.VERSION;
+	}
+
+	get_glyph(index)
+	{
+		return String.fromCharCode(this.codepoints[index]);
+	}
+	
+	get_codepoint(index)
+	{
+		return this.codepoints[index];
+	}
+
+	get_space_index()
+	{
+		return this.space;
+	}
+
+	get_space_glyph()
+	{
+		return this.get_glyph(this.space);
+	}
+
+	get_space_codepoint()
+	{
+		return this.get_codepoint(this.space);
+	}
+
+	load_from_buffer(buffer)
+	{
+		let filesize = buffer.byteLength;
+	
+		if (filesize < 528)
+		{
+			console.log("File too small");
+			return false;
+		}
+	
+		let view = new DataView(buffer);
+	
+		// header: signature
+		let signature = NuruUtils.array_to_string(new Uint8Array(buffer.slice(0, 7)));
+		if (signature != this.signature)
+		{
+			console.log("File is not a nuru palette file");
+			return false;
+		}
+
+		// header: version
+		let version = view.getUint8(7);
+		if (version > this.version)
+		{
+			console.log("File is of newer version than can be parsed");
+			return false;
+		}
+		
+		// header: index of space character
+		this.space = view.getUint8(8);
+
+		// header: palette name
+		this.name = NuruUtils.array_to_string(new Uint8Array(buffer.slice(9, 16)));
+	
+		// payload: unicode code points
+		for (let i = 0; i < 256; ++i)
+		{
+			this.codepoints[i] = view.getUint16(i+16);
+		}
+
+		return true;
+	}
+
+	save_to_file(filename=null)
+	{
+		// prepare array buffer
+		let size = this.codepoints.length;
+		let data = new Uint8Array((size * 2) + 16);
+		let i = 0;
+	
+		// header: file format signature (8 bytes)
+		data.set(NuruUtils.string_to_array(this.signature, 7, ' '), i);
+		i += 7;
+
+		// header: file format verison (1 byte)
+		data[i++] = this.version;
+	
+		// header: index of default fill character (1 byte)
+		data[i++] = this.space;
+	
+		// header: palette name (7 bytes)
+		data.set(NuruUtils.string_to_array(this.name, 7, ' '), i);
+		i += 7;
+	
+		// payload: palette data (256 bytes)
+		let cp = 0;
+		for (let c = 0; c < size; ++c)
+		{
+			cp = this.codepoints[c];
+			data[i++] = (0xFF00 & cp) >> 8;
+			data[i++] = (0x00FF & cp);
+		}
+	
+		NuruUtils.download_data(data, filename ? filename : this.name + ".nup");
+	};
+};
+
+class NuruImage
+{
+	// TODO
+	static SIGNATURE = "NURUIMG";
+	static VERSION   = 1;
+
+	constructor(buffer=null)
+	{
+		this.glyph_mode = null;
+		this.color_mode = null;
+		this.mdata_mode = null;
+		this.width      = null;
+		this.height     = null;
+		this.fg         = null;
+		this.bg         = null;
+		this.name       = null;
+		this.comment    = null;
+		this.cells      = [];
+
+		if (buffer)
+		{
+			this.load_from_buffer(buffer);
+		}
+		else
+		{
+			// TODO
+		}
+	}
+
+	get signature()
+	{
+		return NuruImage.SIGNATURE;
+	}
+
+	get version()
+	{
+		return NuruImage.VERSION;
+	}
+};
+
 function Nuru()
 {
 	// term / canvas
@@ -9,19 +281,12 @@ function Nuru()
 	this.glyphs = null;
 	this.colors = null;
 
-	// brush, brush atoms
-	this.brush = null;
-	this.fgcol = null;
-	this.bgcol = null;
-
 	this.pal = [];
 
 	// current brush values
 	this.ch = 32;
 	this.fg = 15;
 	this.bg = 0;
-
-	//this.space = 32; // TODO needs to come from palette object/file
 
 	// keyboard / mouse
 	this.drag = false;
@@ -46,86 +311,49 @@ function Nuru()
 	this.inputs = {};
 	this.slots = [];
 	this.tools = {};
+	this.panels = {}; // panels are the one-cell display things
 	this.layers = {};
 	this.actions = {};
 	this.hotkeys = {};
 };
 
-Nuru.prototype.palettes = {
-	"CP437": {
-		"space": 32,
-		"codepoints": [
-			"\u0000", "\u263A", "\u263B", "\u2665", "\u2666", "\u2663", "\u2660", "\u2022",
-			"\u25D8", "\u25CB", "\u25D8", "\u2642", "\u2640", "\u266A", "\u266B", "\u263C",
-			"\u25BA", "\u25C4", "\u2195", "\u203C", "\u00B6", "\u00A7", "\u25AC", "\u21A8",
-			"\u2191", "\u2193", "\u2192", "\u2190", "\u221F", "\u2194", "\u25B2", "\u25BC",
-			"\u0020", "\u0021", "\u0022", "\u0023", "\u0024", "\u0025", "\u0026", "\u0027",
-			"\u0028", "\u0029", "\u002A", "\u002B", "\u002C", "\u002D", "\u002E", "\u002F", 
-			"\u0030", "\u0031", "\u0032", "\u0033", "\u0034", "\u0035", "\u0036", "\u0037",
-			"\u0038", "\u0039", "\u003A", "\u003B", "\u003C", "\u003D", "\u003E", "\u003F",
-			"\u0040", "\u0041", "\u0042", "\u0043", "\u0044", "\u0045", "\u0046", "\u0047",
-			"\u0048", "\u0049", "\u004A", "\u004B", "\u004C", "\u004D", "\u004E", "\u004F",
-			"\u0050", "\u0051", "\u0052", "\u0053", "\u0054", "\u0055", "\u0056", "\u0057",
-			"\u0058", "\u0059", "\u005A", "\u005B", "\u005C", "\u005D", "\u005E", "\u005F",
-			"\u0060", "\u0061", "\u0062", "\u0063", "\u0064", "\u0065", "\u0066", "\u0067",
-			"\u0068", "\u0069", "\u006A", "\u006B", "\u006C", "\u006D", "\u006E", "\u006F",
-			"\u0070", "\u0071", "\u0072", "\u0073", "\u0074", "\u0075", "\u0076", "\u0077",
-			"\u0078", "\u0079", "\u007A", "\u007B", "\u007C", "\u007D", "\u007E", "\u2302",
-			"\u00C7", "\u00FC", "\u00E9", "\u00E2", "\u00E4", "\u00E0", "\u00E5", "\u00E7",
-			"\u00EA", "\u00EB", "\u00E8", "\u00EF", "\u00EE", "\u00EC", "\u00C4", "\u00C5",
-			"\u00C9", "\u00E6", "\u00C6", "\u00F4", "\u00F6", "\u00F2", "\u00FB", "\u00F9",
-			"\u00FF", "\u00D6", "\u00DC", "\u00A2", "\u00A3", "\u00A5", "\u20A7", "\u0192",
-			"\u00E1", "\u00ED", "\u00F3", "\u00FA", "\u00F1", "\u00D1", "\u00AA", "\u00BA",
-			"\u00BF", "\u2310", "\u00AC", "\u00BD", "\u00BC", "\u00A1", "\u00AB", "\u00BB",
-			"\u2591", "\u2592", "\u2593", "\u2502", "\u2524", "\u2561", "\u2562", "\u2556",
-			"\u2555", "\u2563", "\u2551", "\u2557", "\u255D", "\u255C", "\u255B", "\u2510",
-			"\u2514", "\u2543", "\u252C", "\u251C", "\u2500", "\u253C", "\u255E", "\u255F",
-			"\u255A", "\u2554", "\u2569", "\u2566", "\u2560", "\u2550", "\u256C", "\u2567",
-			"\u2568", "\u2564", "\u2565", "\u2559", "\u2558", "\u2552", "\u2553", "\u256B",
-			"\u256A", "\u2518", "\u250C", "\u2588", "\u2584", "\u258C", "\u2590", "\u2580",
-			"\u03B1", "\u00DF", "\u0393", "\u03C0", "\u03A3", "\u03C3", "\u00B5", "\u03C4",
-			"\u03A6", "\u0398", "\u03A9", "\u03B4", "\u221E", "\u03C6", "\u03B5", "\u2229",
-			"\u2261", "\u00B1", "\u2265", "\u2264", "\u2320", "\u2321", "\u00F7", "\u2248",
-			"\u00B0", "\u2219", "\u00B7", "\u221A", "\u207F", "\u00B2", "\u25A0", "\u00A0"
-		]
-	},
-	"NURUSTD": {
-		"space": 32,
-		"codepoints": [
-			"\u2580", "\u2581", "\u2582", "\u2583", "\u2584", "\u2585", "\u2586", "\u2587",
-			"\u2588", "\u2589", "\u258A", "\u258B", "\u258C", "\u258D", "\u258E", "\u258F",
-			"\u2590", "\u2591", "\u2592", "\u2593", "\u2594", "\u2595", "\u2596", "\u2597",
-			"\u2598", "\u2599", "\u259A", "\u259B", "\u259C", "\u259D", "\u259E", "\u259F",
-			"\u0020", "\u0021", "\u0022", "\u0023", "\u0024", "\u0025", "\u0026", "\u0027",
-			"\u0028", "\u0029", "\u002A", "\u002B", "\u002C", "\u002D", "\u002E", "\u002F",
-			"\u0030", "\u0031", "\u0032", "\u0033", "\u0034", "\u0035", "\u0036", "\u0037",
-			"\u0038", "\u0039", "\u003A", "\u003B", "\u003C", "\u003D", "\u003E", "\u003F",
-			"\u0040", "\u0041", "\u0042", "\u0043", "\u0044", "\u0045", "\u0046", "\u0047",
-			"\u0048", "\u0049", "\u004A", "\u004B", "\u004C", "\u004D", "\u004E", "\u004F",
-			"\u0050", "\u0051", "\u0052", "\u0053", "\u0054", "\u0055", "\u0056", "\u0057",
-			"\u0058", "\u0059", "\u005A", "\u005B", "\u005C", "\u005D", "\u005E", "\u005F",
-			"\u0060", "\u0061", "\u0062", "\u0063", "\u0064", "\u0065", "\u0066", "\u0067",
-			"\u0068", "\u0069", "\u006A", "\u006B", "\u006C", "\u006D", "\u006E", "\u006F",
-			"\u0070", "\u0071", "\u0072", "\u0073", "\u0074", "\u0075", "\u0076", "\u0077",
-			"\u0078", "\u0079", "\u007A", "\u007B", "\u007C", "\u007D", "\u007E", "\u2302",
-			"\u2500", "\u2501", "\u2502", "\u2503", "\u2504", "\u2505", "\u2506", "\u2507",
-			"\u2508", "\u2509", "\u250A", "\u250B", "\u250C", "\u250D", "\u250E", "\u250F",
-			"\u2510", "\u2511", "\u2512", "\u2513", "\u2514", "\u2515", "\u2516", "\u2517",
-			"\u2518", "\u2519", "\u251A", "\u251B", "\u251C", "\u251D", "\u251E", "\u251F",
-			"\u2520", "\u2521", "\u2522", "\u2523", "\u2524", "\u2525", "\u2526", "\u2527",
-			"\u2528", "\u2529", "\u252A", "\u252B", "\u252C", "\u252D", "\u252E", "\u252F",
-			"\u2530", "\u2531", "\u2532", "\u2533", "\u2534", "\u2535", "\u2536", "\u2537",
-			"\u2538", "\u2539", "\u253A", "\u253B", "\u253C", "\u253D", "\u253E", "\u253F",
-			"\u2540", "\u2541", "\u2542", "\u2543", "\u2544", "\u2545", "\u2546", "\u2547",
-			"\u2548", "\u2549", "\u254A", "\u254B", "\u254C", "\u254D", "\u254E", "\u254F",
-			"\u2550", "\u2551", "\u2552", "\u2553", "\u2554", "\u2555", "\u2556", "\u2557",
-			"\u2558", "\u2559", "\u255A", "\u255B", "\u255C", "\u255D", "\u255E", "\u255F",
-			"\u2560", "\u2561", "\u2562", "\u2563", "\u2564", "\u2565", "\u2566", "\u2567",
-			"\u2568", "\u2569", "\u256A", "\u256B", "\u256C", "\u256D", "\u256E", "\u256F",
-			"\u2570", "\u2571", "\u2572", "\u2573", "\u2574", "\u2575", "\u2576", "\u2577",
-			"\u2578", "\u2579", "\u257A", "\u257B", "\u257C", "\u257D", "\u257E", "\u257F"
-		]
-	}
+Nuru.prototype.CP437 = {
+	"name": "cp437",
+	"space": 32,
+	"codepoints": [
+		0x0000, 0x263A, 0x263B, 0x2665, 0x2666, 0x2663, 0x2660, 0x2022,
+		0x25D8, 0x25CB, 0x25D8, 0x2642, 0x2640, 0x266A, 0x266B, 0x263C,
+		0x25BA, 0x25C4, 0x2195, 0x203C, 0x00B6, 0x00A7, 0x25AC, 0x21A8,
+		0x2191, 0x2193, 0x2192, 0x2190, 0x221F, 0x2194, 0x25B2, 0x25BC,
+		0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027,
+		0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F, 
+		0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,
+		0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,
+		0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+		0x0048, 0x0049, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F,
+		0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,
+		0x0058, 0x0059, 0x005A, 0x005B, 0x005C, 0x005D, 0x005E, 0x005F,
+		0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,
+		0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,
+		0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,
+		0x0078, 0x0079, 0x007A, 0x007B, 0x007C, 0x007D, 0x007E, 0x2302,
+		0x00C7, 0x00FC, 0x00E9, 0x00E2, 0x00E4, 0x00E0, 0x00E5, 0x00E7,
+		0x00EA, 0x00EB, 0x00E8, 0x00EF, 0x00EE, 0x00EC, 0x00C4, 0x00C5,
+		0x00C9, 0x00E6, 0x00C6, 0x00F4, 0x00F6, 0x00F2, 0x00FB, 0x00F9,
+		0x00FF, 0x00D6, 0x00DC, 0x00A2, 0x00A3, 0x00A5, 0x20A7, 0x0192,
+		0x00E1, 0x00ED, 0x00F3, 0x00FA, 0x00F1, 0x00D1, 0x00AA, 0x00BA,
+		0x00BF, 0x2310, 0x00AC, 0x00BD, 0x00BC, 0x00A1, 0x00AB, 0x00BB,
+		0x2591, 0x2592, 0x2593, 0x2502, 0x2524, 0x2561, 0x2562, 0x2556,
+		0x2555, 0x2563, 0x2551, 0x2557, 0x255D, 0x255C, 0x255B, 0x2510,
+		0x2514, 0x2543, 0x252C, 0x251C, 0x2500, 0x253C, 0x255E, 0x255F,
+		0x255A, 0x2554, 0x2569, 0x2566, 0x2560, 0x2550, 0x256C, 0x2567,
+		0x2568, 0x2564, 0x2565, 0x2559, 0x2558, 0x2552, 0x2553, 0x256B,
+		0x256A, 0x2518, 0x250C, 0x2588, 0x2584, 0x258C, 0x2590, 0x2580,
+		0x03B1, 0x00DF, 0x0393, 0x03C0, 0x03A3, 0x03C3, 0x00B5, 0x03C4,
+		0x03A6, 0x0398, 0x03A9, 0x03B4, 0x221E, 0x03C6, 0x03B5, 0x2229,
+		0x2261, 0x00B1, 0x2265, 0x2264, 0x2320, 0x2321, 0x00F7, 0x2248,
+		0x00B0, 0x2219, 0x00B7, 0x221A, 0x207F, 0x00B2, 0x25A0, 0x00A0
+	]
 };
 
 Nuru.prototype.ANSI8 = [
@@ -163,51 +391,6 @@ Nuru.prototype.ANSI8 = [
 	0xa8a8a8, 0xb2b2b2, 0xbcbcbc, 0xc6c6c6, 0xd0d0d0, 0xdadada, 0xe4e4e4, 0xeeeeee
 ];
 
-Nuru.prototype.download_data = function(data, filename)
-{
-	let a = document.createElement("a");
-	document.body.appendChild(a);
-	a.style = "display: none";
-	
-	let blob = new Blob([data], {type: "application/octet-stream"});
-	let url = window.URL.createObjectURL(blob);
-	a.href = url;
-	a.download = filename;
-	a.click();
-	window.URL.revokeObjectURL(url);
-};
-
-Nuru.prototype.save_pal = function(filename)
-{
-	let size = (this.pal.codepoints.length * 2) + 16;
-	let data = new Uint8Array(size);
-	let i = 0;
-
-	// header: file format signature (8 bytes)
-	data.set(this.str_to_uint8arr(this.nup_sig, 8), i);
-	i += 7;
-	data[i++] = this.nup_sig; // 1 - file format version
-
-	// header: default fill character (1 byte)
-	data[i++] = this.pal.space; // index 32, space in ASCII
-
-	// header: palette name (7 bytes)
-	data.set(this.str_to_uint8arr(this.options["palette"], 7), i);
-	i += 7;
-
-	// body: palette data
-	let cp = 0;
-	for (let c = 0; c < this.pal.length; ++c)
-	{
-		cp = this.pal[c].charCodeAt(0);
-		data[i++] = (0xFF00 & cp) >> 8;
-		data[i++] = (0x00FF & cp);
-	}
-
-	//console.log(data);
-	this.download_data(data, filename);
-};
-
 Nuru.prototype.save_img = function(filename)
 {
 	// header is 16 bytes
@@ -221,7 +404,7 @@ Nuru.prototype.save_img = function(filename)
 	let i = 0;
 
 	// file format signaturei (8 bytes)
-	data.set(this.str_to_uint8arr(this.nui_sig, 8), i);
+	data.set(NuruUtils.string_to_array(this.nui_sig, 8), i);
 	i += 7;
 	data[i++] = this.nui_ver; // 1 - file format version
 
@@ -241,11 +424,11 @@ Nuru.prototype.save_img = function(filename)
 	data[i++] = 0xFF & this.options["bg-key"]; // 0x01; // background color 
 
 	// default palette name (7 bytes)
-	data.set(this.str_to_uint8arr(this.options["palette"], 7), i);
+	data.set(NuruUtils.string_to_array(this.options["palette"], 7), i);
 	i += 7;
 
 	// meta / signature / padding (8 bytes, leave empty)
-	data.set(this.str_to_uint8arr(this.options["comment"], 7), i);
+	data.set(NuruUtils.string_to_array(this.options["comment"], 7), i);
 	i += 8;
 
 	// image data
@@ -286,19 +469,6 @@ Nuru.prototype.save_img = function(filename)
 	this.download_data(data, filename);
 };
 
-Nuru.prototype.prompt_file = function(type, multiple)
-{
-	let input = document.createElement("input");
-	input.setAttribute("type", "file");
-	input.setAttribute("data-nuru-type", type);
-	if (multiple)
-	{
-		input.setAttribute("multiple", "");
-	}
-	input.click();
-	input.addEventListener("change", this.on_files.bind(this));
-};
-
 Nuru.prototype.on_files = function(evt)
 {
 	let files = evt.target.files;
@@ -316,12 +486,12 @@ Nuru.prototype.on_files = function(evt)
 
 Nuru.prototype.open_img = function()
 {
-	this.prompt_file("img", false);
+	NuruUtils.prompt_for_file("img", false, this.on_files.bind(this));
 };
 
 Nuru.prototype.open_pal = function()
 {
-	this.prompt_file("pal", true);
+	NuruUtils.prompt_for_file("pal", false, this.on_files.bind(this));
 };
 
 Nuru.prototype.load_img = function(evt)
@@ -337,7 +507,7 @@ Nuru.prototype.load_img = function(evt)
 
 	let view = new DataView(buffer);
 
-	let signature = this.uint8arr_to_str(new Uint8Array(buffer.slice(0, 7)));
+	let signature = NuruUtils.array_to_string(new Uint8Array(buffer.slice(0, 7)));
 	if (signature != this.nui_sig)
 	{
 		console.log("File is not a nuru image file");
@@ -382,8 +552,8 @@ Nuru.prototype.load_img = function(evt)
 	let fg_key = view.getUint8(15);
 	let bg_key = view.getUint8(16);
 
-	let palette = this.uint8arr_to_str(new Uint8Array(buffer.slice(17, 24)));
-	let comment = this.uint8arr_to_str(new Uint8Array(buffer.slice(24, 31)));
+	let palette = NuruUtils.array_to_string(new Uint8Array(buffer.slice(17, 24)));
+	let comment = NuruUtils.array_to_string(new Uint8Array(buffer.slice(24, 31)));
 
 	if (palette.toLowerCase() != this.options["palette"].toLowerCase())
 	{
@@ -426,23 +596,7 @@ Nuru.prototype.load_img = function(evt)
 Nuru.prototype.load_pal = function(evt)
 {
 	let buffer = evt.target.result;
-	console.log(buffer);
-};
-
-Nuru.prototype.uint8arr_to_str = function(array)
-{
-	return String.fromCharCode(...array);
-};
-
-Nuru.prototype.str_to_uint8arr = function(str, len, space=32)
-{
-	let strlen = str.length;
-	let arr = new Uint8Array(len);
-	for (let i = 0; i < len; ++i)
-	{
-		arr[i] = i < strlen ? str.charCodeAt(i) : 32;
-	}
-	return arr;
+	this.pal.load_from_buffer(buffer);
 };
 
 Nuru.prototype.to_col = function(hex)
@@ -450,14 +604,6 @@ Nuru.prototype.to_col = function(hex)
 	let col = hex.toString(16);
 	while (col.length < 6) { col = "0" + col; }
 	return "#" + col;
-};
-
-Nuru.prototype.printable = function(ch)
-{
-	let cp = ch.charCodeAt(0);
-	if (cp < 0x0020) return false;
-	if (cp > 0x007E && cp < 0x00A0) return false;
-	return true;
 };
 
 Nuru.prototype.init = function()
@@ -476,7 +622,8 @@ Nuru.prototype.init = function()
 	}
 
 	// palette
-	this.pal = this.palettes[this.options["palette"]];
+	//this.pal = this.palettes[this.options["palette"]];
+	this.pal = new NuruPalette();
 
 	// resize_term takes care of creating lines and cells as required
 	this.resize_term();
@@ -498,25 +645,28 @@ Nuru.prototype.init = function()
 
 		for (let c = 0; c < 16; ++c)
 		{
-			let ch = this.pal.codepoints[r*16+c];
+			let idx = r*16+c;
+			let ch = this.pal.get_codepoint(idx);
+			let glyph = this.pal.get_glyph(idx);
 			cell = document.createElement("pre");
 			cell.classList.add("cell", "r"+r, "c"+c);
 			cell.setAttribute("data-nuru-np", "0");
 			cell.setAttribute("data-nuru-row", r);
 			cell.setAttribute("data-nuru-col", c);
-			cell.setAttribute("title", (r*16+c) + ": U+" + ch.charCodeAt(0).toString(16));
-			cell.innerHTML = ch;
+			cell.setAttribute("data-nuru-ch", ch);
+			cell.setAttribute("title", idx + ": U+" + ch.toString(16));
+			cell.innerHTML = glyph;
 
-			if (r*16+c == this.ch)
+			if (idx == this.ch)
 			{
 				cell.classList.add("selected");
 			}
 
-			if (!this.printable(ch))
+			if (!NuruUtils.glyph_is_printable(glyph))
 			{
 				cell.classList.add("non-printable");
 				cell.setAttribute("data-nuru-np", "1");
-				cell.innerHTML = this.pal.codepoints[this.pal.space];
+				cell.innerHTML = this.pal.get_space_glyph();
 			}
 			line.appendChild(cell);
 		}
@@ -565,29 +715,16 @@ Nuru.prototype.init = function()
 
 	this.colors.addEventListener('click', this.on_click_colors.bind(this));
 
-	this.brush = document.querySelector("[data-nuru-brush]");
-	cell = document.createElement("pre");
-	cell.classList.add("cell");
-	cell.innerHTML = this.pal.codepoints[this.ch];
-	this.brush.appendChild(cell);
-
-	this.glyph = document.querySelector("[data-nuru-glyph]");
-	cell = document.createElement("pre");
-	cell.classList.add("cell");
-	cell.innerHTML = this.pal.codepoints[this.ch];
-	this.glyph.appendChild(cell);
-
-	this.fgcol = document.querySelector("[data-nuru-fgcol]");
-	cell = document.createElement("pre");
-	cell.classList.add("cell");
-	cell.innerHTML = " ";
-	this.fgcol.appendChild(cell);
-
-	this.bgcol = document.querySelector("[data-nuru-bgcol]");
-	cell = document.createElement("pre");
-	cell.classList.add("cell");
-	cell.innerHTML = " ";
-	this.bgcol.appendChild(cell);
+	// brush, glyph, fgcol, bgcol
+	let panels = document.querySelectorAll("[data-nuru-panel]");
+	for (let i = 0; i < panels.length; ++i)
+	{
+		cell = document.createElement("pre");
+		cell.classList.add("cell");
+		cell.innerHTML = " ";
+		panels[i].appendChild(cell);
+		this.panels[panels[i].getAttribute("data-nuru-panel")] = panels[i];
+	}
 
 	let hotkey_elements = document.querySelectorAll("[data-nuru-hotkey]");
 	let key = null;
@@ -599,7 +736,7 @@ Nuru.prototype.init = function()
 
 	// catch keyboard events
 	document.addEventListener("keydown", this.on_key.bind(this));
-	document.addEventListener("keyup", this.on_key.bind(this));
+	document.addEventListener("keyup",   this.on_key.bind(this));
 
 	// buttons
 	let buttons = document.querySelectorAll("[data-nuru-btn]");
@@ -697,7 +834,8 @@ Nuru.prototype.redraw_term = function()
 			fg = cell.getAttribute("data-nuru-fg");
 			bg = cell.getAttribute("data-nuru-bg");
 
-			cell.innerHTML             = this.pal.codepoints[ch];
+			//cell.innerHTML             = this.pal.codepoints[ch];
+			cell.innerHTML             = this.pal.get_glyph(ch);
 			cell.style.color           = this.get_fg_css(fg);
 			cell.style.backgroundColor = this.get_bg_css(bg); 
 		}
@@ -724,10 +862,10 @@ Nuru.prototype.new_cell = function(row, col)
 		cell.classList.add("c"+col);
 		cell.setAttribute("data-nuru-col", col);
 	}
-	cell.setAttribute("data-nuru-ch", this.pal.space);
+	cell.setAttribute("data-nuru-ch", this.pal.get_space_index());
 	cell.setAttribute("data-nuru-fg", this.options["fg-key"]);
 	cell.setAttribute("data-nuru-bg", this.options["bg-key"]); 
-	cell.innerHTML = this.pal.codepoints[this.pal.space];
+	cell.innerHTML = this.pal.get_space_glyph();
 	return cell;
 }
 
@@ -779,7 +917,7 @@ Nuru.prototype.crop_term = function()
 	let lines = this.term.childNodes;
 	let cells = null;
 
-	let ch_none = this.pal.space;
+	let ch_none = this.pal.get_space_index();
 	let fg_none = this.options["fg-key"];
 	let bg_none = this.options["bg-key"];
 
@@ -903,7 +1041,7 @@ Nuru.prototype.on_button = function(evt)
 			this.reset_term();
 			break;
 		case "pal-save":
-			this.save_pal(this.options["palette"] + ".nup");	
+			this.pal.save_to_file(this.pal.name + ".nup");
 			break;
 		case "pal-open":
 			this.open_pal();
@@ -990,7 +1128,7 @@ Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
 	let new_fg = fg===null ? this.fg : fg;
 	let new_bg = bg===null ? this.bg : bg;
 
-	cell.innerHTML             = this.pal.codepoints[new_ch];
+	cell.innerHTML             = this.pal.get_glyph(new_ch);
 	cell.style.color           = this.get_fg_css(fg); 
 	cell.style.backgroundColor = this.get_bg_css(bg); 
 
@@ -1001,11 +1139,11 @@ Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
 
 Nuru.prototype.del_cell = function(cell)
 {
-	cell.innerHTML             = this.pal.codepoints[this.pal.space];
+	cell.innerHTML             = this.pal.get_space_glyph();
 	cell.style.color           = "inherit";
 	cell.style.backgroundColor = "inherit";
 
-	cell.setAttribute("data-nuru-ch", this.pal.space);
+	cell.setAttribute("data-nuru-ch", this.pal.get_space_index());
 	cell.setAttribute("data-nuru-fg", this.options["fg-key"]);
 	cell.setAttribute("data-nuru-bg", this.options["bg-key"]);
 };
@@ -1059,21 +1197,21 @@ Nuru.prototype.on_mouse_term = function(evt)
 
 Nuru.prototype.set_glyph = function(ch=null)
 {
-	let brush = this.brush.querySelector(".cell");
-	let glyph = this.glyph.querySelector(".cell");
+	let brush = this.panels.brush.querySelector(".cell");
+	let glyph = this.panels.glyph.querySelector(".cell");
 	
-	this.ch = ch == null ? this.pal.space : ch; 
+	this.ch = ch === null ? this.pal.get_space_index() : ch;
 
-	brush.innerHTML = this.pal.codepoints[this.ch];
-	glyph.innerHTML = this.pal.codepoints[this.ch];
+	brush.innerHTML = this.pal.get_glyph(this.ch);
+	glyph.innerHTML = this.pal.get_glyph(this.ch);
 
 	this.select_cell_idx(this.glyphs, this.ch);
 };
 
 Nuru.prototype.set_fgcol = function(fg=null)
 {
-	let brush = this.brush.querySelector(".cell");
-	let fgcol = this.fgcol.querySelector(".cell");
+	let brush = this.panels.brush.querySelector(".cell");
+	let fgcol = this.panels.fgcol.querySelector(".cell");
 
 	this.fg = fg == null ? this.options["fg-key"] : fg;
 
@@ -1085,8 +1223,8 @@ Nuru.prototype.set_fgcol = function(fg=null)
 
 Nuru.prototype.set_bgcol = function(bg=null)
 {
-	let brush = this.brush.querySelector(".cell");
-	let bgcol = this.bgcol.querySelector(".cell");
+	let brush = this.panels.brush.querySelector(".cell");
+	let bgcol = this.panels.bgcol.querySelector(".cell");
 
 	this.bg = bg == null ? this.options["bg-key"] : bg;
 
@@ -1098,17 +1236,15 @@ Nuru.prototype.set_bgcol = function(bg=null)
 
 Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
 {
-	let cell = this.brush.querySelector(".cell");
-
-	if (ch!=null && this.brush)
+	if (ch != null && this.panels.brush)
 	{
 		this.set_glyph(ch);
 	}
-	if (fg!=null && this.fgcol)
+	if (fg != null && this.panels.fgcol)
 	{
 		this.set_fgcol(fg);
 	}
-	if (bg!=null && this.bgcol)
+	if (bg != null && this.panels.bgcol)
 	{
 		this.set_bgcol(bg);
 	}
@@ -1163,13 +1299,14 @@ Nuru.prototype.on_click_colors = function(evt)
 	let cell = evt.target;
 	let c = parseInt(cell.getAttribute("data-nuru-col"));
 	let r = parseInt(cell.getAttribute("data-nuru-row"));
+	let i = (r * 16) + c;
 
 	if (this.layer == "fg")
 	{
-		this.set_brush(null, r*16+c, null);
+		this.set_brush(null, i, null);
 	}
 	else
 	{
-		this.set_brush(null, null, r*16+c);
+		this.set_brush(null, null, i);
 	}
 };
