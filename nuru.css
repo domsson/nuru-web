@@ -3,6 +3,13 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap'); */
 /* @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap'); */
 
+/*
+@font-face {
+	font-family: "IBM_VGA_8x16";
+	src: url("fnt/Web437_IBM_VGA_8x14.woff") format('woff');
+}
+*/
+
 :root {
 	--term-fg: #cdcdcd; 
 	--term-bg: #283033;
@@ -496,10 +503,18 @@ button.picker {
 	display: table;
 	position: relative;
 	border-collapse: collapse;
-	font-family: monospace;
 	cursor: url(img/cursor_crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
 	color: var(--term-fg);
 	background: var(--term-bg);
+}
+
+.nuru pre {
+	/*	
+	font-family: "IBM_VGA_8x16", monospace;
+	font-size: 16px;
+	line-height: 16px;
+	transform: scaleX(0.8333);
+	*/
 }
 
 .glyphs,

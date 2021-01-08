@@ -63,8 +63,12 @@ class NuruPalette
 	// default nuru palette
 	static NURUSTD   = {
 		"name": "nurustd",
-		"space": 32,
-		"codepoints": [
+		"type": 2,
+		"default1": 32,
+		"default2": 0,
+		"userdata": 0,
+		"reserved": 0,
+		"data": [
 			0x2580, 0x2581, 0x2582, 0x2583, 0x2584, 0x2585, 0x2586, 0x2587,
 			0x2588, 0x2589, 0x258A, 0x258B, 0x258C, 0x258D, 0x258E, 0x258F,
 			0x2590, 0x2591, 0x2592, 0x2593, 0x2594, 0x2595, 0x2596, 0x2597,
@@ -102,9 +106,13 @@ class NuruPalette
 
 	constructor(buffer=null)
 	{
-		this.name       = null;
-		this.space      = null;
-		this.codepoints = null;
+		this.name     = null;
+		this.type     = null;
+		this.default1 = null;
+		this.default2 = null;
+		this.userdata = null;
+		this.reserved = null;
+		this.data     = null;
 
 		if (buffer)
 		{
@@ -112,9 +120,13 @@ class NuruPalette
 		}
 		else
 		{
-			this.name       = NuruPalette.NURUSTD.name;
-			this.space      = NuruPalette.NURUSTD.space;
-			this.codepoints = NuruPalette.NURUSTD.codepoints;
+			this.name     = NuruPalette.NURUSTD.name;
+			this.type     = NuruPalette.NURUSTD.type;
+			this.default1 = NuruPalette.NURUSTD.default1;
+			this.default2 = NuruPalette.NURUSTD.default2;
+			this.userdata = NuruPalette.NURUSTD.userdata;
+			this.reserved = NuruPalette.NURUSTD.reserved;
+			this.data  = NuruPalette.NURUSTD.data;
 		}
 	}
 
@@ -130,27 +142,27 @@ class NuruPalette
 
 	get_glyph(index)
 	{
-		return String.fromCharCode(this.codepoints[index]);
+		return String.fromCharCode(this.data[index]);
 	}
 	
 	get_codepoint(index)
 	{
-		return this.codepoints[index];
+		return this.data[index];
 	}
 
 	get_space_index()
 	{
-		return this.space;
+		return this.default1;
 	}
 
 	get_space_glyph()
 	{
-		return this.get_glyph(this.space);
+		return this.get_glyph(this.default1);
 	}
 
 	get_space_codepoint()
 	{
-		return this.get_codepoint(this.space);
+		return this.get_codepoint(this.default1);
 	}
 
 	load_from_buffer(buffer)
@@ -180,17 +192,36 @@ class NuruPalette
 			console.log("File is of newer version than can be parsed");
 			return false;
 		}
-		
-		// header: index of space character
-		this.space = view.getUint8(8);
 
-		// header: palette name
-		this.name = NuruUtils.array_to_string(new Uint8Array(buffer.slice(9, 16)));
-	
+		this.type = view.getUint8(8);
+		
+		// header: indices of default entries (space/fg color, bg color)
+		this.default1 = view.getUint8(9);
+		this.default2 = view.getUint8(10);
+
+		// header: user data
+		this.userdata = view.getUint32(11);
+
+		// header: reserved byte
+		this.reserved = view.getUint8(15);
+
 		// payload: unicode code points
-		for (let i = 0; i < 256; ++i)
+		for (let i = 0; i < 256; i += this.type)
 		{
-			this.codepoints[i] = view.getUint16(i+16);
+			switch (this.type)
+			{
+				case 1:
+					this.data[i] = view.getUint8(i+16);
+					break;
+				case 2:
+					this.data[i] = view.getUint16(i+16);
+					break;
+				case 3:
+					this.data[i]  = (view.getUint8(i+16) << 16);
+					this.data[i] |= (view.getUint8(i+17) << 8);
+					this.data[i] |= (view.getUint8(i+18) << 0);
+					break;
+			}
 		}
 
 		return true;
@@ -199,35 +230,56 @@ class NuruPalette
 	save_to_file(filename=null)
 	{
 		// prepare array buffer
-		let size = this.codepoints.length;
+		let size = this.data.length;
 		let data = new Uint8Array((size * 2) + 16);
 		let i = 0;
 	
-		// header: file format signature (8 bytes)
-		data.set(NuruUtils.string_to_array(this.signature, 7, ' '), i);
+		// header: file format signature (7 bytes)
+		data.set(NuruUtils.string_to_array(this.signature, 7, ' '), i, 0);
 		i += 7;
 
 		// header: file format verison (1 byte)
 		data[i++] = this.version;
+
+		// header: palette type (1 byte)
+		data[i++] = this.type;
 	
 		// header: index of default fill character (1 byte)
-		data[i++] = this.space;
+		data[i++] = this.default1;
+		data[i++] = this.default2;
+
+		// header: skip 'userdata' (4 bytes) and 'reserved' (1 byte)
+		i += 5;
 	
-		// header: palette name (7 bytes)
-		data.set(NuruUtils.string_to_array(this.name, 7, ' '), i);
-		i += 7;
-	
-		// payload: palette data (256 bytes)
-		let cp = 0;
-		for (let c = 0; c < size; ++c)
+		// payload: palette data (256*type bytes)
+		let entry = 0;
+		for (let d = 0; d < size; ++d)
 		{
-			cp = this.codepoints[c];
-			data[i++] = (0xFF00 & cp) >> 8;
-			data[i++] = (0x00FF & cp);
+			entry = this.data[d];
+
+			switch (this.type)
+			{
+				case 3:
+					data[i++] = (0xFF0000 & entry) >> 16;
+				case 2:
+					data[i++] = (0xFF00 & entry) >> 8;
+				case 1:
+					data[i++] = (0x00FF & entry);
+					break;
+			}
 		}
 	
 		NuruUtils.download_data(data, filename ? filename : this.name + ".nup");
 	};
+};
+
+class NuruPanel
+{
+	constructor(rows=1, cols=1)
+	{
+		this.rows = rows;
+		this.cols = cols;
+	}
 };
 
 class NuruImage
@@ -241,12 +293,12 @@ class NuruImage
 		this.glyph_mode = null;
 		this.color_mode = null;
 		this.mdata_mode = null;
-		this.width      = null;
-		this.height     = null;
+		this.cols       = null;
+		this.rows       = null;
 		this.fg         = null;
 		this.bg         = null;
-		this.name       = null;
-		this.comment    = null;
+		this.glyph_pal  = null;
+		this.color_pal  = null;
 		this.cells      = [];
 
 		if (buffer)
@@ -268,6 +320,120 @@ class NuruImage
 	{
 		return NuruImage.VERSION;
 	}
+
+	/*
+	save_to_file(filename=null, term)
+	{
+		// Figure out the byte size for each component
+		let glyph_size = 0x0F & this.glyph_mode;
+		let color_size = 0x0F & this.color_mode;
+		let mdata_size = 0x0F & this.mdata_mode;
+
+		// Now we can calculate the total file size (payload + header)
+		let size = (this.cols * this.rows * (glyph_size + color_size + mdata_size)) + 32;
+		let data = new Uint8Array(size);
+		let i = 0;
+	
+		// file format signature (7 bytes)
+		data.set(NuruUtils.string_to_array(this.signature, 7), i);
+		i += 7;
+
+		// file format version (1 byte)
+		data[i++] = this.version; 
+	
+		// data format (3 bytes)
+		data[i++] = 0xFF & this.glyph_mode;
+		data[i++] = 0xFF & this.color_mode;
+		data[i++] = 0xFF & this.mdata_mode; 
+	
+		// image format (4 bytes)
+		data[i++] = (0xFF00 & this.cols) >> 8; // image width
+		data[i++] = (0x00FF & this.cols);      // image width
+		data[i++] = (0xFF00 & this.rows) >> 8; // image height
+		data[i++] = (0x00FF & this.rows);      // image height
+	
+		// default colors (2 bytes)
+		data[i++] = 0xFF & this.fg_key; // 0x0F; // foreground color
+		data[i++] = 0xFF & this.bg_key; // 0x01; // background color 
+	
+		// default palette name (7 bytes)
+		data.set(NuruUtils.string_to_array(this.glyph_pal, 7), i);
+		i += 7;
+	
+		// meta / signature / padding (8 bytes, leave empty)
+		data.set(NuruUtils.string_to_array(this.color_pal, 7), i);
+		i += 7;
+	
+		// reserved byte
+		i += 8;
+	
+		// image data
+		let ch = 0;
+		let fg = 0;
+		let bg = 0;
+	
+		let lines = term.childNodes;
+		let cells = null;
+	
+		if (lines.length != this.rows)
+		{
+			console.log("Discrepancy between actual and assumed image size!");
+			return false;
+		}
+	
+		for (let r = 0; r < this.rows; ++r)
+		{
+			let cells = lines[r].childNodes;
+			if (cells.length != this.cols)
+			{
+				console.log("Discrepancy between actual and assumed image size!");
+				return false;
+			}
+			for (let c = 0; c < this.cols; ++c)
+			{
+				ch = parseInt(cells[c].getAttribute("data-nuru-ch"));
+				fg = parseInt(cells[c].getAttribute("data-nuru-fg"));
+				bg = parseInt(cells[c].getAttribute("data-nuru-bg"));
+	
+				ch_val = this.glyph_pal.get_codepoint(ch);
+	
+				switch (this.options["glyph-mode"])
+				{
+					case 1: // ASCII char = 8 bits = 1 byte
+						data[i++] = 0xFF & ch_val;
+						break;
+					case 2: // Unicode code points = 16 bits = 2 bytes
+						data[i++] = (0xFF00 & ch_val) >> 8;
+						data[i++] = (0x00FF & ch_val);
+						break;
+					case 129: // Index into glyph palette
+						data[i++] = ch;
+						break;
+				}
+	
+				// TODO need to take palette in mind (if any)
+				switch (this.options["color-mode"])
+				{
+					case 1:
+						data[i]  = fg << 4;
+						data[i] |= bg;
+						i++;
+						break;
+					case 2:
+						data[i++] = fg;
+						data[i++] = bg;
+						break;
+					case 130:
+						data[i++] = fg;
+						data[i++] = bg;
+						break;
+				}
+			}
+		}
+	
+		this.download_data(data, filename);
+	};
+	*/
 };
 
 function Nuru()
@@ -281,7 +447,8 @@ function Nuru()
 	this.glyphs = null;
 	this.colors = null;
 
-	this.pal = [];
+	this.glyph_pal = [];
+	this.color_pal = [];
 
 	// current brush values
 	this.ch = 32;
@@ -319,8 +486,12 @@ function Nuru()
 
 Nuru.prototype.CP437 = {
 	"name": "cp437",
-	"space": 32,
-	"codepoints": [
+	"type": 2,
+	"default1": 32,
+	"default2": 0,
+	"userdata": 0,
+	"reserved": 0,
+	"data": [
 		0x0000, 0x263A, 0x263B, 0x2665, 0x2666, 0x2663, 0x2660, 0x2022,
 		0x25D8, 0x25CB, 0x25D8, 0x2642, 0x2640, 0x266A, 0x266B, 0x263C,
 		0x25BA, 0x25C4, 0x2195, 0x203C, 0x00B6, 0x00A7, 0x25AC, 0x21A8,
@@ -356,6 +527,14 @@ Nuru.prototype.CP437 = {
 	]
 };
 
+// xterm color variants
+// https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
+Nuru.prototype.ANSI4 = [
+	0x000000, 0xcd0000, 0x00cd00, 0xcdcd00, 0x0000ee, 0xcd00cd, 0x00cdcd, 0xe5e5e5,
+	0x7f7f7f, 0xff0000, 0x00ff00, 0xffff00, 0x5c5cff, 0xff00ff, 0x00ffff, 0xffffff
+];
+
+// https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
 Nuru.prototype.ANSI8 = [
 	0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0xc0c0c0,
 	0x808080, 0xff0000, 0x00ff00, 0xffff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffffff,
@@ -393,25 +572,32 @@ Nuru.prototype.ANSI8 = [
 
 Nuru.prototype.save_img = function(filename)
 {
-	// header is 16 bytes
-	// each cell = 1 byte for char, 2 bytes for color
+	let cols = parseInt(this.options["cols"]);
+	let rows = parseInt(this.options["rows"]);
 
-	let cols = this.options["cols"];
-	let rows = this.options["rows"];
+	let glyph_mode = parseInt(this.options["glyph-mode"]);
+	let color_mode = parseInt(this.options["color-mode"]);
+	let mdata_mode = parseInt(this.options["mdata-mode"]);
 
-	let size = (cols * rows * 3) + 32;
+	let glyph_size = 0x0F & glyph_mode; 
+	let color_size = 0x0F & color_mode; 
+	let mdata_size = 0x0F & mdata_mode; 
+
+	// Now we can calculate the total file size (payload + header)
+	let size = (cols * rows * (glyph_size + color_size + mdata_size)) + 32;
+
 	let data = new Uint8Array(size);
 	let i = 0;
 
-	// file format signaturei (8 bytes)
-	data.set(NuruUtils.string_to_array(this.nui_sig, 8), i);
+	// file format signature (7 bytes)
+	data.set(NuruUtils.string_to_array(this.nui_sig, 7), i);
 	i += 7;
 	data[i++] = this.nui_ver; // 1 - file format version
 
 	// data format (3 bytes)
-	data[i++] = 0xFF & this.options["glyph-mode"];
-	data[i++] = 0xFF & this.options["color-mode"];
-	data[i++] = 0xFF & this.options["mdata-mode"]; 
+	data[i++] = 0xFF & glyph_mode;
+	data[i++] = 0xFF & color_mode;
+	data[i++] = 0xFF & mdata_mode;
 
 	// image format (4 bytes)
 	data[i++] = (0xFF00 & cols) >> 8; // image width
@@ -420,19 +606,21 @@ Nuru.prototype.save_img = function(filename)
 	data[i++] = (0x00FF & rows);      // image height
 
 	// default colors (2 bytes)
-	data[i++] = 0xFF & this.options["fg-key"]; // 0x0F; // foreground color
-	data[i++] = 0xFF & this.options["bg-key"]; // 0x01; // background color 
+	data[i++] = 0xFF & parseInt(this.options["fg-key"]); // 0x0F; // foreground color
+	data[i++] = 0xFF & parseInt(this.options["bg-key"]); // 0x01; // background color 
 
 	// default palette name (7 bytes)
-	data.set(NuruUtils.string_to_array(this.options["palette"], 7), i);
+	data.set(NuruUtils.string_to_array(this.options["glyph_pal"], 7), i, 0);
 	i += 7;
 
 	// meta / signature / padding (8 bytes, leave empty)
-	data.set(NuruUtils.string_to_array(this.options["comment"], 7), i);
-	i += 8;
+	data.set(NuruUtils.string_to_array(this.options["color_pal"], 7), i, 0);
+	i += 7;
+
+	// reserved byte
+	i += 1;
 
 	// image data
-
 	let ch = 0;
 	let fg = 0;
 	let bg = 0;
@@ -460,13 +648,44 @@ Nuru.prototype.save_img = function(filename)
 			fg = parseInt(cells[c].getAttribute("data-nuru-fg"));
 			bg = parseInt(cells[c].getAttribute("data-nuru-bg"));
 
-			data[i++] = 0xFF & ch;
-			data[i++] = 0xFF & fg;
-			data[i++] = 0xFF & bg;
+			ch_val = this.glyph_pal.get_codepoint(ch);
+			console.log(ch_val);
+
+			switch (glyph_mode)
+			{
+				case 1: // ASCII char = 8 bits = 1 byte
+					data[i++] = 0xFF & ch_val;
+					break;
+				case 2: // Unicode code points = 16 bits = 2 bytes
+					data[i++] = (0xFF00 & ch_val) >> 8;
+					data[i++] = (0x00FF & ch_val);
+					break;
+				case 129: // Index into glyph palette
+					data[i++] = ch;
+					break;
+			}
+
+			// TODO need to take palette in mind (if any)
+			switch (color_mode)
+			{
+				case 1:
+					data[i]  = fg << 4;
+					data[i] |= bg;
+					i++;
+					break;
+				case 2:
+					data[i++] = fg;
+					data[i++] = bg;
+					break;
+				case 130:
+					data[i++] = fg;
+					data[i++] = bg;
+					break;
+			}
 		}
 	}
 
-	this.download_data(data, filename);
+	NuruUtils.download_data(data, filename);
 };
 
 Nuru.prototype.on_files = function(evt)
@@ -521,23 +740,8 @@ Nuru.prototype.load_img = function(evt)
 	}
 
 	let glyph_mode = view.getUint8(8);
-	if (glyph_mode != 1)
-	{
-		console.log("Glyph mode currently not supported");
-		return false;
-	}
 	let color_mode = view.getUint8(9);
-	if (color_mode != 2)
-	{
-		console.log("Color mode currently not supported");
-		return false;
-	}
 	let mdata_mode = view.getUint8(10);
-	if (mdata_mode != 0)
-	{
-		console.log("Mdata mode currently not supported");
-		return false;
-	}
 	
 	let cols = view.getUint16(11, false);
 	let rows = view.getUint16(13, false);
@@ -552,13 +756,12 @@ Nuru.prototype.load_img = function(evt)
 	let fg_key = view.getUint8(15);
 	let bg_key = view.getUint8(16);
 
-	let palette = NuruUtils.array_to_string(new Uint8Array(buffer.slice(17, 24)));
-	let comment = NuruUtils.array_to_string(new Uint8Array(buffer.slice(24, 31)));
+	let glyph_pal = NuruUtils.array_to_string(new Uint8Array(buffer.slice(17, 24)));
+	let color_pal = NuruUtils.array_to_string(new Uint8Array(buffer.slice(24, 31)));
 
-	if (palette.toLowerCase() != this.options["palette"].toLowerCase())
+	if (glyph_pal.toLowerCase() != this.options["glyph_pal"].toLowerCase())
 	{
 		console.log("Palette mismatch");
-		//return false;
 	}
 
 	this.options["cols"] = cols;
@@ -585,9 +788,33 @@ Nuru.prototype.load_img = function(evt)
 		cells = lines[r].childNodes;
 		for (let c = 0; c < cols; ++c)
 		{
-			ch = view.getUint8(i++);
-			fg = view.getUint8(i++);
-			bg = view.getUint8(i++);
+			switch (glyph_mode)
+			{
+				case 1:
+					ch = view.getUint8(i++);
+					break;
+				case 2:
+					ch = view.getUint16(i+=2);
+					break;
+				case 129:
+					ch = view.getUint8(i++);
+					break;
+			}
+
+			switch (color_mode)
+			{
+				case 1:
+					let col = view.getUint8(i++);
+					fg = 0xF0 & col;
+					bg = 0x0F & col;
+					break;
+				case 2:
+				case 130:
+					fg = view.getUint8(i++);
+					bg = view.getUint8(i++);
+					break;
+			}
+
 			this.set_cell(cells[c], ch, fg, bg);
 		}
 	}
@@ -596,7 +823,7 @@ Nuru.prototype.load_img = function(evt)
 Nuru.prototype.load_pal = function(evt)
 {
 	let buffer = evt.target.result;
-	this.pal.load_from_buffer(buffer);
+	this.glyph_pal.load_from_buffer(buffer);
 };
 
 Nuru.prototype.to_col = function(hex)
@@ -622,8 +849,8 @@ Nuru.prototype.init = function()
 	}
 
 	// palette
-	//this.pal = this.palettes[this.options["palette"]];
-	this.pal = new NuruPalette();
+	//this.glyph_pal = this.glyph_palettes[this.options["palette"]];
+	this.glyph_pal = new NuruPalette();
 
 	// resize_term takes care of creating lines and cells as required
 	this.resize_term();
@@ -646,8 +873,8 @@ Nuru.prototype.init = function()
 		for (let c = 0; c < 16; ++c)
 		{
 			let idx = r*16+c;
-			let ch = this.pal.get_codepoint(idx);
-			let glyph = this.pal.get_glyph(idx);
+			let ch = this.glyph_pal.get_codepoint(idx);
+			let glyph = this.glyph_pal.get_glyph(idx);
 			cell = document.createElement("pre");
 			cell.classList.add("cell", "r"+r, "c"+c);
 			cell.setAttribute("data-nuru-np", "0");
@@ -666,7 +893,7 @@ Nuru.prototype.init = function()
 			{
 				cell.classList.add("non-printable");
 				cell.setAttribute("data-nuru-np", "1");
-				cell.innerHTML = this.pal.get_space_glyph();
+				cell.innerHTML = this.glyph_pal.get_space_glyph();
 			}
 			line.appendChild(cell);
 		}
@@ -834,8 +1061,8 @@ Nuru.prototype.redraw_term = function()
 			fg = cell.getAttribute("data-nuru-fg");
 			bg = cell.getAttribute("data-nuru-bg");
 
-			//cell.innerHTML             = this.pal.codepoints[ch];
-			cell.innerHTML             = this.pal.get_glyph(ch);
+			//cell.innerHTML             = this.glyph_pal.codepoints[ch];
+			cell.innerHTML             = this.glyph_pal.get_glyph(ch);
 			cell.style.color           = this.get_fg_css(fg);
 			cell.style.backgroundColor = this.get_bg_css(bg); 
 		}
@@ -862,10 +1089,10 @@ Nuru.prototype.new_cell = function(row, col)
 		cell.classList.add("c"+col);
 		cell.setAttribute("data-nuru-col", col);
 	}
-	cell.setAttribute("data-nuru-ch", this.pal.get_space_index());
+	cell.setAttribute("data-nuru-ch", this.glyph_pal.get_space_index());
 	cell.setAttribute("data-nuru-fg", this.options["fg-key"]);
 	cell.setAttribute("data-nuru-bg", this.options["bg-key"]); 
-	cell.innerHTML = this.pal.get_space_glyph();
+	cell.innerHTML = this.glyph_pal.get_space_glyph();
 	return cell;
 }
 
@@ -917,7 +1144,7 @@ Nuru.prototype.crop_term = function()
 	let lines = this.term.childNodes;
 	let cells = null;
 
-	let ch_none = this.pal.get_space_index();
+	let ch_none = this.glyph_pal.get_space_index();
 	let fg_none = this.options["fg-key"];
 	let bg_none = this.options["bg-key"];
 
@@ -1041,7 +1268,7 @@ Nuru.prototype.on_button = function(evt)
 			this.reset_term();
 			break;
 		case "pal-save":
-			this.pal.save_to_file(this.pal.name + ".nup");
+			this.glyph_pal.save_to_file(this.glyph_pal.name + ".nup");
 			break;
 		case "pal-open":
 			this.open_pal();
@@ -1128,7 +1355,7 @@ Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
 	let new_fg = fg===null ? this.fg : fg;
 	let new_bg = bg===null ? this.bg : bg;
 
-	cell.innerHTML             = this.pal.get_glyph(new_ch);
+	cell.innerHTML             = this.glyph_pal.get_glyph(new_ch);
 	cell.style.color           = this.get_fg_css(fg); 
 	cell.style.backgroundColor = this.get_bg_css(bg); 
 
@@ -1139,11 +1366,11 @@ Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
 
 Nuru.prototype.del_cell = function(cell)
 {
-	cell.innerHTML             = this.pal.get_space_glyph();
+	cell.innerHTML             = this.glyph_pal.get_space_glyph();
 	cell.style.color           = "inherit";
 	cell.style.backgroundColor = "inherit";
 
-	cell.setAttribute("data-nuru-ch", this.pal.get_space_index());
+	cell.setAttribute("data-nuru-ch", this.glyph_pal.get_space_index());
 	cell.setAttribute("data-nuru-fg", this.options["fg-key"]);
 	cell.setAttribute("data-nuru-bg", this.options["bg-key"]);
 };
@@ -1175,6 +1402,7 @@ Nuru.prototype.on_mouse_term = function(evt)
 				this.set_brush(cell.getAttribute("data-nuru-ch"),
 				               cell.getAttribute("data-nuru-fg"),
 				               cell.getAttribute("data-nuru-bg"));
+				this.select_tool("pencil");
 				break;
 			default:
 				console.log("Not implemented");
@@ -1200,10 +1428,10 @@ Nuru.prototype.set_glyph = function(ch=null)
 	let brush = this.panels.brush.querySelector(".cell");
 	let glyph = this.panels.glyph.querySelector(".cell");
 	
-	this.ch = ch === null ? this.pal.get_space_index() : ch;
+	this.ch = ch === null ? this.glyph_pal.get_space_index() : ch;
 
-	brush.innerHTML = this.pal.get_glyph(this.ch);
-	glyph.innerHTML = this.pal.get_glyph(this.ch);
+	brush.innerHTML = this.glyph_pal.get_glyph(this.ch);
+	glyph.innerHTML = this.glyph_pal.get_glyph(this.ch);
 
 	this.select_cell_idx(this.glyphs, this.ch);
 };
