@@ -557,9 +557,8 @@ class NuruTerm
 	static CELL_ELEMENT = "pre";
 	static CELL_CLASS   = "cell";
 
-	root = null;
-	cols = 0;
-	rows = 0;
+	static GLYPH_NONE = " ";
+	static COLOR_NONE = "inherit";
 
 	constructor(root, cols=64, rows=16)
 	{
@@ -570,14 +569,30 @@ class NuruTerm
 		this.resize(this.cols, this.rows);
 	}
 
-	new_line(row)
+	static set_cell(cell, ch, fg, bg, attrs)
+	{
+		cell.innerHTML             = ch ? ch : NuruTerm.GLYPH_NONE;
+		cell.style.color           = fg ? fg : NuruTerm.COLOR_NONE; 
+		cell.style.backgroundColor = bg ? bg : NuruTerm.COLOR_NONE; 
+		NuruTerm.set_cell_attrs(cell, attrs);
+	};
+
+	static set_cell_attrs(cell, attrs)
+	{
+		for (let name in attrs)
+		{
+			cell.setAttribute(NuruTerm.ATTR_PREFIX + "-" + name, attrs[name]);
+		}
+	}
+
+	static new_line(row)
 	{
 		let line = document.createElement(NuruTerm.LINE_ELEMENT);
 		line.classList.add(NuruTerm.LINE_CLASS, "r" + row);
 		return line;
 	}
 
-	new_cell(col, row, ch, fg, bg, attrs={})
+	static new_cell(col, row, ch, fg, bg, attrs={})
 	{
 		let cell = document.createElement(NuruTerm.CELL_ELEMENT);
 		cell.classList.add(NuruTerm.CELL_CLASS);
@@ -586,7 +601,7 @@ class NuruTerm
 		attrs.col = col;
 		attrs.row = row;
 
-		this.set_cell(cell, ch, fg, bg, attrs);
+		NuruTerm.set_cell(cell, ch, fg, bg, attrs);
 		return cell;
 	}
 
@@ -606,7 +621,7 @@ class NuruTerm
 		let cell = null;
 		for (let r = 0; r < this.rows; ++r)
 		{
-			line = this.new_line(r);
+			line = NuruTerm.new_line(r);
 			for (let c = 0; c < this.cols; ++c)
 			{
 				if (clone.childNodes[r] && clone.childNodes[r].childNodes[c])
@@ -615,7 +630,7 @@ class NuruTerm
 				}
 				else
 				{
-					cell = this.new_cell(c, r, ch, fg, bg, attrs);
+					cell = NuruTerm.new_cell(c, r, ch, fg, bg, attrs);
 				}
 				line.appendChild(cell);
 			}
@@ -623,9 +638,21 @@ class NuruTerm
 		}
 	}
 
+	set_all(ch, fg, bg, attrs)
+	{
+		for (let r = 0; r < this.rows; ++r)
+		{
+			for (let c = 0; c < this.cols; ++c)
+			{
+				this.set_cell_at(c, r, ch, fg, bg, attrs);
+			}
+		}
+	}
+
 	get_cell_at(col, row)
 	{
-		return this.root.querySelector("." + NuruTerm.CELL_CLASS + ".c" + col + ".r" + row);
+		let sel = "." + NuruTerm.CELL_CLASS + ".c" + col + ".r" + row;
+		return this.root.querySelector(sel);
 	}
 
 	get_cell_attr_at(col, row, name)
@@ -639,30 +666,14 @@ class NuruTerm
 	{
 		let cell = this.get_cell_at(col, row);
 		if (!cell) { return false; }
-		this.set_cell(cell, ch, fg, bg, attrs) 
+		NuruTerm.set_cell(cell, ch, fg, bg, attrs) 
 	}
-
-	set_cell(cell, ch, fg, bg, attrs)
-	{
-		cell.innerHTML             = ch ? ch : " ";
-		cell.style.color           = fg ? fg : "inherit"; 
-		cell.style.backgroundColor = bg ? bg : "inherit"; 
-		this.set_cell_attrs(cell, attrs);
-	};
 
 	set_cell_attrs_at(col, row, attrs)
 	{
 		let cell = this.get_cell_at(col, row);
 		if (!cell) { return false; }
-		this.set_cell_attrs(cell, attrs);
-	}
-
-	set_cell_attrs(cell, attrs)
-	{
-		for (let name in attrs)
-		{
-			cell.setAttribute(NuruTerm.ATTR_PREFIX + "-" + name, attrs[name]);
-		}
+		NuruTerm.set_cell_attrs(cell, attrs);
 	}
 }
 
@@ -704,12 +715,6 @@ function Nuru()
 	this.tool = null;
 	this.action = "get";
 	this.layer = "fg";
-
-	// file signatures etc
-	this.nui_sig = "NURUIMG";
-	this.nup_sig = "NURUPAL";
-	this.nui_ver = 1;
-	this.nup_ver = 1;
 
 	// some other defaults
 	this.filename  = "drawing";
@@ -908,28 +913,48 @@ Nuru.prototype.to_col = function(hex)
 	return "#" + col;
 };
 
-/*
-Nuru.prototype.element_by_attr = function(attr)
-{
-	return document.querySelector("[" + attr + "]");
-};
-
-Nuru.prototype.elements_by_attr = function(attr)
-{
-	return document.querySelectorAll("[" + attr + "]");
-};
-*/
-
 Nuru.prototype.ele_by_attr = function(attr, singular=false)
 {
 	let eles = document.querySelectorAll("[" + attr + "]");
 	return singular ? eles[0] : eles;
 };
 
-Nuru.prototype.init_glyphs_panel = function(attr, w, h)
+Nuru.prototype.init_image = function()
 {
-	this.glyphs_root = this.ele_by_attr(attr, true);
-	this.glyphs = new NuruTerm(this.glyphs_root, w, h);
+	this.image = new NuruImage();
+	this.image.cols       = this.get_input_val("cols");
+	this.image.rows       = this.get_input_val("rows");
+	this.image.glyph_mode = this.get_input_val("glyph-mode");
+	this.image.color_mode = this.get_input_val("color-mode");
+	this.image.mdata_mode = this.get_input_val("mdata-mode");
+	this.image.ch_key     = this.get_input_val("ch-key");
+	this.image.fg_key     = this.get_input_val("fg-key");
+	this.image.bg_key     = this.get_input_val("bg-key");
+	this.image.glyph_pal  = this.get_input_val("glyph-pal");
+	this.image.color_pal  = this.get_input_val("color-pal");
+
+	this.image.resize();
+};
+
+// The Terminal Canvas
+Nuru.prototype.init_term = function(attr, w, h, callback)
+{
+	let term_root = this.ele_by_attr(attr, true);
+	if (!term_root) { return false };
+	this.term = new NuruTerm(term_root, w, h);
+	
+	let handler = callback.bind(this);
+	this.term.root.addEventListener("click",      handler);
+	this.term.root.addEventListener("mouseover",  handler);
+	this.term.root.addEventListener("mousedown",  handler);
+	this.term.root.addEventListener("mouseup",    handler);
+	this.term.root.addEventListener("mouseleave", handler);
+};
+
+Nuru.prototype.init_glyphs_panel = function(attr, w, h, callback)
+{
+	let glyphs_root = this.ele_by_attr(attr, true);
+	this.glyphs = new NuruTerm(glyphs_root, w, h);
 	for (let r = 0; r < h; ++r)
 	{
 		for (let c = 0; c < w; ++c)
@@ -953,17 +978,17 @@ Nuru.prototype.init_glyphs_panel = function(attr, w, h)
 				glyph = this.glyph_pal.get_space_glyph();
 			}
 
-			this.glyphs.set_cell(cell, glyph, null, null, cell_attrs);
+			NuruTerm.set_cell(cell, glyph, null, null, cell_attrs);
 		}
 	}
 
-	this.glyphs_root.addEventListener('click', this.on_click_glyphs.bind(this));
+	glyphs_root.addEventListener("click", callback.bind(this));
 };
 
-Nuru.prototype.init_colors_panel = function(attr, w, h)
+Nuru.prototype.init_colors_panel = function(attr, w, h, callback)
 {
-	this.colors_root = this.ele_by_attr(attr, true);
-	this.colors = new NuruTerm(this.colors_root, w, h);
+	let colors_root = this.ele_by_attr(attr, true);
+	this.colors = new NuruTerm(colors_root, w, h);
 	for (let r = 0; r < h; ++r)
 	{
 		for (let c = 0; c < w; ++c)
@@ -985,44 +1010,14 @@ Nuru.prototype.init_colors_panel = function(attr, w, h)
 
 			cell.setAttribute("title", idx + ": " + col);
 
-			this.colors.set_cell(cell, " ", col, col, cell_attrs);
+			NuruTerm.set_cell(cell, " ", col, col, cell_attrs);
 		}
 	}
 
-	this.colors_root.addEventListener('click', this.on_click_colors.bind(this));
+	colors_root.addEventListener("click", callback.bind(this));
 };
 
-Nuru.prototype.init_image = function()
-{
-	this.image = new NuruImage();
-	this.image.cols       = this.get_input_val("cols");
-	this.image.rows       = this.get_input_val("rows");
-	this.image.glyph_mode = this.get_input_val("glyph-mode");
-	this.image.color_mode = this.get_input_val("color-mode");
-	this.image.mdata_mode = this.get_input_val("mdata-mode");
-	this.image.ch_key     = this.get_input_val("ch-key");
-	this.image.fg_key     = this.get_input_val("fg-key");
-	this.image.bg_key     = this.get_input_val("bg-key");
-	this.image.glyph_pal  = this.get_input_val("glyph-pal");
-	this.image.color_pal  = this.get_input_val("color-pal");
-
-	this.image.resize();
-};
-
-Nuru.prototype.init_term = function(attr, w, h, callback)
-{
-	let term_root = this.ele_by_attr(attr, true);
-	if (!term_root) { return false };
-	this.term = new NuruTerm(term_root, w, h);
-	
-	let handler = callback.bind(this);
-	this.term.root.addEventListener('click',      handler);
-	this.term.root.addEventListener('mouseover',  handler);
-	this.term.root.addEventListener('mousedown',  handler);
-	this.term.root.addEventListener('mouseup',    handler);
-	this.term.root.addEventListener('mouseleave', handler);
-};
-
+// Keyboard Hotkeys
 Nuru.prototype.init_hotkeys = function(attr, callback)
 {
 	let hotkey_elements = this.ele_by_attr(attr, false);
@@ -1038,6 +1033,7 @@ Nuru.prototype.init_hotkeys = function(attr, callback)
 	document.addEventListener("keyup",   callback.bind(this));
 }
 
+// Layer Buttons ("foreground", "background")
 Nuru.prototype.init_layer_buttons = function(attr, callback)
 {
 	let layers = this.ele_by_attr(attr, false);
@@ -1049,6 +1045,7 @@ Nuru.prototype.init_layer_buttons = function(attr, callback)
 	}
 }
 
+// Action Buttons ("set", "get")
 Nuru.prototype.init_action_buttons = function(attr, callback)
 {
 	let actions = this.ele_by_attr(attr, false);
@@ -1097,12 +1094,11 @@ Nuru.prototype.init_buttons = function(attr, callback)
 // Input Fields
 Nuru.prototype.init_inputs = function(attr, callback)
 {
-	// find all option input fields, save a reference, add a change handler
 	let inputs = this.ele_by_attr(attr, false);
 	let handler = callback.bind(this);
 	for (let input of inputs)
 	{
-		input.addEventListener('change', handler);
+		input.addEventListener("change", handler);
 		this.inputs[input.getAttribute(attr)] = input;
 	}
 };
@@ -1147,11 +1143,11 @@ Nuru.prototype.init = function()
 	// Get a standard glyph panel (ASCII)
 	this.glyph_pal = new NuruPalette();
 	
-	this.init_glyphs_panel("data-nuru-glyphs", 16, 16);
-	this.init_colors_panel("data-nuru-colors", 16, 16);
+	this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+	this.init_colors_panel("data-nuru-colors", 16, 16, this.on_click_colors);
 	
 	this.init_panels("data-nuru-panel");
-
+	this.init_slot_panels("data-nuru-slot", this.on_slot);
 	this.init_hotkeys("data-nuru-hotkey", this.on_key);
 	this.init_buttons("data-nuru-btn", this.on_button);
 	this.init_layer_buttons("data-nuru-layer", this.on_layer);
@@ -1159,9 +1155,6 @@ Nuru.prototype.init = function()
 	
 	this.init_tools("data-nuru-tool", this.on_tool);
 	this.init_fieldsets("fieldset > label", this.on_click_fieldset);
-
-
-	this.init_slot_panels("data-nuru-slot", this.on_slot);
 	
 	this.set_css_var("term-fg", this.get_input_val("term-fg"));
 	this.set_css_var("term-bg", this.get_input_val("term-bg"));
@@ -1239,60 +1232,36 @@ Nuru.prototype.redraw_term = function()
 	}
 };
 
-Nuru.prototype.new_line = function(row)
-{
-	let line = document.createElement("div");
-	line.classList.add("line", "r"+row);
-	return line;
-};
-
-Nuru.prototype.new_cell = function(row, col)
-{
-	let cell = document.createElement("pre");
-	cell.classList.add("cell");
-	if (row) {
-		cell.classList.add("r"+row);
-		cell.setAttribute("data-nuru-row", row);
-
-	}
-	if (col) {
-		cell.classList.add("c"+col);
-		cell.setAttribute("data-nuru-col", col);
-	}
-	//cell.setAttribute("data-nuru-ch", this.glyph_pal.get_space_index());
-	cell.setAttribute("data-nuru-ch", this.get_input_val("ch-key"));
-	cell.setAttribute("data-nuru-fg", this.get_input_val("fg-key"));
-	cell.setAttribute("data-nuru-bg", this.get_input_val("bg-key")); 
-	cell.innerHTML = this.glyph_pal.get_space_glyph();
-	return cell;
-}
-
 Nuru.prototype.resize_term = function()
 {
 	let cols = this.get_input_val("cols");
 	let rows = this.get_input_val("rows");
 	this.image.resize(cols, rows);
 	
-	//resize(cols, rows, ch, fg, bg, ch_idx, fg_idx, bg_idx)
 	// TODO	
 	this.term.resize(cols, rows);
 };
 
 Nuru.prototype.reset_term = function()
 {
-	let cells = this.term.root.querySelectorAll(".cell");
-	for (let i = 0; i < cells.length; ++i)
-	{
-		this.del_cell(cells[i]);
-	}
+	let glyph_none = this.glyph_pal.get_glyph(this.get_input_val("ch-key"));
+	let color_none = "inherit";
+	let attributes = { 
+		"ch": this.get_input_val("ch-key"),
+		"fg": this.get_input_val("fg-key"),
+		"bg": this.get_input_val("bg-key")
+	};
+
+	this.term.set_all(glyph_none, color_none, color_none, attributes);
 };
 
+// TODO
 Nuru.prototype.crop_term = function()
 {
 	let rows = 1;
 	let cols = 1;
 
-	let lines = this.term.childNodes;
+	let lines = this.term.root.childNodes;
 	let cells = null;
 
 	//let ch_none = this.glyph_pal.get_space_index();
@@ -1486,47 +1455,47 @@ Nuru.prototype.on_key = function(evt)
 	}
 };
 
+// TODO use current color palette instead
 Nuru.prototype.get_fg_css = function(color=null)
 {
 	let fg = color === null ? this.fg : color;
 	return (fg == this.get_input_val("fg-key")) ? "inherit" : this.to_col(this.ANSI8[fg]);
 };
 
+// TODO use current color palette instead
 Nuru.prototype.get_bg_css = function(color=null)
 {
 	let bg = color === null ? this.bg : color;
 	return (bg == this.get_input_val("bg-key")) ? "inherit" : this.to_col(this.ANSI8[bg]);
 };
 
-// TODO adapt to use NuruTerm!
 Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
 {
 	let new_ch = ch===null ? this.ch : ch;
 	let new_fg = fg===null ? this.fg : fg;
 	let new_bg = bg===null ? this.bg : bg;
 
-	cell.innerHTML             = this.glyph_pal.get_glyph(new_ch);
-	cell.style.color           = this.get_fg_css(fg); 
-	cell.style.backgroundColor = this.get_bg_css(bg); 
+	let glyph = this.glyph_pal.get_glyph(new_ch);
+	let fgcol = this.get_fg_css(new_fg);
+	let bgcol = this.get_bg_css(new_bg);
 
-	cell.setAttribute("data-nuru-ch", new_ch);
-	cell.setAttribute("data-nuru-fg", new_fg);
-	cell.setAttribute("data-nuru-bg", new_bg);
+	let attributes = { "ch": new_ch, "fg": new_fg, "bg": new_bg };
+
+	NuruTerm.set_cell(cell, glyph, fgcol, bgcol, attributes);
 };
 
-// TODO adapt to use NuruTerm!
 Nuru.prototype.del_cell = function(cell)
 {
-	//cell.innerHTML             = this.glyph_pal.get_space_glyph();
-	cell.innerHTML             = this.glyph_pal.get_glyph(this.get_input_val("ch-key"));
-	cell.style.color           = "inherit";
-	cell.style.backgroundColor = "inherit";
+	let glyph_none = this.glyph_pal.get_glyph(this.get_input_val("ch-key"));
+	let color_none = "inherit"; // TODO should probably use get_fg_css() / get_bg_css() here
 
-	//cell.setAttribute("data-nuru-ch", this.glyph_pal.get_space_index());
-	cell.setAttribute("data-nuru-ch", this.get_input_val("ch-key"));
-	cell.setAttribute("data-nuru-fg", this.get_input_val("fg-key"));
-	cell.setAttribute("data-nuru-bg", this.get_input_val("bg-key"));
+	let attributes = { 
+		"ch": this.get_input_val("ch-key"),
+		"fg": this.get_input_val("fg-key"),
+		"bg": this.get_input_val("bg-key")
+	};
 
+	NuruTerm.set_cell(cell, glyph_none, color_none, color_none, attributes);
 };
 
 // TODO use NuruTerm methods instead
@@ -1578,17 +1547,15 @@ Nuru.prototype.on_mouse_term = function(evt)
 	}
 };
 
-// TODO use NuruTerm methods instead
 Nuru.prototype.set_glyph = function(ch=null)
 {
-	let brush = this.panels.brush.root.querySelector(".cell");
-	let glyph = this.panels.glyph.root.querySelector(".cell");
-	
-	//this.ch = ch === null ? this.glyph_pal.get_space_index() : ch;
-	this.ch = ch===null ? this.get_input_val("ch-key") : ch;
+	this.ch = ch === null ? this.get_input_val("ch-key") : ch;
 
-	brush.innerHTML = this.glyph_pal.get_glyph(this.ch);
-	glyph.innerHTML = this.glyph_pal.get_glyph(this.ch);
+	let brush_cell = this.panels.brush.get_cell_at(0, 0);
+	let glyph_cell = this.panels.glyph.get_cell_at(0, 0);
+
+	NuruTerm.set_cell(brush_cell, this.glyph_pal.get_glyph(this.ch));
+	NuruTerm.set_cell(glyph_cell, this.glyph_pal.get_glyph(this.ch));
 
 	this.select_cell_idx(this.glyphs, this.ch);
 };
@@ -1605,6 +1572,21 @@ Nuru.prototype.set_fgcol = function(fg=null)
 	fgcol.style.backgroundColor = this.to_col(this.ANSI8[fg]); //this.get_fg_css();
 
 	this.select_cell_idx(this.colors, this.fg, "selected-fg");
+	
+
+	/*
+	this.fg = fg == null ? this.get_input_val("fg-key") : fg;
+
+	let brush_cell = this.panels.brush.get_cell_at(0, 0);
+	let fgcol_cell = this.panels.fgcol.get_cell_at(0, 0);
+
+	let fgcol = this.get_fg_css();
+	let bgcol = this.to_col(this.ANSI8[fg]); // TODO
+
+	// TODO
+
+	this.select_cell_idx(this.colors, this.fg, "selected-fg");
+	*/
 };
 
 // TODO use NuruTerm methods instead
