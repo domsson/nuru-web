@@ -25,6 +25,7 @@
 	--tooltip-fg: #111; 
 	--tooltip-bg: #d0b153;
 	--highlight: #d0b153;
+	--warning: #d73510;
 	--border-radius: .25rem;
 	--gap-s: .125rem;
 	--gap-m: .25rem;
@@ -562,8 +563,11 @@ button.picker {
 }
 
 .glyphs .cell.selected {
-	color: var(--tooltip-fg);
-	background-color: var(--tooltip-bg);
+	outline: .125rem solid var(--highlight);
+}
+
+.glyphs .cell.non-printable {
+	outline: .125rem solid var(--warning);
 }
 
 .colors .cell.selected-fg,
