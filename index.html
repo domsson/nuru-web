@@ -21,8 +21,8 @@
 			<button class="wipe" data-nuru-btn="wipe" title="Erase the entire canvas"><span class="label">Wipe</label></button>
 		</nav>
 		<aside class="options">
-			<fieldset class="terminal-options" data-nuru-set="">
-				<label>Terminal</label>
+			<fieldset class="terminal-options" data-nuru-set="terminal-options">
+				<label data-nuru-set-trigger="terminal-options"><span>Terminal</span></label>
 				<div class="fields">
 					<div class="input">
 						<label for="term-fg">Foreground</label>
@@ -34,8 +34,8 @@
 					</div>
 				</div>
 			</fieldset>
-			<fieldset class="image-options" data-nuru-set="">
-				<label>Image</label>
+			<fieldset class="image-options" data-nuru-set="image-options">
+				<label data-nuru-set-trigger="image-options"><span>Image</span></label>
 				<div class="fields">
 					<div class="input">
 						<label for="cols">Width</label>
@@ -99,8 +99,8 @@
 					</div>
 				</div>
 			</fieldset>
-			<fieldset class="palettes-options" data-nuru-set="">
-				<label>Palettes</label>
+			<fieldset class="palettes-options" data-nuru-set="palettes-options">
+				<label data-nuru-set-trigger="palettes-options"><span>Palettes</span></label>
 				<div class="fields">
 					<button class="pal-open" data-nuru-btn="pal-open"><span class="label">Import</span></button>
 					<button class="pal-save" data-nuru-btn="pal-save"><span class="label">Export</span></button>
@@ -113,16 +113,16 @@
 			</div>
 		</main>
 		<aside class="palettes">
-			<fieldset data-nuru-set="">
-				<label>Glyphs</label>
+			<fieldset data-nuru-set="palettes">
+				<label data-nuru-set-trigger="palettes"><span>Glyphs</span></label>
 				<div class="fields">
 					<div class="glyphs">
 						<div class="nuru" data-nuru-glyphs=""></div>
 					</div>
 				</div>
 			</fieldset>
-			<fieldset data-nuru-set="">
-				<label>Colors</label>
+			<fieldset data-nuru-set="colors">
+				<label data-nuru-set-trigger="colors"><span>Colors</span></label>
 				<div class="fields">
 					<div class="layers">
 						<button class="fg" data-nuru-layer="fg" data-nuru-hotkey="F"><span class="label">foreground</span></button>
@@ -135,16 +135,16 @@
 			</fieldset>
 		</aside>
 		<nav class="toolbox">
-			<fieldset class="tools" data-nuru-set="">
-				<label>Tools</label>
+			<fieldset class="tools" data-nuru-set="tools">
+				<label data-nuru-set-trigger="tools"><span>Tools</span></label>
 				<div class="fields">
 					<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="Q"><span class="label">Pencil</label></button>
 					<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="E"><span class="label">Eraser</label></button>
 					<button class="picker" data-nuru-tool="picker" data-nuru-hotkey="C"><span class="label">Picker</label></button>
 				</div>
 			</fieldset>
-			<fieldset class="active-brush" data-nuru-set="">
-				<label>Brush</label>
+			<fieldset class="active-brush" data-nuru-set="active-brush">
+				<label data-nuru-set-trigger="active-brush"><span>Brush</span></label>
 				<div class="fields">
 					<div class="nuru brush" data-nuru-panel="brush" title="Brush"></div>
 					<div class="nuru glyph" data-nuru-panel="glyph" title="Glyph"></div>
@@ -152,8 +152,8 @@
 					<div class="nuru bgcol" data-nuru-panel="bgcol" title="BG"></div>
 				</div>
 			</fieldset>
-			<fieldset class="saved-brushes" data-nuru-set="">
-				<label>Slots</label>
+			<fieldset class="saved-brushes" data-nuru-set="saved-brushes">
+				<label data-nuru-set-trigger="saved-brushes"><span>Slots</span></label>
 				<div class="fields">
 					<div class="actions">
 						<button class="set" data-nuru-action="set" data-nuru-hotkey="S"><span class="label">set</span></button>

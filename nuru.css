@@ -16,6 +16,8 @@
 	--term-border: #678cb1;
 	--ui-fg: #ddd;
 	--ui-bg: #222;
+	--label-fg: #fff;
+	--label-bg: #555;
 	--panel-fg: #ddd;
 	--panel-bg: #444;
 	--input-fg: #ddd;
@@ -30,6 +32,7 @@
 	--gap-s: .125rem;
 	--gap-m: .25rem;
 	--gap-l: .5rem;
+	--gap-xl: .75rem;
 }
 
 html {
@@ -139,7 +142,8 @@ h1 {
 .toolbox {
 	grid-column: 2;
 	grid-row: 3;
-	justify-content: space-evenly;
+	justify-content: flex-start;
+	align-items: stretch;
 }
 
 .toolbox fieldset,
@@ -264,24 +268,40 @@ aside fieldset {
 	margin-bottom: var(--gap-l);
 }
 
+nav fieldset {
+	margin-right: var(--gap-l);
+}
+
 fieldset.collapsed .fields {
-	display: none;
+	display: none!important;
 }
 
-nav fieldset > label {
-	display: none;
+.toolbox {
+	min-height: 4rem;
 }
 
+nav fieldset > label,
 aside fieldset > label {
 	display: block;
 	position: relative;
 	padding: var(--gap-m) var(--gap-l);
-	margin-bottom: .75rem;
-	color: #fff;
-	background: #555;
+	margin: 0 0 var(--gap-l) 0;
+	color: var(--label-fg);
+	background: var(--label-bg);
 	border-radius: var(--border-radius);
 	cursor: pointer;
 	text-shadow: 0 -1px #222;
+}
+
+nav fieldset > label {
+	min-width: 1rem;
+	padding: var(--gap-l) var(--gap-m);
+	margin: 0 var(--gap-l) 0 0;
+	font-size: .65rem;
+}
+
+nav fieldset > label span {
+	display: none;
 }
 
 aside fieldset > label::after {
@@ -290,12 +310,21 @@ aside fieldset > label::after {
 	right: var(--gap-l);
 }
 
-aside fieldset.collapsed label {
-	margin-bottom: 0;
+nav fieldset > label::after  {
+	content: "◀";
 }
 
-aside fieldset.collapsed > label:after {
+nav fieldset.collapsed label,
+aside fieldset.collapsed label {
+	margin: 0;
+}
+
+aside fieldset.collapsed > label::after {
 	content: "▼";
+}
+
+nav fieldset.collapsed > label::after {
+	content: "▶";
 }
 
 .palettes .fields {
