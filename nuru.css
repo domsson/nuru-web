@@ -458,7 +458,6 @@ button.pal-open {
 .menu button[data-nuru-hotkey]:before,
 .layers button[data-nuru-hotkey]:before,
 .actions button[data-nuru-hotkey]:before {
-	text-transform: uppercase;
 	font-size: .625rem;
 }
 

@@ -884,21 +884,35 @@ Nuru.prototype.init_ui_panels = function(attr, prop, callback, action="click")
 
 Nuru.prototype.init = function()
 {
-	// Initialize form input fields
+	// init form input fields
 	this.init_ui_elements("data-nuru-opt", "inputs", this.on_input, "change");
 	
-	// Initialize image (fetches value from input fields)
+	// init image (fetches value from input fields)
 	this.init_image();
 
-	// Initialize the terminal (canvas, drawing area)
+	// init terminal (canvas, drawing area)
 	this.init_term("data-nuru-term", this.image.cols, this.image.rows, this.on_mouse_term);
 
-	// Glyph palette
-	let nurustd = new Uint8Array(this.glyph_palettes["nurustd"]);
-	let cp437 = new Uint8Array(this.glyph_palettes["cp437"]);
-	this.glyph_pal = new NuruPalette(nurustd.buffer);
+	// init glyph palette
+	
+	let first = null;
+	for (let name in this.glyph_palettes)
+	{
+		if (first === null) first = name;
+		this.add_input_opt("glyph-pal", name.toLowerCase(), name.toUpperCase());
+	}
+
+	this.sel_input_opt("glyph-pal", first);
+
+	/*
+	let glyph_pal_name = this.get_input_val("glyph-pal").toLowerCase();
+	let glyph_pal_data = new Uint8Array(this.glyph_palettes[glyph_pal_name]);
+	this.glyph_pal = new NuruPalette(glyph_pal_data.buffer);
+	*/
+	this.select_glyph_palette();
 
 	// TODO
+	// init color palette
 	this.color_pal = new Uint8Array(this.color_palettes["aurora"]);
 	
 	// init palettes panels
@@ -936,6 +950,33 @@ Nuru.prototype.set_input_val = function(name, val)
 	if (!input) return;
 	input.value = val;
 };
+
+Nuru.prototype.add_input_opt = function(name, val, txt)
+{
+	let input = this.inputs[name];
+	if (!input) return;
+	if (input.type != "select-one") return;
+	let opt = document.createElement("option");
+	opt.value = val;
+	opt.text  = txt;
+	input.add(opt);
+}
+
+Nuru.prototype.sel_input_opt = function(name, val)
+{
+	let input = this.inputs[name];
+	if (!input) return;
+	if (input.type != "select-one") return;
+	let options = input.querySelectorAll("option");
+	for (let i = 0; i < options.length; ++i)
+	{
+		if (options[i].value == val) 
+		{
+			input.selectedIndex = i;
+			break;
+		}
+	}
+}
 
 Nuru.prototype.get_input_val = function(name)
 {
@@ -1075,6 +1116,17 @@ Nuru.prototype.on_slot = function(evt)
 	}
 };
 
+Nuru.prototype.select_glyph_palette = function(which=null)
+{
+	if (which === null) which = this.get_input_val("glyph-pal").toLowerCase();
+	if (!this.glyph_palettes.hasOwnProperty(which)) return false;
+
+	let data = new Uint8Array(this.glyph_palettes[which]);
+	this.glyph_pal = new NuruPalette(data.buffer);
+
+	this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+}
+
 Nuru.prototype.select_action = function(which="set")
 {
 	this.actions[this.action].classList.remove("selected");
@@ -1180,6 +1232,10 @@ Nuru.prototype.on_input = function(evt)
 		case "ch-key":
 		case "fg-key":
 		case "bg-key":
+			this.redraw_term();
+			break;
+		case "glyph-pal":
+			this.select_glyph_palette();
 			this.redraw_term();
 			break;
 		default:

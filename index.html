@@ -59,16 +59,16 @@
 					</div>
 					<div class="input">
 						<label for="glyph-mode">Glyphs</label>
-						<select id="glyph-mode" data-nuru-opt="glyph-mode">
+						<select id="glyph-mode" data-nuru-opt="glyph-mode" disabled>
 							<option value="0">None</option>
-							<option value="1" selected>ASCII</option>
+							<option value="1">ASCII</option>
 							<option value="2">Unicode</option>
-							<option value="129">Palette</option>
+							<option value="129" selected>Palette</option>
 						</select>
 					</div>
 					<div class="input">
 						<label for="color-mode">Colors</label>
-						<select id="color-mode" data-nuru-opt="color-mode">
+						<select id="color-mode" data-nuru-opt="color-mode" disabled>
 							<option value="0">Mono</option>
 							<option value="1">4-bit</option>
 							<option value="2" selected>8-bit</option>
@@ -86,15 +86,19 @@
 					<div class="input">
 						<label for="glyph-pal">Glyph Palette</label>
 						<select id="glyph-pal" data-nuru-opt="glyph-pal">
+							<!--
 							<option value="">default</option>
 							<option value="NURUSTD" selected>NURUSTD</option>
 							<option value="CP437">CP437</option>
+							-->
 						</select>
 					</div>
 					<div class="input">
 						<label for="color-pal">Color Palette</label>
 						<select id="color-pal" data-nuru-opt="color-pal" disabled>
+							<!--
 							<option value="">default</option>
+							-->
 						</select>
 					</div>
 				</div>
