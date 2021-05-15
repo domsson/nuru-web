@@ -860,124 +860,32 @@ Nuru.prototype.init_colors_panel = function(attr, w, h, callback)
 	colors_root.addEventListener("click", callback.bind(this));
 };
 
-// Keyboard Hotkeys
-Nuru.prototype.init_hotkeys = function(attr, callback)
+Nuru.prototype.init_ui_elements = function(attr, prop, callback, action="click")
 {
-	let hotkey_elements = this.ele_by_attr(attr, false);
-	let key = null;
-	for (let hke of hotkey_elements)
+	let elements = this.ele_by_attr(attr, false);
+	for (let element of elements)
 	{
-		key = hke.getAttribute(attr).toLowerCase();
-		this.hotkeys[key] = hke;
-	}
-	
-	// catch keyboard events
-	document.addEventListener("keydown", callback.bind(this));
-	document.addEventListener("keyup",   callback.bind(this));
-}
-
-// Layer Buttons ("foreground", "background")
-Nuru.prototype.init_layer_buttons = function(attr, callback)
-{
-	let layers = this.ele_by_attr(attr, false);
-	let handler = callback.bind(this);
-	for (let layer of layers)
-	{
-		this.layers[layer.getAttribute(attr)] = layer;
-		layer.addEventListener("click", handler);
+		if (callback) element.addEventListener(action, callback.bind(this));
+		if (prop) this[prop][element.getAttribute(attr)] = element;
 	}
 }
 
-// Action Buttons ("set", "get")
-Nuru.prototype.init_action_buttons = function(attr, callback)
-{
-	let actions = this.ele_by_attr(attr, false);
-	let handler = callback.bind(this);
-	for (let action of actions)
-	{
-		this.actions[action.getAttribute(attr)] = action;
-		action.addEventListener("click", handler);
-	}
-}
-
-// Make fieldsets collapsible
-Nuru.prototype.init_fieldsets = function(attr, callback)
-{
-	//let fieldset_labels = document.querySelectorAll(selector);
-	let fieldset_labels = this.ele_by_attr(attr, false);
-	let handler = callback.bind(this);
-	for (let label of fieldset_labels)
-	{
-		label.addEventListener("click", handler);
-	}
-}
-
-// Toolbox Buttons
-Nuru.prototype.init_tools = function(attr, callback)
-{
-	let tools = this.ele_by_attr(attr, false);
-	let handler = callback.bind(this);
-	for (let tool of tools)
-	{
-		tool.addEventListener("click", handler);
-		this.tools[tool.getAttribute(attr)] = tool;
-	}
-}
-
-// Other Buttons
-Nuru.prototype.init_buttons = function(attr, callback)
-{
-	let buttons = this.ele_by_attr(attr, false);
-	let handler = callback.bind(this);
-	for (let button of buttons)
-	{
-		button.addEventListener("click", handler);
-	}
-};
-
-// Input Fields
-Nuru.prototype.init_inputs = function(attr, callback)
-{
-	let inputs = this.ele_by_attr(attr, false);
-	let handler = callback.bind(this);
-	for (let input of inputs)
-	{
-		input.addEventListener("change", handler);
-		this.inputs[input.getAttribute(attr)] = input;
-	}
-};
-
-// brush, glyph, fgcol, bgcol
-Nuru.prototype.init_panels = function(attr)
+Nuru.prototype.init_ui_panels = function(attr, prop, callback, action="click")
 {
 	let panels = this.ele_by_attr(attr, false);
 	for (let panel of panels)
 	{
-		let panel_term = new NuruTerm(panel, 1, 1);
-		panel_term.set_cell_at(0, 0, " ", null, null);
-		this.panels[panel.getAttribute(attr)] = panel_term;
-	}
-}
-
-// brush slots
-Nuru.prototype.init_slot_panels = function(attr, callback)
-{
-	let panels = this.ele_by_attr(attr, false);
-	let handler = callback.bind(this);
-	for (let panel of panels)
-	{
-		let panel_term = new NuruTerm(panel, 1, 1);
-		panel_term.set_cell_at(0, 0, " ", null, null);
-		panel_term.root.addEventListener("click", handler);
-		//this.slots.push(panel_term);
-		this.slots[panel.getAttribute(attr)] = panel_term;
+		let term = new NuruTerm(panel, 1, 1);
+		term.set_cell_at(0, 0, " ", null, null);
+		if (callback) term.root.addEventListener(action, callback.bind(this));
+		if (prop) this[prop][panel.getAttribute(attr)] = term;
 	}
 }
 
 Nuru.prototype.init = function()
 {
 	// Initialize form input fields
-	this.init_inputs("data-nuru-opt", this.on_input);
+	this.init_ui_elements("data-nuru-opt", "inputs", this.on_input, "change");
 	
 	// Initialize image (fetches value from input fields)
 	this.init_image();
@@ -993,18 +901,25 @@ Nuru.prototype.init = function()
 	// TODO
 	this.color_pal = new Uint8Array(this.color_palettes["aurora"]);
 	
+	// init palettes panels
 	this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
 	this.init_colors_panel("data-nuru-colors", 16, 16, this.on_click_colors);
 	
-	this.init_panels("data-nuru-panel");
-	this.init_slot_panels("data-nuru-slot", this.on_slot);
-	this.init_hotkeys("data-nuru-hotkey", this.on_key);
-	this.init_buttons("data-nuru-btn", this.on_button);
-	this.init_layer_buttons("data-nuru-layer", this.on_layer);
-	this.init_action_buttons("data-nuru-action", this.on_action);
+	// init brush panels (1x1 cell terminals)
+	this.init_ui_panels("data-nuru-panel", "panels", null);
+	this.init_ui_panels("data-nuru-slot", "slots", this.on_slot);
 	
-	this.init_tools("data-nuru-tool", this.on_tool);
-	this.init_fieldsets("data-nuru-set-trigger", this.on_click_fieldset);
+	// init buttons, hotkeys, etc
+	this.init_ui_elements("data-nuru-hotkey", "hotkeys", null);
+	this.init_ui_elements("data-nuru-btn", null, this.on_button);
+	this.init_ui_elements("data-nuru-layer", "layers", this.on_layer);
+	this.init_ui_elements("data-nuru-action", "actions", this.on_action);
+	this.init_ui_elements("data-nuru-tool", "tools", this.on_tool);
+	this.init_ui_elements("data-nuru-set-trigger", null, this.on_click_fieldset);
+
+	// catch keyboard events
+	document.addEventListener("keydown", this.on_key.bind(this));
+	document.addEventListener("keyup",   this.on_key.bind(this));
 	
 	NuruUtils.set_css_var("term-fg", this.get_input_val("term-fg"));
 	NuruUtils.set_css_var("term-bg", this.get_input_val("term-bg"));

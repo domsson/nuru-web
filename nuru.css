@@ -186,6 +186,7 @@ h1 {
 	background: var(--tooltip-bg);
 	padding: var(--gap-s);
 	border-radius: .125rem;
+	text-transform: uppercase;
 	font-size: .75rem;
 	box-shadow: 0 0 .125em #000;
 }
@@ -457,6 +458,7 @@ button.pal-open {
 .menu button[data-nuru-hotkey]:before,
 .layers button[data-nuru-hotkey]:before,
 .actions button[data-nuru-hotkey]:before {
+	text-transform: uppercase;
 	font-size: .625rem;
 }
 
