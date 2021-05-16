@@ -46,6 +46,18 @@ class NuruUtils
 		return data;
 	}
 
+	static get_bits(src, size, shift=0)
+	{
+		let mask = (Math.pow(2, size) - 1) << shift;
+		return (src & mask) >> shift;
+	}
+
+	static set_bits(dest, src, size, shift=0)
+	{
+		let mask = (Math.pow(2, size) - 1);
+		return dest | ((src & mask) << shift);
+	}
+
 	static download_data(data, filename, mime="application/octet-stream")
 	{
 		let link = document.createElement("a");
@@ -82,6 +94,7 @@ class NuruUtils
 		input.addEventListener("change", handler);
 	}
 };
+
 class NuruPalette
 {
 	// supported file format
@@ -280,16 +293,37 @@ class NuruImage
 		return NuruImage.VERSION;
 	}
 
-	set_cell(r, c, glyph, color, mdata)
+	set_cell(c, r, glyph=null, color=null, mdata=null)
 	{
 		let cell = this.cells[(this.cols * r) + c];
-		cell.glyph = glyph;
-		cell.color = color;
-		cell.mdata = mdata;
+		if (glyph !== null) cell.glyph = glyph;
+		if (color !== null) cell.color = color;
+		if (mdata !== null) cell.mdata = mdata;
+	}
+
+	get_cell(c, r)
+	{
+		return this.cells[(this.cols * r) + c];
+	}
+
+	get_cell_ch(c, r)
+	{
+		return this.get_ch_value(get_cell(c, r).glyph);
+	}
+
+	get_cell_fg(c, r)
+	{
+		return this.get_fg_value(get_cell(c, r).color);
+	}
+
+	get_cell_bg(c, r)
+	{
+		return this.get_bg_value(get_cell(c, r).color);
 	}
 
 	get_glyph_value(ch)
 	{
+		/*
 		let glyph = 0;
 		switch (this.glyph_mode)
 		{
@@ -303,27 +337,76 @@ class NuruImage
 				break;
 		}
 		return glyph;
+		*/
+		return ch;
 	}
 
 	get_color_value(fg, bg)
 	{
 		let color = 0;
-		switch (this.color_mode)
+		switch (parseInt(this.color_mode))
 		{
 			case 0:
 				color = 0;
 				break;
 			case 1:
-				color |= (0x0F & fg) << 4;
-				color |= (0x0F & bg) << 0;
+				color = NuruUtils.set_bits(color, fg, 4, 4);
+				color = NuruUtils.set_bits(color, bg, 4, 0);
 				break;
 			case 2:
 			case 130:
-				color |= (0xFF & fg) << 8;
-				color |= (0xFF & bg) << 0;
+				color = NuruUtils.set_bits(color, fg, 8, 8);
+				color = NuruUtils.set_bits(color, bg, 8, 0);
 				break;
+			default:
 		}
 		return color;
+	}
+
+	get_ch_value(glyph)
+	{
+		/*
+		switch (this.glyph_mode)
+		{
+			case 0:
+				return 32;
+			case 1:
+			case 2:
+			case 129:
+				return glyph;
+		}
+		*/
+		return glyph;
+	}
+
+	get_fg_value(color)
+	{
+		switch (this.color_mode)
+		{
+			case 0:
+				return null;
+			case 1:
+				return NuruUtils.get_bits(color, 4, 4);
+			case 2:
+			case 130:
+				return NuruUtils.get_bits(color, 8, 8);
+		}
+		return null;
+	}
+
+	get_bg_value(color)
+	{
+		switch (this.color_mode)
+		{
+			case 0:
+				return null;
+			case 1:
+				return NuruUtils.get_bits(color, 4, 0);
+			case 2:
+			case 130:
+				return NuruUtils.get_bits(color, 8, 0);
+		}
+		return null;
 	}
 
 	clear(ch_key=32, fg_key=15, bg_key=0)
@@ -336,7 +419,7 @@ class NuruImage
 		{
 			for (let c = 0; c < this.cols; ++c)
 			{
-				this.set_cell(r, c, glyph, color, mdata);
+				this.set_cell(c, r, glyph, color, mdata);
 			}
 		}
 	}
@@ -441,7 +524,7 @@ class NuruImage
 				mdata = NuruUtils.data_from_view(mdata_size, view, i);
 				i += mdata_size;
 
-				this.set_cell(r, c, glyph, color, mdata);
+				this.set_cell(c, r, glyph, color, mdata);
 			}
 		}
 	}
@@ -531,27 +614,27 @@ class NuruTerm
 		this.resize(this.cols, this.rows);
 	}
 
-	static set_cell(cell, ch, fg, bg, attrs)
+	static set_cell(cell, glyph, fgcol, bgcol, attrs)
 	{
-		if (ch !== null) NuruTerm.set_cell_ch(cell, ch);
-		if (fg !== null) NuruTerm.set_cell_fg(cell, fg);
-		if (bg !== null) NuruTerm.set_cell_bg(cell, bg);
+		if (glyph !== null) NuruTerm.set_cell_glyph(cell, glyph);
+		if (fgcol !== null) NuruTerm.set_cell_fgcol(cell, fgcol);
+		if (bgcol !== null) NuruTerm.set_cell_bgcol(cell, bgcol);
 		NuruTerm.set_cell_attrs(cell, attrs);
 	};
 
-	static set_cell_ch(cell, ch)
+	static set_cell_glyph(cell, glyph)
 	{
-		cell.innerHTML = ch ? ch : NuruTerm.GLYPH_NONE;
+		cell.innerHTML = glyph ? glyph : NuruTerm.GLYPH_NONE;
 	}
 
-	static set_cell_fg(cell, fg)
+	static set_cell_fgcol(cell, fgcol)
 	{
-		cell.style.color = fg ? fg : NuruTerm.COLOR_NONE;
+		cell.style.color = fgcol ? fgcol : NuruTerm.COLOR_NONE;
 	}
 
-	static set_cell_bg(cell, bg)
+	static set_cell_bgcol(cell, bgcol)
 	{
-		cell.style.backgroundColor = bg ? bg : NuruTerm.COLOR_NONE;
+		cell.style.backgroundColor = bgcol ? bgcol : NuruTerm.COLOR_NONE;
 	}
 
 	static set_cell_attrs(cell, attrs)
@@ -569,7 +652,7 @@ class NuruTerm
 		return line;
 	}
 
-	static new_cell(col, row, ch, fg, bg, attrs={})
+	static new_cell(col, row, glyph, fgcol, bgcol, attrs={})
 	{
 		let cell = document.createElement(NuruTerm.CELL_ELEMENT);
 		cell.classList.add(NuruTerm.CELL_CLASS);
@@ -578,11 +661,11 @@ class NuruTerm
 		attrs.col = col;
 		attrs.row = row;
 
-		NuruTerm.set_cell(cell, ch, fg, bg, attrs);
+		NuruTerm.set_cell(cell, glyph, fgcol, bgcol, attrs);
 		return cell;
 	}
 
-	resize(cols, rows, ch, fg, bg, attrs)
+	resize(cols, rows, glyph, fgcol, bgcol, attrs)
 	{
 		this.cols = cols;
 		this.rows = rows;
@@ -607,7 +690,7 @@ class NuruTerm
 				}
 				else
 				{
-					cell = NuruTerm.new_cell(c, r, ch, fg, bg, attrs);
+					cell = NuruTerm.new_cell(c, r, glyph, fgcol, bgcol, attrs);
 				}
 				line.appendChild(cell);
 			}
@@ -615,13 +698,13 @@ class NuruTerm
 		}
 	}
 
-	set_all(ch, fg, bg, attrs)
+	set_all(glyph, fgcol, bgcol, attrs)
 	{
 		for (let r = 0; r < this.rows; ++r)
 		{
 			for (let c = 0; c < this.cols; ++c)
 			{
-				this.set_cell_at(c, r, ch, fg, bg, attrs);
+				this.set_cell_at(c, r, glyph, fgcol, bgcol, attrs);
 			}
 		}
 	}
@@ -639,11 +722,11 @@ class NuruTerm
 		return cell.getAttribute(name);
 	}
 	
-	set_cell_at(col, row, ch, fg, bg, attrs)
+	set_cell_at(col, row, glyph, fgcol, bgcol, attrs)
 	{
 		let cell = this.get_cell_at(col, row);
 		if (!cell) { return false; }
-		NuruTerm.set_cell(cell, ch, fg, bg, attrs) 
+		NuruTerm.set_cell(cell, glyph, fgcol, bgcol, attrs) 
 	}
 
 	set_cell_attrs_at(col, row, attrs)
@@ -702,11 +785,10 @@ function Nuru()
 	this.hotkeys = {}; // keyboard hotkeys
 };
 
-
 Nuru.prototype.on_files = function(evt)
 {
 	let files = evt.target.files;
-	let type = evt.target.getAttribute("data-nuru-type");
+	let type = this.get_nuru_attr(evt.target, "type");
 	let handler = this["load_" + type].bind(this);
 	let num_files = files.length;
 
@@ -838,7 +920,7 @@ Nuru.prototype.init_colors_panel = function(attr, w, h, callback)
 		for (let c = 0; c < w; ++c)
 		{
 			let idx = r * w +c;
-			let col = this.to_col(this.ANSI8[idx]);
+			let col = this.to_col(this.ANSI8[idx]); // TODO
 
 			let cell = this.colors.get_cell_at(c, r);
 			let cell_attrs = { "ch": 32, "bg": idx };
@@ -904,11 +986,6 @@ Nuru.prototype.init = function()
 
 	this.sel_input_opt("glyph-pal", first);
 
-	/*
-	let glyph_pal_name = this.get_input_val("glyph-pal").toLowerCase();
-	let glyph_pal_data = new Uint8Array(this.glyph_palettes[glyph_pal_name]);
-	this.glyph_pal = new NuruPalette(glyph_pal_data.buffer);
-	*/
 	this.select_glyph_palette();
 
 	// TODO
@@ -991,8 +1068,8 @@ Nuru.prototype.get_input_val = function(name)
 		case "text":
 		case "color":
 		case "select-one":
-			return Number.isInteger(input.value) ? 
-				parseInt(input.value) : input.value;
+			return isNaN(input.value) ? 
+				input.value : parseInt(input.value);
 		case "checkbox":
 		case "radio":
 			return input.checked;
@@ -1002,33 +1079,31 @@ Nuru.prototype.get_input_val = function(name)
 	}
 };
 
+Nuru.prototype.get_nuru_attr = function(ele, name)
+{
+	let attr = ele.getAttribute("data-nuru-" + name);
+	return isNaN(attr) ? attr : parseInt(attr);
+};
 
-// TODO adapt to new code
 Nuru.prototype.redraw_term = function()
 {
-	let ch = null;
-	let fg = null;
-	let bg = null;
-
-	let line = null;
-	let cell = null;
-
-	let lines = this.term.childNodes;
-
-	for (let r = 0; r < lines.length; ++r)
+	for (let r = 0; r < this.term.rows; ++r)
 	{
-		line = lines[r];
-		for (let c = 0; c < line.childNodes.length; ++c)
+		for (let c = 0; c < this.term.cols; ++c)
 		{
-			cell = line.childNodes[c];
+			let image_cell = this.image.get_cell(c, r);
 
-			ch = cell.getAttribute("data-nuru-ch");
-			fg = cell.getAttribute("data-nuru-fg");
-			bg = cell.getAttribute("data-nuru-bg");
+			let attrs = {
+				"ch": this.image.get_ch_value(image_cell.glyph),
+				"fg": this.image.get_fg_value(image_cell.color),
+				"bg": this.image.get_bg_value(image_cell.color)
+			}
 
-			cell.innerHTML             = this.glyph_pal.get_glyph(ch);
-			cell.style.color           = this.get_fg_css(fg);
-			cell.style.backgroundColor = this.get_bg_css(bg); 
+			let glyph = this.glyph_pal.get_glyph(attrs.ch);
+			let fgcol = this.get_fg_css(attrs.fg);
+			let bgcol = this.get_bg_css(attrs.bg);
+
+			this.term.set_cell_at(c, r, glyph, fgcol, bgcol, attrs);
 		}
 	}
 };
@@ -1038,8 +1113,6 @@ Nuru.prototype.resize_term = function()
 	let cols = this.get_input_val("cols");
 	let rows = this.get_input_val("rows");
 	this.image.resize(cols, rows);
-	
-	// TODO	
 	this.term.resize(cols, rows);
 };
 
@@ -1079,9 +1152,9 @@ Nuru.prototype.crop_term = function()
 		cells = lines[r].childNodes;
 		for (let c = 0; c < cells.length; ++c)
 		{
-			ch = parseInt(cells[c].getAttribute("data-nuru-ch"));
-			fg = parseInt(cells[c].getAttribute("data-nuru-fg"));
-			bg = parseInt(cells[c].getAttribute("data-nuru-bg"));
+			ch = this.get_nuru_attr(cells[c], "ch");
+			fg = this.get_nuru_attr(cells[c], "fg");
+			bg = this.get_nuru_attr(cells[c], "bg");
 
 			if (ch != ch_none || fg != fg_none || bg != bg_none)
 			{
@@ -1099,16 +1172,15 @@ Nuru.prototype.crop_term = function()
 Nuru.prototype.on_slot = function(evt)
 {
 	let ele = evt.currentTarget;
-	let opt = ele.getAttribute("data-nuru-slot");
 
 	let cell = ele.querySelector(".cell");
-	let ch = cell.getAttribute("data-nuru-ch");
-	let fg = cell.getAttribute("data-nuru-fg");
-	let bg = cell.getAttribute("data-nuru-bg");
+	let ch = this.get_nuru_attr(cell, "ch");
+	let fg = this.get_nuru_attr(cell, "fg");
+	let bg = this.get_nuru_attr(cell, "bg");
 
 	if (this.action == "set")
 	{
-		this.set_cell(ele.querySelector(".cell"));
+		this.set_term_cell(cell);
 	}
 	else
 	{
@@ -1116,47 +1188,10 @@ Nuru.prototype.on_slot = function(evt)
 	}
 };
 
-Nuru.prototype.select_glyph_palette = function(which=null)
-{
-	if (which === null) which = this.get_input_val("glyph-pal").toLowerCase();
-	if (!this.glyph_palettes.hasOwnProperty(which)) return false;
-
-	let data = new Uint8Array(this.glyph_palettes[which]);
-	this.glyph_pal = new NuruPalette(data.buffer);
-
-	this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
-}
-
-Nuru.prototype.select_action = function(which="set")
-{
-	this.actions[this.action].classList.remove("selected");
-	this.action = which;
-	this.actions[this.action].classList.add("selected")
-};
-
-Nuru.prototype.select_layer = function(which="fg")
-{
-	this.layers[this.layer].classList.remove("selected");
-	this.layer = which;
-	this.layers[this.layer].classList.add("selected")
-};
-
-Nuru.prototype.select_tool = function(which="pencil")
-{
-	if (this.tool)
-	{
-		this.tools[this.tool].classList.remove("selected");
-		this.term.root.classList.remove(this.tool);
-	}
-	this.tool = which;
-	this.tools[this.tool].classList.add("selected");
-	this.term.root.classList.add(this.tool);
-};
-
 Nuru.prototype.on_tool = function(evt)
 {
 	let btn = evt.currentTarget;
-	let opt = btn.getAttribute("data-nuru-tool");
+	let opt = this.get_nuru_attr(btn, "tool");
 
 	this.select_tool(opt);
 };
@@ -1164,7 +1199,7 @@ Nuru.prototype.on_tool = function(evt)
 Nuru.prototype.on_action = function(evt)
 {
 	let btn = evt.currentTarget;
-	let opt = btn.getAttribute("data-nuru-action");
+	let opt = this.get_nuru_attr(btn, "action");
 
 	this.select_action(opt);
 }
@@ -1172,7 +1207,7 @@ Nuru.prototype.on_action = function(evt)
 Nuru.prototype.on_layer = function(evt)
 {
 	let btn = evt.currentTarget;
-	let opt = btn.getAttribute("data-nuru-layer");
+	let opt = this.get_nuru_attr(btn, "layer");
 
 	this.select_layer(opt);
 }
@@ -1180,7 +1215,7 @@ Nuru.prototype.on_layer = function(evt)
 Nuru.prototype.on_button = function(evt)
 {
 	let btn = evt.currentTarget;
-	let opt = btn.getAttribute("data-nuru-btn");
+	let opt = this.get_nuru_attr(btn, "btn");
 	
 	switch (opt)
 	{
@@ -1210,13 +1245,9 @@ Nuru.prototype.on_button = function(evt)
 
 Nuru.prototype.on_input = function(evt)
 {
-	let opt = evt.target.getAttribute("data-nuru-opt");
+	let opt = this.get_nuru_attr(evt.target, "opt");
 	let val = evt.target.value;
 
-	// update the options dict with the new value
-	console.log(opt + ": " + val);
-
-	// optionally do some more stuff
 	switch (opt)
 	{
 		case "term-fg":
@@ -1243,13 +1274,55 @@ Nuru.prototype.on_input = function(evt)
 	}
 };
 
-Nuru.prototype.on_click_fieldset = function(evt)
+// TODO use NuruTerm methods instead
+Nuru.prototype.on_mouse_term = function(evt)
 {
-	let set_name = evt.currentTarget.getAttribute("data-nuru-set-trigger");
-	if (!set_name) { return; }
-	let set = document.querySelector("[data-nuru-set='" + set_name + "']");
-	if (!set) { return; }
-	set.classList.toggle("collapsed");
+	if (!evt.target.classList.contains("cell"))
+	{
+		if (evt.type == "mouseleave")
+		{
+			this.drag = false;
+		}
+		return;
+	}
+
+	if (evt.type == "click" || (evt.type == "mouseover" && this.drag))
+	{
+		let cell = evt.target;
+
+		switch (this.tool)
+		{
+			case "pencil":
+				this.set_image_cell(cell);
+				this.set_term_cell(cell);
+				break;
+			case "eraser":
+				this.del_image_cell(cell);
+				this.del_term_cell(cell);
+				break;
+			case "picker":
+				this.set_brush(this.get_nuru_attr(cell, "ch"),
+				               this.get_nuru_attr(cell, "fg"),
+					       this.get_nuru_attr(cell, "bg"));
+				this.select_tool("pencil");
+				break;
+			default:
+				console.log("Not implemented");
+		}
+		return;
+	}
+
+	if (evt.type == "mousedown")
+	{
+		this.drag = true;
+		return;
+	}
+
+	if (evt.type == "mouseup")
+	{
+		this.drag = false;
+		return;
+	}
 };
 
 Nuru.prototype.on_key = function(evt)
@@ -1275,21 +1348,80 @@ Nuru.prototype.on_key = function(evt)
 	}
 };
 
-// TODO use current color palette instead
+Nuru.prototype.on_click_glyphs = function(evt)
+{
+	if (!evt.target.classList.contains("cell")) return;
+
+	let cell = evt.target;
+
+	// abort if this is a non-printable char
+	let np = this.get_nuru_attr(cell, "np");
+	if (np) return;
+
+	let c = this.get_nuru_attr(cell, "col");
+	let r = this.get_nuru_attr(cell, "row");
+	this.set_brush(r*16+c, null, null);
+};
+
+Nuru.prototype.on_click_colors = function(evt)
+{
+	if (!evt.target.classList.contains("cell")) return;
+		
+	let cell = evt.target;
+	let c = this.get_nuru_attr(cell, "col");
+	let r = this.get_nuru_attr(cell, "row");
+	let i = (r * 16) + c;
+
+	if (this.layer == "fg")
+	{
+		this.set_brush(null, i, null);
+	}
+	else
+	{
+		this.set_brush(null, null, i);
+	}
+};
+
+Nuru.prototype.on_click_fieldset = function(evt)
+{
+	let set_name = this.get_nuru_attr(evt.currentTarget, "set-trigger");
+	if (!set_name) { return; }
+	let set = document.querySelector("[data-nuru-set='" + set_name + "']");
+	if (!set) { return; }
+	set.classList.toggle("collapsed");
+};
+
+// TODO use current color palette instead, if one in use
 Nuru.prototype.get_fg_css = function(color=null)
 {
 	let fg = color === null ? this.fg : color;
 	return (fg == this.get_input_val("fg-key")) ? "inherit" : this.to_col(this.ANSI8[fg]);
 };
 
-// TODO use current color palette instead
+// TODO use current color palette instead, if one in use
 Nuru.prototype.get_bg_css = function(color=null)
 {
 	let bg = color === null ? this.bg : color;
 	return (bg == this.get_input_val("bg-key")) ? "inherit" : this.to_col(this.ANSI8[bg]);
 };
 
-Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
+Nuru.prototype.set_image_cell = function(cell, ch=null, fg=null, bg=null)
+{
+	let row = this.get_nuru_attr(cell, "row"); 
+	let col = this.get_nuru_attr(cell, "col");
+
+	let new_ch = ch===null ? this.ch : ch;
+	let new_fg = fg===null ? this.fg : fg;
+	let new_bg = bg===null ? this.bg : bg;
+
+	let glyph = this.image.get_glyph_value(new_ch);
+	let color = this.image.get_color_value(new_fg, new_bg);
+	this.image.set_cell(col, row, glyph, color, null);
+};
+
+// TODO set the IMAGE cell, then draw TERM cell accordingly?
+//      although, careful... for panels, there is no IMAGE
+Nuru.prototype.set_term_cell = function(cell, ch=null, fg=null, bg=null)
 {
 	let new_ch = ch===null ? this.ch : ch;
 	let new_fg = fg===null ? this.fg : fg;
@@ -1304,69 +1436,6 @@ Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
 	NuruTerm.set_cell(cell, glyph, fgcol, bgcol, attributes);
 };
 
-Nuru.prototype.del_cell = function(cell)
-{
-	let glyph_none = this.glyph_pal.get_glyph(this.get_input_val("ch-key"));
-	let color_none = "inherit"; // TODO should probably use get_fg_css() / get_bg_css() here
-
-	let attributes = { 
-		"ch": this.get_input_val("ch-key"),
-		"fg": this.get_input_val("fg-key"),
-		"bg": this.get_input_val("bg-key")
-	};
-
-	NuruTerm.set_cell(cell, glyph_none, color_none, color_none, attributes);
-};
-
-// TODO use NuruTerm methods instead
-Nuru.prototype.on_mouse_term = function(evt)
-{
-	if (!evt.target.classList.contains("cell"))
-	{
-		if (evt.type == "mouseleave")
-		{
-			this.drag = false;
-		}
-		return;
-	}
-
-	if (evt.type == "click" || (evt.type == "mouseover" && this.drag))
-	{
-		let cell = evt.target;
-
-		switch (this.tool)
-		{
-			case "pencil":
-				this.set_cell(cell);
-				break;
-			case "eraser":
-				this.del_cell(cell);
-				break;
-			case "picker":
-				this.set_brush(cell.getAttribute("data-nuru-ch"),
-				               cell.getAttribute("data-nuru-fg"),
-				               cell.getAttribute("data-nuru-bg"));
-				this.select_tool("pencil");
-				break;
-			default:
-				console.log("Not implemented");
-		}
-		return;
-	}
-
-	if (evt.type == "mousedown")
-	{
-		this.drag = true;
-		return;
-	}
-
-	if (evt.type == "mouseup")
-	{
-		this.drag = false;
-		return;
-	}
-};
-
 Nuru.prototype.set_glyph = function(ch=null)
 {
 	this.ch = ch === null ? this.get_input_val("ch-key") : ch;
@@ -1374,50 +1443,34 @@ Nuru.prototype.set_glyph = function(ch=null)
 	let brush_cell = this.panels.brush.get_cell_at(0, 0);
 	let glyph_cell = this.panels.glyph.get_cell_at(0, 0);
 
-	NuruTerm.set_cell(brush_cell, this.glyph_pal.get_glyph(this.ch));
-	NuruTerm.set_cell(glyph_cell, this.glyph_pal.get_glyph(this.ch));
+	NuruTerm.set_cell_glyph(brush_cell, this.glyph_pal.get_glyph(this.ch))
+	NuruTerm.set_cell_glyph(glyph_cell, this.glyph_pal.get_glyph(this.ch))
 
 	this.select_cell_idx(this.glyphs, this.ch);
 };
 
-// TODO use NuruTerm methods instead
 Nuru.prototype.set_fgcol = function(fg=null)
 {
-	this.fg = fg == null ? this.get_input_val("fg-key") : fg;
-
-	let brush = this.panels.brush.root.querySelector(".cell");
-	let fgcol = this.panels.fgcol.root.querySelector(".cell");
-
-	brush.style.color           = this.get_fg_css(); 
-	fgcol.style.backgroundColor = this.to_col(this.ANSI8[fg]); //this.get_fg_css();
-
-	this.select_cell_idx(this.colors, this.fg, "selected-fg");
-	
-	/*
 	this.fg = fg == null ? this.get_input_val("fg-key") : fg;
 
 	let brush_cell = this.panels.brush.get_cell_at(0, 0);
 	let fgcol_cell = this.panels.fgcol.get_cell_at(0, 0);
 
-	let fgcol = this.get_fg_css();
-	let bgcol = this.to_col(this.ANSI8[fg]); // TODO
-
-	// TODO
+	NuruTerm.set_cell_fgcol(brush_cell, this.get_fg_css());
+	NuruTerm.set_cell_bgcol(fgcol_cell, this.get_fg_css());
 
 	this.select_cell_idx(this.colors, this.fg, "selected-fg");
-	*/
 };
 
-// TODO use NuruTerm methods instead
 Nuru.prototype.set_bgcol = function(bg=null)
 {
-	let brush = this.panels.brush.root.querySelector(".cell");
-	let bgcol = this.panels.bgcol.root.querySelector(".cell");
-
 	this.bg = bg == null ? this.get_input_val("bg-key") : bg;
 
-	brush.style.backgroundColor = this.get_bg_css();
-	bgcol.style.backgroundColor = this.get_bg_css();
+	let brush_cell = this.panels.brush.get_cell_at(0, 0);
+	let bgcol_cell = this.panels.bgcol.get_cell_at(0, 0);
+
+	NuruTerm.set_cell_bgcol(brush_cell, this.get_bg_css());
+	NuruTerm.set_cell_bgcol(bgcol_cell, this.get_bg_css());
 
 	this.select_cell_idx(this.colors, this.bg, "selected-bg");
 };
@@ -1436,6 +1489,31 @@ Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
 	{
 		this.set_bgcol(bg);
 	}
+};
+
+Nuru.prototype.del_image_cell = function(cell)
+{
+	let row = this.get_nuru_attr(cell, "row");
+	let col = this.get_nuru_attr(cell, "col");
+
+	let glyph = this.image.get_glyph_value(this.ch_key);
+	let color = this.image.get_color_value(this.fg_key, this.bg_key);
+	this.image.set_cell(col, row, glyph, color, null);
+};
+
+// TODO del the IMAGE cell, then draw TERM cell accordingly
+Nuru.prototype.del_term_cell = function(cell)
+{
+	let glyph_none = this.glyph_pal.get_glyph(this.get_input_val("ch-key"));
+	let color_none = "inherit"; // TODO should probably use get_fg_css() / get_bg_css() here
+
+	let attributes = { 
+		"ch": this.get_input_val("ch-key"),
+		"fg": this.get_input_val("fg-key"),
+		"bg": this.get_input_val("bg-key")
+	};
+
+	NuruTerm.set_cell(cell, glyph_none, color_none, color_none, attributes);
 };
 
 Nuru.prototype.select_cell_idx = function(panel, idx, classname="selected")
@@ -1462,39 +1540,42 @@ Nuru.prototype.select_cell = function(panel, r, c, classname="selected")
 	cell.classList.add(classname);
 };
 
-Nuru.prototype.on_click_glyphs = function(evt)
+Nuru.prototype.select_tool = function(which="pencil")
 {
-	if (!evt.target.classList.contains("cell")) return;
-
-	let cell = evt.target;
-
-	// abort if this is a non-printable char
-	let np = parseInt(cell.getAttribute("data-nuru-np"));
-	if (np) return;
-
-	let c = parseInt(cell.getAttribute("data-nuru-col"));
-	let r = parseInt(cell.getAttribute("data-nuru-row"));
-	this.set_brush(r*16+c, null, null);
+	if (this.tool)
+	{
+		this.tools[this.tool].classList.remove("selected");
+		this.term.root.classList.remove(this.tool);
+	}
+	this.tool = which;
+	this.tools[this.tool].classList.add("selected");
+	this.term.root.classList.add(this.tool);
 };
 
-Nuru.prototype.on_click_colors = function(evt)
+Nuru.prototype.select_action = function(which="set")
 {
-	if (!evt.target.classList.contains("cell")) return;
-		
-	let cell = evt.target;
-	let c = parseInt(cell.getAttribute("data-nuru-col"));
-	let r = parseInt(cell.getAttribute("data-nuru-row"));
-	let i = (r * 16) + c;
-
-	if (this.layer == "fg")
-	{
-		this.set_brush(null, i, null);
-	}
-	else
-	{
-		this.set_brush(null, null, i);
-	}
+	this.actions[this.action].classList.remove("selected");
+	this.action = which;
+	this.actions[this.action].classList.add("selected")
 };
+
+Nuru.prototype.select_layer = function(which="fg")
+{
+	this.layers[this.layer].classList.remove("selected");
+	this.layer = which;
+	this.layers[this.layer].classList.add("selected")
+};
+
+Nuru.prototype.select_glyph_palette = function(which=null)
+{
+	if (which === null) which = this.get_input_val("glyph-pal").toLowerCase();
+	if (!this.glyph_palettes.hasOwnProperty(which)) return false;
+
+	let data = new Uint8Array(this.glyph_palettes[which]);
+	this.glyph_pal = new NuruPalette(data.buffer);
+
+	this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+}
 
 // xterm color variants
 // https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit

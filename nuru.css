@@ -224,8 +224,8 @@ h1 {
 .active-brush .fgcol:before,
 .active-brush .bgcol:before {
 	content: "";
-	width: .5rem;
-	margin-left: -.5rem;
+	width: 1rem;
+	margin-left: -1rem;
 	border-bottom: .125rem solid var(--term-bg);
 }
 
@@ -511,6 +511,10 @@ button.eraser {
 
 button.picker {
 	background-image: url(img/icon_pipette.svg);
+}
+
+button.bucket {
+	background-image: url(img/icon_bucket.svg);
 }
 
 .term,

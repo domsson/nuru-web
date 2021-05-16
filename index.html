@@ -15,15 +15,21 @@
 	<body>
 		<header><h1>ヌル</h1></header>
 		<nav class="menu">
-			<button class="open" data-nuru-btn="open" title="Load an image from disk"><span class="label">Open</label></button>
-			<button class="save" data-nuru-btn="save" title="Save this image to disk"><span class="label">Save</label></button>
-			<button class="crop" data-nuru-btn="crop" title="Crop canvas to contents"><span class="label">Crop</label></button>
-			<button class="wipe" data-nuru-btn="wipe" title="Erase the entire canvas"><span class="label">Wipe</label></button>
+			<button class="open" data-nuru-btn="open" title="Load an image from disk"><span class="label">Open</span></button>
+			<button class="save" data-nuru-btn="save" title="Save this image to disk"><span class="label">Save</span></button>
+			<button class="crop" data-nuru-btn="crop" title="Crop canvas to contents"><span class="label">Crop</span></button>
+			<button class="wipe" data-nuru-btn="wipe" title="Erase the entire canvas"><span class="label">Wipe</span></button>
 		</nav>
 		<aside class="options">
 			<fieldset class="terminal-options" data-nuru-set="terminal-options">
 				<label data-nuru-set-trigger="terminal-options"><span>Terminal</span></label>
 				<div class="fields">
+					<div class="input">
+						<label for="term-font">Font</label>
+						<select id="term-font" data-nuru-opt="term-font" disabled>
+							<option value="0">default</option>
+						</select>
+					</div>
 					<div class="input">
 						<label for="term-fg">Foreground</label>
 						<input id="term-fg" type="color" data-nuru-opt="term-fg" value="#a8a8a8">
@@ -142,9 +148,10 @@
 			<fieldset class="tools" data-nuru-set="tools">
 				<label data-nuru-set-trigger="tools"><span>Tools</span></label>
 				<div class="fields">
-					<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="q"><span class="label">Pencil</label></button>
-					<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="e"><span class="label">Eraser</label></button>
-					<button class="picker" data-nuru-tool="picker" data-nuru-hotkey="c"><span class="label">Picker</label></button>
+					<button class="pencil" data-nuru-tool="pencil" data-nuru-hotkey="q"><span class="label">Pencil</span></button>
+					<button class="eraser" data-nuru-tool="eraser" data-nuru-hotkey="e"><span class="label">Eraser</span></button>
+					<button class="picker" data-nuru-tool="picker" data-nuru-hotkey="c"><span class="label">Bucket</span></button>
+					<!--<button class="bucket" data-nuru-tool="bucket" data-nuru-hotkey="d"><span class="label">Picker</span></button>-->
 				</div>
 			</fieldset>
 			<fieldset class="active-brush" data-nuru-set="active-brush">
