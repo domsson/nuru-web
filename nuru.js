@@ -741,848 +741,844 @@ class NuruUI
 {
 	constructor()
 	{
-	}
-}
-
-function Nuru()
-{
-	this.image = null; // NuruImage instance
-	this.term  = null; // NuruTerm instance
+		this.image = null; // NuruImage instance
+		this.term  = null; // NuruTerm instance
+		
+		// palettes
+		this.glyphs = null;
+		this.colors = null;
 	
-	// palettes
-	this.glyphs = null;
-	this.colors = null;
-
-	this.glyph_pal = null;
-	this.color_pal = null;
-	this.ansi4_pal = this.ANSI4;
-	this.ansi8_pal = this.ANSI8;
-
-	// current brush values
-	this.ch = 32;
-	this.fg = 15;
-	this.bg = 0;
-
-	// keyboard / mouse
-	this.drag = false;
-
-	// currently selected tool, layer etc
-	this.tool   = null;
-	this.action = "get";
-	this.layer  = "fg";
-
-	// some other defaults
-	this.filename  = "drawing";
-	this.signature = "nuruweb";
-
-	// will be filled during init
-	this.inputs  = {}; // form input fields
-	this.slots   = {}; // saved brushes
-	this.tools   = {}; // pen, eraser, etc
-	this.panels  = {}; // panels are the one-cell display things
-	this.layers  = {}; // bg & fg layer selection buttons
-	this.actions = {}; // set & get buttons
-	this.hotkeys = {}; // keyboard hotkeys
-};
-
-Nuru.prototype.on_files = function(evt)
-{
-	let files = evt.target.files;
-	let type = this.get_nuru_attr(evt.target, "type");
-	let handler = this["load_" + type].bind(this);
-	let num_files = files.length;
-
-	for (let i = 0; i < num_files; ++i)
-	{
-		let reader = new FileReader();
-		reader.addEventListener("load", handler);
-		reader.readAsArrayBuffer(files[i]);
-	}
-};
-
-Nuru.prototype.open_img = function()
-{
-	NuruUtils.prompt_for_file("img", false, this.on_files.bind(this));
-};
-
-Nuru.prototype.open_pal = function()
-{
-	NuruUtils.prompt_for_file("pal", false, this.on_files.bind(this));
-};
-
-Nuru.prototype.save_img = function(filename)
-{
-	console.log("save_img() not implemented");
-}
-
-Nuru.prototype.load_img = function(evt)
-{
-	console.log("load_img() not implemented");
-}
-
-Nuru.prototype.save_pal = function(filename)
-{
-	let data = this.glyph_pal.save_to_buffer();
-	NuruUtils.download_data(data, filename);
-};
-
-Nuru.prototype.load_pal = function(evt)
-{
-	let buffer = evt.target.result;
-	this.glyph_pal.load_from_buffer(buffer);
-};
-
-Nuru.prototype.to_col = function(hex)
-{
-	let col = hex.toString(16);
-	while (col.length < 6) { col = "0" + col; }
-	return "#" + col;
-};
-
-Nuru.prototype.ele_by_attr = function(attr, singular=false)
-{
-	let eles = document.querySelectorAll("[" + attr + "]");
-	return singular ? eles[0] : eles;
-};
-
-Nuru.prototype.init_image = function()
-{
-	this.image = new NuruImage();
-	this.image.cols       = this.get_input_val("cols");
-	this.image.rows       = this.get_input_val("rows");
-	this.image.glyph_mode = this.get_input_val("glyph-mode");
-	this.image.color_mode = this.get_input_val("color-mode");
-	this.image.mdata_mode = this.get_input_val("mdata-mode");
-	this.image.ch_key     = this.get_input_val("ch-key");
-	this.image.fg_key     = this.get_input_val("fg-key");
-	this.image.bg_key     = this.get_input_val("bg-key");
-	this.image.glyph_pal  = this.get_input_val("glyph-pal");
-	this.image.color_pal  = this.get_input_val("color-pal");
-
-	this.image.resize();
-};
-
-// The Terminal Canvas
-Nuru.prototype.init_term = function(attr, w, h, callback)
-{
-	let term_root = this.ele_by_attr(attr, true);
-	if (!term_root) { return false };
-	this.term = new NuruTerm(term_root, w, h);
+		this.glyph_pal = null;
+		this.color_pal = null;
+		this.ansi4_pal = this.ANSI4;
+		this.ansi8_pal = this.ANSI8;
 	
-	let handler = callback.bind(this);
-	this.term.root.addEventListener("click",      handler);
-	this.term.root.addEventListener("mouseover",  handler);
-	this.term.root.addEventListener("mousedown",  handler);
-	this.term.root.addEventListener("mouseup",    handler);
-	this.term.root.addEventListener("mouseleave", handler);
-};
+		// current brush values
+		this.ch = 32;
+		this.fg = 15;
+		this.bg = 0;
+	
+		// keyboard / mouse
+		this.drag = false;
+	
+		// currently selected tool, layer etc
+		this.tool   = "pencil";
+		this.action = "get";
+		this.layer  = "fg";
+	
+		// some other defaults
+		this.filename  = "drawing";
+		this.signature = "nuruweb";
+	
+		// will be filled during init
+		this.inputs  = {}; // form input fields
+		this.slots   = {}; // saved brushes
+		this.tools   = {}; // pen, eraser, etc
+		this.panels  = {}; // panels are the one-cell display things
+		this.layers  = {}; // bg & fg layer selection buttons
+		this.actions = {}; // set & get buttons
+		this.hotkeys = {}; // keyboard hotkeys
+	}
 
-Nuru.prototype.init_glyphs_panel = function(attr, w, h, callback)
-{
-	let glyphs_root = this.ele_by_attr(attr, true);
-	this.glyphs = new NuruTerm(glyphs_root, w, h);
-	for (let r = 0; r < h; ++r)
+	on_files(evt)
 	{
-		for (let c = 0; c < w; ++c)
+		let files = evt.target.files;
+		let type = this.get_nuru_attr(evt.target, "type");
+		let handler = this["load_" + type].bind(this);
+		let num_files = files.length;
+	
+		for (let i = 0; i < num_files; ++i)
 		{
-			let idx = r * w + c;
-			let ch = this.glyph_pal.get_codepoint(idx);
-			let glyph = this.glyph_pal.get_glyph(idx);
-
-			let cell = this.glyphs.get_cell_at(c, r);
-			let cell_attrs = { "np": 0, "ch": ch };
-			
-			if (idx == this.ch)
-			{
-				cell.classList.add("selected");
-			}
-
-			if (!NuruUtils.glyph_is_printable(glyph))
-			{
-				cell.classList.add("non-printable");
-				cell_attrs.np = 1;
-				glyph = this.glyph_pal.get_space_glyph();
-			}
-
-			NuruTerm.set_cell(cell, glyph, null, null, cell_attrs);
+			let reader = new FileReader();
+			reader.addEventListener("load", handler);
+			reader.readAsArrayBuffer(files[i]);
 		}
-	}
-
-	glyphs_root.addEventListener("click", callback.bind(this));
-};
-
-Nuru.prototype.init_colors_panel = function(attr, w, h, callback)
-{
-	let colors_root = this.ele_by_attr(attr, true);
-	this.colors = new NuruTerm(colors_root, w, h);
-	for (let r = 0; r < h; ++r)
+	};
+	
+	open_img()
 	{
-		for (let c = 0; c < w; ++c)
+		NuruUtils.prompt_for_file("img", false, this.on_files.bind(this));
+	};
+	
+	open_pal()
+	{
+		NuruUtils.prompt_for_file("pal", false, this.on_files.bind(this));
+	};
+	
+	save_img(filename)
+	{
+		console.log("save_img() not implemented");
+	}
+	
+	load_img(evt)
+	{
+		console.log("load_img() not implemented");
+	}
+	
+	save_pal(filename)
+	{
+		let data = this.glyph_pal.save_to_buffer();
+		NuruUtils.download_data(data, filename);
+	};
+	
+	load_pal(evt)
+	{
+		let buffer = evt.target.result;
+		this.glyph_pal.load_from_buffer(buffer);
+	};
+	
+	to_col(hex)
+	{
+		let col = hex.toString(16);
+		while (col.length < 6) { col = "0" + col; }
+		return "#" + col;
+	};
+	
+	ele_by_attr(attr, singular=false)
+	{
+		let eles = document.querySelectorAll("[" + attr + "]");
+		return singular ? eles[0] : eles;
+	};
+	
+	init_image()
+	{
+		this.image = new NuruImage();
+		this.image.cols       = this.get_input_val("cols");
+		this.image.rows       = this.get_input_val("rows");
+		this.image.glyph_mode = this.get_input_val("glyph-mode");
+		this.image.color_mode = this.get_input_val("color-mode");
+		this.image.mdata_mode = this.get_input_val("mdata-mode");
+		this.image.ch_key     = this.get_input_val("ch-key");
+		this.image.fg_key     = this.get_input_val("fg-key");
+		this.image.bg_key     = this.get_input_val("bg-key");
+		this.image.glyph_pal  = this.get_input_val("glyph-pal");
+		this.image.color_pal  = this.get_input_val("color-pal");
+	
+		this.image.resize();
+	};
+	
+	// The Terminal Canvas
+	init_term(attr, w, h, callback)
+	{
+		let root = this.ele_by_attr(attr, true);
+		if (!root) { return false };
+		this.term = new NuruTerm(root, w, h);
+		
+		let handler = callback.bind(this);
+		this.term.root.addEventListener("click",      handler);
+		this.term.root.addEventListener("mouseover",  handler);
+		this.term.root.addEventListener("mousedown",  handler);
+		this.term.root.addEventListener("mouseup",    handler);
+		this.term.root.addEventListener("mouseleave", handler);
+	};
+	
+	init_glyphs_panel(attr, w, h, callback)
+	{
+		let glyphs_root = this.ele_by_attr(attr, true);
+		this.glyphs = new NuruTerm(glyphs_root, w, h);
+		for (let r = 0; r < h; ++r)
 		{
-			let idx = r * w +c;
-			let col = this.to_col(this.ANSI8[idx]); // TODO
-
-			let cell = this.colors.get_cell_at(c, r);
-			let cell_attrs = { "ch": 32, "bg": idx };
-			cell.setAttribute("title", idx + ": " + col);
-
-			if (idx == this.fg)
+			for (let c = 0; c < w; ++c)
 			{
-				cell.classList.add("selected-fg");
-			}
-			if (idx == this.bg)
-			{
-				cell.classList.add("selected-bg");
-			}
-
-			NuruTerm.set_cell(cell, " ", null, col, cell_attrs);
-		}
-	}
-
-	colors_root.addEventListener("click", callback.bind(this));
-};
-
-Nuru.prototype.init_ui_elements = function(attr, prop, callback, action="click")
-{
-	let elements = this.ele_by_attr(attr, false);
-	for (let element of elements)
-	{
-		if (callback) element.addEventListener(action, callback.bind(this));
-		if (prop) this[prop][element.getAttribute(attr)] = element;
-	}
-}
-
-Nuru.prototype.init_ui_panels = function(attr, prop, callback, action="click")
-{
-	let panels = this.ele_by_attr(attr, false);
-	for (let panel of panels)
-	{
-		let term = new NuruTerm(panel, 1, 1);
-		term.set_cell_at(0, 0, " ", null, null);
-		if (callback) term.root.addEventListener(action, callback.bind(this));
-		if (prop) this[prop][panel.getAttribute(attr)] = term;
-	}
-}
-
-Nuru.prototype.init = function()
-{
-	// init form input fields
-	this.init_ui_elements("data-nuru-opt", "inputs", this.on_input, "change");
+				let idx = r * w + c;
+				let ch = this.glyph_pal.get_codepoint(idx);
+				let glyph = this.glyph_pal.get_glyph(idx);
 	
-	// init image (fetches value from input fields)
-	this.init_image();
-
-	// init terminal (canvas, drawing area)
-	this.init_term("data-nuru-term", this.image.cols, this.image.rows, this.on_mouse_term);
-
-	// init glyph palette
+				let cell = this.glyphs.get_cell_at(c, r);
+				let cell_attrs = { "np": 0, "ch": ch };
+				
+				if (idx == this.ch)
+				{
+					cell.classList.add("selected");
+				}
 	
-	let first = null;
-	for (let name in this.glyph_palettes)
-	{
-		if (first === null) first = name;
-		this.add_input_opt("glyph-pal", name.toLowerCase(), name.toUpperCase());
-	}
-
-	this.sel_input_opt("glyph-pal", first);
-
-	this.select_glyph_palette();
-
-	// TODO
-	// init color palette
-	this.color_pal = new Uint8Array(this.color_palettes["aurora"]);
+				if (!NuruUtils.glyph_is_printable(glyph))
+				{
+					cell.classList.add("non-printable");
+					cell_attrs.np = 1;
+					glyph = this.glyph_pal.get_space_glyph();
+				}
 	
-	// init palettes panels
-	this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
-	this.init_colors_panel("data-nuru-colors", 16, 16, this.on_click_colors);
-	
-	// init brush panels (1x1 cell terminals)
-	this.init_ui_panels("data-nuru-panel", "panels", null);
-	this.init_ui_panels("data-nuru-slot", "slots", this.on_slot);
-	
-	// init buttons, hotkeys, etc
-	this.init_ui_elements("data-nuru-hotkey", "hotkeys", null);
-	this.init_ui_elements("data-nuru-btn", null, this.on_button);
-	this.init_ui_elements("data-nuru-layer", "layers", this.on_layer);
-	this.init_ui_elements("data-nuru-action", "actions", this.on_action);
-	this.init_ui_elements("data-nuru-tool", "tools", this.on_tool);
-	this.init_ui_elements("data-nuru-set-trigger", null, this.on_click_fieldset);
-
-	// catch keyboard events
-	document.addEventListener("keydown", this.on_key.bind(this));
-	document.addEventListener("keyup",   this.on_key.bind(this));
-	
-	NuruUtils.set_css_var("term-fg", this.get_input_val("term-fg"));
-	NuruUtils.set_css_var("term-bg", this.get_input_val("term-bg"));
-	
-	// make sure all cells have ch, fg and bg attributes
-	this.redraw_term();
-
-	this.set_brush(this.ch, this.fg, this.bg);
-	this.select_tool("pencil");
-	this.select_layer("fg");
-	this.select_action("set");
-};
-
-Nuru.prototype.set_input_val = function(name, val)
-{
-	let input = this.inputs[name];
-	if (!input) return;
-	input.value = val;
-};
-
-Nuru.prototype.add_input_opt = function(name, val, txt)
-{
-	let input = this.inputs[name];
-	if (!input) return;
-	if (input.type != "select-one") return;
-	let opt = document.createElement("option");
-	opt.value = val;
-	opt.text  = txt;
-	input.add(opt);
-}
-
-Nuru.prototype.sel_input_opt = function(name, val)
-{
-	let input = this.inputs[name];
-	if (!input) return;
-	if (input.type != "select-one") return;
-	let options = input.querySelectorAll("option");
-	for (let i = 0; i < options.length; ++i)
-	{
-		if (options[i].value == val) 
-		{
-			input.selectedIndex = i;
-			break;
-		}
-	}
-}
-
-Nuru.prototype.get_input_val = function(name)
-{
-	let input = this.inputs[name];
-	if (!input) return undefined;
-
-	switch (input.type)
-	{
-		case "number":
-		case "range":
-			return parseInt(input.value);
-		case "text":
-		case "color":
-		case "select-one":
-			return isNaN(input.value) ? 
-				input.value : parseInt(input.value);
-		case "checkbox":
-		case "radio":
-			return input.checked;
-		default:
-			console.log("get_input_val(): input type not supported");
-			return undefined;
-	}
-};
-
-Nuru.prototype.get_nuru_attr = function(ele, name)
-{
-	let attr = ele.getAttribute("data-nuru-" + name);
-	if (attr === null || attr === "") return null;
-	return isNaN(attr) ? attr : parseInt(attr);
-};
-
-Nuru.prototype.redraw_term = function()
-{
-	for (let r = 0; r < this.term.rows; ++r)
-	{
-		for (let c = 0; c < this.term.cols; ++c)
-		{
-			this.redraw_cell(c, r);
-		}
-	}
-};
-
-Nuru.prototype.resize_term = function()
-{
-	let cols = this.get_input_val("cols");
-	let rows = this.get_input_val("rows");
-	this.image.resize(cols, rows);
-	this.term.resize(cols, rows);
-	this.redraw_term();
-};
-
-Nuru.prototype.wipe_term = function()
-{
-	this.image.clear(this.fg_key, this.bg_key);
-	this.redraw_term();
-};
-
-// TODO once NuruImage.crop() is implemented, this just needs to call that,
-//      then resize and redraw the terminal accordingly
-Nuru.prototype.crop_term = function()
-{
-	let rows = 1;
-	let cols = 1;
-
-	let lines = this.term.root.childNodes;
-	let cells = null;
-
-	let ch_none = this.get_input_val("ch-key");
-	let fg_none = this.get_input_val("fg-key");
-	let bg_none = this.get_input_val("bg-key");
-
-	let ch = null;
-	let fg = null;
-	let bg = null;
-
-	for (let r = 0; r < lines.length; ++r)
-	{
-		cells = lines[r].childNodes;
-		for (let c = 0; c < cells.length; ++c)
-		{
-			ch = this.get_nuru_attr(cells[c], "ch");
-			fg = this.get_nuru_attr(cells[c], "fg");
-			bg = this.get_nuru_attr(cells[c], "bg");
-
-			if (ch != ch_none || fg != fg_none || bg != bg_none)
-			{
-				rows = Math.max(rows, r+1);
-				cols = Math.max(cols, c+1);
+				NuruTerm.set_cell(cell, glyph, null, null, cell_attrs);
 			}
 		}
-	}
-
-	this.set_input_val("rows", rows);
-	this.set_input_val("cols", cols);
-	this.resize_term();
-};
-
-Nuru.prototype.on_slot = function(evt)
-{
-	let ele = evt.currentTarget;
-
-	if (this.action == "set")
-	{
-		let cell = ele.querySelector(".cell");
-		this.set_cell(cell);
-	}
-	else
-	{
-		let ch = this.get_nuru_attr(cell, "ch");
-		let fg = this.get_nuru_attr(cell, "fg");
-		let bg = this.get_nuru_attr(cell, "bg");
-		this.set_brush(ch, fg, bg);
-	}
-};
-
-Nuru.prototype.on_tool = function(evt)
-{
-	let btn = evt.currentTarget;
-	let opt = this.get_nuru_attr(btn, "tool");
-
-	this.select_tool(opt);
-};
-
-Nuru.prototype.on_action = function(evt)
-{
-	let btn = evt.currentTarget;
-	let opt = this.get_nuru_attr(btn, "action");
-
-	this.select_action(opt);
-}
-
-Nuru.prototype.on_layer = function(evt)
-{
-	let btn = evt.currentTarget;
-	let opt = this.get_nuru_attr(btn, "layer");
-
-	this.select_layer(opt);
-}
-
-Nuru.prototype.on_button = function(evt)
-{
-	let btn = evt.currentTarget;
-	let opt = this.get_nuru_attr(btn, "btn");
 	
-	switch (opt)
+		glyphs_root.addEventListener("click", callback.bind(this));
+	};
+	
+	init_colors_panel(attr, w, h, callback)
 	{
-		case "open":
-			this.open_img();
-			break;
-		case "save":
-			let filename = this.get_input_val("filename");
-			this.save_img((filename ? filename : this.filename) + ".nui");
-			break;
-		case "crop":
-			this.crop_term();
-			break;
-		case "wipe":
-			this.wipe_term();
-			break;
-		case "pal-save":
-			this.save_pal(this.glyph_pal.name + ".nup");
-			break;
-		case "pal-open":
-			this.open_pal();
-			break;
-		default:
-			console.log("Not implemented: " + opt);
-	}
-};
-
-Nuru.prototype.on_input = function(evt)
-{
-	let opt = this.get_nuru_attr(evt.target, "opt");
-	let val = evt.target.value;
-
-	switch (opt)
-	{
-		case "term-fg":
-			NuruUtils.set_css_var("term-fg", evt.target.value);
-			break;
-		case "term-bg":
-			NuruUtils.set_css_var("term-bg", evt.target.value);
-			break;
-		case "cols":
-		case "rows":
-			this.resize_term();
-			break;
-		case "ch-key":
-		case "fg-key":
-		case "bg-key":
-			this.redraw_term();
-			break;
-		case "glyph-pal":
-			this.select_glyph_palette();
-			this.redraw_term();
-			break;
-		default:
-			console.log("Not implemented: " + opt);
-	}
-};
-
-Nuru.prototype.on_mouse_term = function(evt)
-{
-	if (!evt.target.classList.contains("cell"))
-	{
-		if (evt.type == "mouseleave")
+		let colors_root = this.ele_by_attr(attr, true);
+		this.colors = new NuruTerm(colors_root, w, h);
+		for (let r = 0; r < h; ++r)
 		{
-			this.drag = false;
+			for (let c = 0; c < w; ++c)
+			{
+				let idx = r * w +c;
+				let col = this.to_col(this.ANSI8[idx]); // TODO
+	
+				let cell = this.colors.get_cell_at(c, r);
+				let cell_attrs = { "ch": 32, "bg": idx };
+				cell.setAttribute("title", idx + ": " + col);
+	
+				if (idx == this.fg)
+				{
+					cell.classList.add("selected-fg");
+				}
+				if (idx == this.bg)
+				{
+					cell.classList.add("selected-bg");
+				}
+	
+				NuruTerm.set_cell(cell, " ", null, col, cell_attrs);
+			}
 		}
-		return;
-	}
-
-	if (evt.type == "click" || (evt.type == "mouseover" && this.drag))
+	
+		colors_root.addEventListener("click", callback.bind(this));
+	};
+	
+	init_ui_elements(attr, prop, callback, action="click")
 	{
-		let cell = evt.target;
-		let col = this.get_nuru_attr(cell, "col");
-		let row = this.get_nuru_attr(cell, "row");
-
-		switch (this.tool)
+		let elements = this.ele_by_attr(attr, false);
+		for (let element of elements)
 		{
-			case "pencil":
-				this.set_term_cell(col, row);
+			if (callback) element.addEventListener(action, callback.bind(this));
+			if (prop) this[prop][element.getAttribute(attr)] = element;
+		}
+	}
+	
+	init_ui_panels(attr, prop, callback, action="click")
+	{
+		let panels = this.ele_by_attr(attr, false);
+		for (let panel of panels)
+		{
+			let term = new NuruTerm(panel, 1, 1);
+			term.set_cell_at(0, 0, " ", null, null);
+			if (callback) term.root.addEventListener(action, callback.bind(this));
+			if (prop) this[prop][panel.getAttribute(attr)] = term;
+		}
+	}
+	
+	init()
+	{
+		// init form input fields
+		this.init_ui_elements("data-nuru-opt", "inputs", this.on_input, "change");
+		
+		// init image (fetches value from input fields)
+		this.init_image();
+	
+		// init terminal (canvas, drawing area)
+		this.init_term("data-nuru-term", this.image.cols, this.image.rows, this.on_mouse_term);
+	
+		// init glyph palette
+		
+		let first = null;
+		for (let name in this.glyph_palettes)
+		{
+			if (first === null) first = name;
+			this.add_input_opt("glyph-pal", name.toLowerCase(), name.toUpperCase());
+		}
+	
+		this.sel_input_opt("glyph-pal", first);
+	
+		this.select_glyph_palette();
+	
+		// TODO
+		// init color palette
+		this.color_pal = new Uint8Array(this.color_palettes["aurora"]);
+		
+		// init palettes panels
+		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+		this.init_colors_panel("data-nuru-colors", 16, 16, this.on_click_colors);
+		
+		// init brush panels (1x1 cell terminals)
+		this.init_ui_panels("data-nuru-panel", "panels", null);
+		this.init_ui_panels("data-nuru-slot", "slots", this.on_slot);
+		
+		// init buttons, hotkeys, etc
+		this.init_ui_elements("data-nuru-hotkey", "hotkeys", null);
+		this.init_ui_elements("data-nuru-btn", null, this.on_button);
+		this.init_ui_elements("data-nuru-layer", "layers", this.on_layer);
+		this.init_ui_elements("data-nuru-action", "actions", this.on_action);
+		this.init_ui_elements("data-nuru-tool", "tools", this.on_tool);
+		this.init_ui_elements("data-nuru-set-trigger", null, this.on_click_fieldset);
+	
+		// catch keyboard events
+		document.addEventListener("keydown", this.on_key.bind(this));
+		document.addEventListener("keyup",   this.on_key.bind(this));
+		
+		NuruUtils.set_css_var("term-fg", this.get_input_val("term-fg"));
+		NuruUtils.set_css_var("term-bg", this.get_input_val("term-bg"));
+		
+		// make sure all cells have ch, fg and bg attributes
+		this.redraw_term();
+	
+		this.set_brush(this.ch, this.fg, this.bg);
+		this.select_tool("pencil");
+		this.select_layer("fg");
+		this.select_action("set");
+	};
+	
+	set_input_val(name, val)
+	{
+		let input = this.inputs[name];
+		if (!input) return;
+		input.value = val;
+	};
+	
+	add_input_opt(name, val, txt)
+	{
+		let input = this.inputs[name];
+		if (!input) return;
+		if (input.type != "select-one") return;
+		let opt = document.createElement("option");
+		opt.value = val;
+		opt.text  = txt;
+		input.add(opt);
+	}
+	
+	sel_input_opt(name, val)
+	{
+		let input = this.inputs[name];
+		if (!input) return;
+		if (input.type != "select-one") return;
+		let options = input.querySelectorAll("option");
+		for (let i = 0; i < options.length; ++i)
+		{
+			if (options[i].value == val) 
+			{
+				input.selectedIndex = i;
 				break;
-			case "eraser":
-				this.del_term_cell(col, row);
+			}
+		}
+	}
+	
+	get_input_val(name)
+	{
+		let input = this.inputs[name];
+		if (!input) return undefined;
+	
+		switch (input.type)
+		{
+			case "number":
+			case "range":
+				return parseInt(input.value);
+			case "text":
+			case "color":
+			case "select-one":
+				return isNaN(input.value) ? 
+					input.value : parseInt(input.value);
+			case "checkbox":
+			case "radio":
+				return input.checked;
+			default:
+				console.log("get_input_val(): input type not supported");
+				return undefined;
+		}
+	};
+	
+	get_nuru_attr(ele, name)
+	{
+		let attr = ele.getAttribute("data-nuru-" + name);
+		if (attr === null || attr === "") return null;
+		return isNaN(attr) ? attr : parseInt(attr);
+	};
+	
+	redraw_term()
+	{
+		for (let r = 0; r < this.term.rows; ++r)
+		{
+			for (let c = 0; c < this.term.cols; ++c)
+			{
+				this.redraw_cell(c, r);
+			}
+		}
+	};
+	
+	resize_term()
+	{
+		let cols = this.get_input_val("cols");
+		let rows = this.get_input_val("rows");
+		this.image.resize(cols, rows);
+		this.term.resize(cols, rows);
+		this.redraw_term();
+	};
+	
+	wipe_term()
+	{
+		this.image.clear(this.fg_key, this.bg_key);
+		this.redraw_term();
+	};
+	
+	// TODO once NuruImage.crop() is implemented, this just needs to call that,
+	//      then resize and redraw the terminal accordingly
+	crop_term()
+	{
+		let rows = 1;
+		let cols = 1;
+	
+		let lines = this.term.root.childNodes;
+		let cells = null;
+	
+		let ch_none = this.get_input_val("ch-key");
+		let fg_none = this.get_input_val("fg-key");
+		let bg_none = this.get_input_val("bg-key");
+	
+		let ch = null;
+		let fg = null;
+		let bg = null;
+	
+		for (let r = 0; r < lines.length; ++r)
+		{
+			cells = lines[r].childNodes;
+			for (let c = 0; c < cells.length; ++c)
+			{
+				ch = this.get_nuru_attr(cells[c], "ch");
+				fg = this.get_nuru_attr(cells[c], "fg");
+				bg = this.get_nuru_attr(cells[c], "bg");
+	
+				if (ch != ch_none || fg != fg_none || bg != bg_none)
+				{
+					rows = Math.max(rows, r+1);
+					cols = Math.max(cols, c+1);
+				}
+			}
+		}
+	
+		this.set_input_val("rows", rows);
+		this.set_input_val("cols", cols);
+		this.resize_term();
+	};
+	
+	on_slot(evt)
+	{
+		let ele = evt.currentTarget;
+	
+		if (this.action == "set")
+		{
+			let cell = ele.querySelector(".cell");
+			this.set_cell(cell);
+		}
+		else
+		{
+			let ch = this.get_nuru_attr(cell, "ch");
+			let fg = this.get_nuru_attr(cell, "fg");
+			let bg = this.get_nuru_attr(cell, "bg");
+			this.set_brush(ch, fg, bg);
+		}
+	};
+	
+	on_tool(evt)
+	{
+		let btn = evt.currentTarget;
+		let opt = this.get_nuru_attr(btn, "tool");
+	
+		this.select_tool(opt);
+	};
+	
+	on_action(evt)
+	{
+		let btn = evt.currentTarget;
+		let opt = this.get_nuru_attr(btn, "action");
+	
+		this.select_action(opt);
+	}
+	
+	on_layer(evt)
+	{
+		let btn = evt.currentTarget;
+		let opt = this.get_nuru_attr(btn, "layer");
+	
+		this.select_layer(opt);
+	}
+	
+	on_button(evt)
+	{
+		let btn = evt.currentTarget;
+		let opt = this.get_nuru_attr(btn, "btn");
+		
+		switch (opt)
+		{
+			case "open":
+				this.open_img();
 				break;
-			case "picker":
-				this.set_brush(this.get_nuru_attr(cell, "ch"),
-				               this.get_nuru_attr(cell, "fg"),
-					       this.get_nuru_attr(cell, "bg"));
-				this.select_tool("pencil");
+			case "save":
+				let filename = this.get_input_val("filename");
+				this.save_img((filename ? filename : this.filename) + ".nui");
+				break;
+			case "crop":
+				this.crop_term();
+				break;
+			case "wipe":
+				this.wipe_term();
+				break;
+			case "pal-save":
+				this.save_pal(this.glyph_pal.name + ".nup");
+				break;
+			case "pal-open":
+				this.open_pal();
 				break;
 			default:
-				console.log("Not implemented");
+				console.log("Not implemented: " + opt);
 		}
-		return;
-	}
-
-	if (evt.type == "mousedown")
-	{
-		this.drag = true;
-		return;
-	}
-
-	if (evt.type == "mouseup")
-	{
-		this.drag = false;
-		return;
-	}
-};
-
-Nuru.prototype.on_key = function(evt)
-{
-	//evt.preventDefault();
-	//console.log("key = " + evt.key + " | code = " + evt.code);
-
-	let key = evt.key.toLowerCase();
+	};
 	
-	if (evt.type == "keydown")
+	on_input(evt)
 	{
-		if (this.hotkeys.hasOwnProperty(key))
+		let opt = this.get_nuru_attr(evt.target, "opt");
+		let val = evt.target.value;
+	
+		switch (opt)
 		{
-			this.hotkeys[key].focus();
+			case "term-fg":
+				NuruUtils.set_css_var("term-fg", evt.target.value);
+				break;
+			case "term-bg":
+				NuruUtils.set_css_var("term-bg", evt.target.value);
+				break;
+			case "cols":
+			case "rows":
+				this.resize_term();
+				break;
+			case "ch-key":
+			case "fg-key":
+			case "bg-key":
+				this.redraw_term();
+				break;
+			case "glyph-pal":
+				this.select_glyph_palette();
+				this.redraw_term();
+				break;
+			default:
+				console.log("Not implemented: " + opt);
 		}
-	}
-	if (evt.type == "keyup")
+	};
+	
+	on_mouse_term(evt)
 	{
-		if (this.hotkeys.hasOwnProperty(key))
+		if (!evt.target.classList.contains("cell"))
 		{
-			this.hotkeys[key].click();
+			if (evt.type == "mouseleave")
+			{
+				this.drag = false;
+			}
+			return;
 		}
-	}
-};
-
-Nuru.prototype.on_click_glyphs = function(evt)
-{
-	if (!evt.target.classList.contains("cell")) return;
-
-	let cell = evt.target;
-
-	// abort if this is a non-printable char
-	let np = this.get_nuru_attr(cell, "np");
-	if (np) return;
-
-	let c = this.get_nuru_attr(cell, "col");
-	let r = this.get_nuru_attr(cell, "row");
-	this.set_brush(r*16+c, null, null);
-};
-
-Nuru.prototype.on_click_colors = function(evt)
-{
-	if (!evt.target.classList.contains("cell")) return;
+	
+		if (evt.type == "click" || (evt.type == "mouseover" && this.drag))
+		{
+			let cell = evt.target;
+			let col = this.get_nuru_attr(cell, "col");
+			let row = this.get_nuru_attr(cell, "row");
+	
+			switch (this.tool)
+			{
+				case "pencil":
+					this.set_term_cell(col, row);
+					break;
+				case "eraser":
+					this.del_term_cell(col, row);
+					break;
+				case "picker":
+					this.set_brush(this.get_nuru_attr(cell, "ch"),
+					               this.get_nuru_attr(cell, "fg"),
+						       this.get_nuru_attr(cell, "bg"));
+					this.select_tool("pencil");
+					break;
+				default:
+					console.log("Not implemented");
+			}
+			return;
+		}
+	
+		if (evt.type == "mousedown")
+		{
+			this.drag = true;
+			return;
+		}
+	
+		if (evt.type == "mouseup")
+		{
+			this.drag = false;
+			return;
+		}
+	};
+	
+	on_key(evt)
+	{
+		//evt.preventDefault();
+		//console.log("key = " + evt.key + " | code = " + evt.code);
+	
+		let key = evt.key.toLowerCase();
 		
-	let cell = evt.target;
-	let c = this.get_nuru_attr(cell, "col");
-	let r = this.get_nuru_attr(cell, "row");
-	let i = (r * 16) + c;
-
-	if (this.layer == "fg")
+		if (evt.type == "keydown")
+		{
+			if (this.hotkeys.hasOwnProperty(key))
+			{
+				this.hotkeys[key].focus();
+			}
+		}
+		if (evt.type == "keyup")
+		{
+			if (this.hotkeys.hasOwnProperty(key))
+			{
+				this.hotkeys[key].click();
+			}
+		}
+	};
+	
+	on_click_glyphs(evt)
 	{
-		this.set_brush(null, i, null);
-	}
-	else
+		if (!evt.target.classList.contains("cell")) return;
+	
+		let cell = evt.target;
+	
+		// abort if this is a non-printable char
+		let np = this.get_nuru_attr(cell, "np");
+		if (np) return;
+	
+		let c = this.get_nuru_attr(cell, "col");
+		let r = this.get_nuru_attr(cell, "row");
+		this.set_brush(r*16+c, null, null);
+	};
+	
+	on_click_colors(evt)
 	{
-		this.set_brush(null, null, i);
-	}
-};
-
-Nuru.prototype.on_click_fieldset = function(evt)
-{
-	let set_name = this.get_nuru_attr(evt.currentTarget, "set-trigger");
-	if (!set_name) { return; }
-	let set = document.querySelector("[data-nuru-set='" + set_name + "']");
-	if (!set) { return; }
-	set.classList.toggle("collapsed");
-};
-
-Nuru.prototype.set_image_cell = function(col, row, ch=null, fg=null, bg=null)
-{
-	let new_ch = ch===null ? this.ch : ch;
-	let new_fg = fg===null ? this.fg : fg;
-	let new_bg = bg===null ? this.bg : bg;
-
-	let glyph = this.image.get_glyph_value(new_ch);
-	let color = this.image.get_color_value(new_fg, new_bg);
-	this.image.set_cell(col, row, glyph, color, null);
-};
-
-/*
- * Sets the image cell to the given values, then redraws the canvas cell.
- * If a value is not given, the current brush values will be used.
- */
-Nuru.prototype.set_term_cell = function(col, row, ch=null, fg=null, bg=null)
-{
-	this.set_image_cell(col, row, ch, fg, bg);
-	this.redraw_cell(col, row);
-};
-
-Nuru.prototype.del_term_cell = function(col, row)
-{
-	let ch_key = this.get_input_val("ch-key");
-	let fg_key = this.get_input_val("fg-key");
-	let bg_key = this.get_input_val("bg-key");
-
-	this.set_term_cell(col, row, ch_key, fg_key, bg_key);
-};
-
-Nuru.prototype.redraw_cell = function(col, row)
-{
-	let image_cell = this.image.get_cell(col, row);
-
-	let attrs = {
-		"ch": this.image.get_ch_value(image_cell.glyph),
-		"fg": this.image.get_fg_value(image_cell.color),
-		"bg": this.image.get_bg_value(image_cell.color)
-	}
-
-	let glyph = this.get_glyph(attrs.ch);
-	let fgcol = this.get_fgcol(attrs.fg);
-	let bgcol = this.get_bgcol(attrs.bg);
-
-	this.term.set_cell_at(col, row, glyph, fgcol, bgcol, attrs);
-};
-
-// TODO we might not be using a palette (depending on glyph_mode)
-Nuru.prototype.get_glyph = function(ch=null)
-{
-	let ch_val = ch === null ? this.ch : ch;
-	return this.glyph_pal.get_glyph(ch_val);
-};
-
-// TODO use current color palette instead, if one in use (depending on color_mode)
-Nuru.prototype.get_fgcol = function(fg=null)
-{
-	let fg_val = fg === null ? this.fg : fg;
-	return (fg_val == this.get_input_val("fg-key")) ? "inherit" : this.to_col(this.ANSI8[fg_val]);
-};
-
-// TODO use current color palette instead, if one in use (depending on color_mode)
-Nuru.prototype.get_bgcol = function(bg=null)
-{
-	let bg_val = bg === null ? this.bg : bg;
-	return (bg_val == this.get_input_val("bg-key")) ? "inherit" : this.to_col(this.ANSI8[bg_val]);
-};
-
-Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
-{
-	let new_ch = ch===null ? this.ch : ch;
-	let new_fg = fg===null ? this.fg : fg;
-	let new_bg = bg===null ? this.bg : bg;
-
-	let glyph = this.get_glyph(new_ch);
-	let fgcol = this.get_fgcol(new_fg);
-	let bgcol = this.get_bgcol(new_bg);
-
-	let attributes = { "ch": new_ch, "fg": new_fg, "bg": new_bg };
-
-	NuruTerm.set_cell(cell, glyph, fgcol, bgcol, attributes);
-}
-
-Nuru.prototype.set_glyph = function(ch=null)
-{
-	this.ch = ch === null ? this.get_input_val("ch-key") : ch;
-
-	let brush_cell = this.panels.brush.get_cell_at(0, 0);
-	let glyph_cell = this.panels.glyph.get_cell_at(0, 0);
-
-	NuruTerm.set_cell_glyph(brush_cell, this.glyph_pal.get_glyph(this.ch))
-	NuruTerm.set_cell_glyph(glyph_cell, this.glyph_pal.get_glyph(this.ch))
-
-	this.select_cell_idx(this.glyphs, this.ch);
-};
-
-Nuru.prototype.set_fgcol = function(fg=null)
-{
-	this.fg = fg == null ? this.get_input_val("fg-key") : fg;
-
-	let brush_cell = this.panels.brush.get_cell_at(0, 0);
-	let fgcol_cell = this.panels.fgcol.get_cell_at(0, 0);
-
-	NuruTerm.set_cell_fgcol(brush_cell, this.get_fgcol());
-	NuruTerm.set_cell_bgcol(fgcol_cell, this.get_fgcol());
-
-	this.select_cell_idx(this.colors, this.fg, "selected-fg");
-};
-
-Nuru.prototype.set_bgcol = function(bg=null)
-{
-	this.bg = bg == null ? this.get_input_val("bg-key") : bg;
-
-	let brush_cell = this.panels.brush.get_cell_at(0, 0);
-	let bgcol_cell = this.panels.bgcol.get_cell_at(0, 0);
-
-	NuruTerm.set_cell_bgcol(brush_cell, this.get_bgcol());
-	NuruTerm.set_cell_bgcol(bgcol_cell, this.get_bgcol());
-
-	this.select_cell_idx(this.colors, this.bg, "selected-bg");
-};
-
-Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
-{
-	if (ch != null && this.panels.brush)
+		if (!evt.target.classList.contains("cell")) return;
+			
+		let cell = evt.target;
+		let c = this.get_nuru_attr(cell, "col");
+		let r = this.get_nuru_attr(cell, "row");
+		let i = (r * 16) + c;
+	
+		if (this.layer == "fg")
+		{
+			this.set_brush(null, i, null);
+		}
+		else
+		{
+			this.set_brush(null, null, i);
+		}
+	};
+	
+	on_click_fieldset(evt)
 	{
-		this.set_glyph(ch);
-	}
-	if (fg != null && this.panels.fgcol)
+		let set_name = this.get_nuru_attr(evt.currentTarget, "set-trigger");
+		if (!set_name) { return; }
+		let set = document.querySelector("[data-nuru-set='" + set_name + "']");
+		if (!set) { return; }
+		set.classList.toggle("collapsed");
+	};
+	
+	set_image_cell(col, row, ch=null, fg=null, bg=null)
 	{
-		this.set_fgcol(fg);
-	}
-	if (bg != null && this.panels.bgcol)
+		let new_ch = ch===null ? this.ch : ch;
+		let new_fg = fg===null ? this.fg : fg;
+		let new_bg = bg===null ? this.bg : bg;
+	
+		let glyph = this.image.get_glyph_value(new_ch);
+		let color = this.image.get_color_value(new_fg, new_bg);
+		this.image.set_cell(col, row, glyph, color, null);
+	};
+	
+	/*
+	 * Sets the image cell to the given values, then redraws the canvas cell.
+	 * If a value is not given, the current brush values will be used.
+	 */
+	set_term_cell(col, row, ch=null, fg=null, bg=null)
 	{
-		this.set_bgcol(bg);
-	}
-};
-
-Nuru.prototype.select_cell_idx = function(panel, idx, classname="selected")
-{
-	let width = panel.cols;
-
-	let row = Math.floor(idx / width);
-	let col = idx % width;
-
-	this.select_cell(panel, row, col, classname);
-};
-
-Nuru.prototype.select_cell = function(panel, r, c, classname="selected")
-{
-	// deselect all cells first (should be only one)
-	let cells = panel.root.querySelectorAll("." + classname);
-	for (let c = 0; c < cells.length; ++c)
+		this.set_image_cell(col, row, ch, fg, bg);
+		this.redraw_cell(col, row);
+	};
+	
+	del_term_cell(col, row)
 	{
-		cells[c].classList.remove(classname);
-	}
-
-	// select the desired cell
-	let cell = panel.get_cell_at(c, r);
-	cell.classList.add(classname);
-};
-
-Nuru.prototype.select_tool = function(which="pencil")
-{
-	if (this.tool)
+		let ch_key = this.get_input_val("ch-key");
+		let fg_key = this.get_input_val("fg-key");
+		let bg_key = this.get_input_val("bg-key");
+	
+		this.set_term_cell(col, row, ch_key, fg_key, bg_key);
+	};
+	
+	redraw_cell(col, row)
 	{
-		this.tools[this.tool].classList.remove("selected");
-		this.term.root.classList.remove(this.tool);
+		let image_cell = this.image.get_cell(col, row);
+	
+		let attrs = {
+			"ch": this.image.get_ch_value(image_cell.glyph),
+			"fg": this.image.get_fg_value(image_cell.color),
+			"bg": this.image.get_bg_value(image_cell.color)
+		}
+	
+		let glyph = this.get_glyph(attrs.ch);
+		let fgcol = this.get_fgcol(attrs.fg);
+		let bgcol = this.get_bgcol(attrs.bg);
+	
+		this.term.set_cell_at(col, row, glyph, fgcol, bgcol, attrs);
+	};
+	
+	// TODO we might not be using a palette (depending on glyph_mode)
+	get_glyph(ch=null)
+	{
+		let ch_val = ch === null ? this.ch : ch;
+		return this.glyph_pal.get_glyph(ch_val);
+	};
+	
+	// TODO use current color palette instead, if one in use (depending on color_mode)
+	get_fgcol(fg=null)
+	{
+		let fg_val = fg === null ? this.fg : fg;
+		return (fg_val == this.get_input_val("fg-key")) ? "inherit" : this.to_col(this.ANSI8[fg_val]);
+	};
+	
+	// TODO use current color palette instead, if one in use (depending on color_mode)
+	get_bgcol(bg=null)
+	{
+		let bg_val = bg === null ? this.bg : bg;
+		return (bg_val == this.get_input_val("bg-key")) ? "inherit" : this.to_col(this.ANSI8[bg_val]);
+	};
+	
+	set_cell(cell, ch=null, fg=null, bg=null)
+	{
+		let new_ch = ch===null ? this.ch : ch;
+		let new_fg = fg===null ? this.fg : fg;
+		let new_bg = bg===null ? this.bg : bg;
+	
+		let glyph = this.get_glyph(new_ch);
+		let fgcol = this.get_fgcol(new_fg);
+		let bgcol = this.get_bgcol(new_bg);
+	
+		let attributes = { "ch": new_ch, "fg": new_fg, "bg": new_bg };
+	
+		NuruTerm.set_cell(cell, glyph, fgcol, bgcol, attributes);
 	}
-	this.tool = which;
-	this.tools[this.tool].classList.add("selected");
-	this.term.root.classList.add(this.tool);
-};
-
-Nuru.prototype.select_action = function(which="set")
-{
-	this.actions[this.action].classList.remove("selected");
-	this.action = which;
-	this.actions[this.action].classList.add("selected")
-};
-
-Nuru.prototype.select_layer = function(which="fg")
-{
-	this.layers[this.layer].classList.remove("selected");
-	this.layer = which;
-	this.layers[this.layer].classList.add("selected")
-};
-
-Nuru.prototype.select_glyph_palette = function(which=null)
-{
-	if (which === null) which = this.get_input_val("glyph-pal").toLowerCase();
-	if (!this.glyph_palettes.hasOwnProperty(which)) return false;
-
-	let data = new Uint8Array(this.glyph_palettes[which]);
-	this.glyph_pal = new NuruPalette(data.buffer);
-
-	this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+	
+	set_glyph(ch=null)
+	{
+		this.ch = ch === null ? this.get_input_val("ch-key") : ch;
+	
+		let brush_cell = this.panels.brush.get_cell_at(0, 0);
+		let glyph_cell = this.panels.glyph.get_cell_at(0, 0);
+	
+		NuruTerm.set_cell_glyph(brush_cell, this.glyph_pal.get_glyph(this.ch))
+		NuruTerm.set_cell_glyph(glyph_cell, this.glyph_pal.get_glyph(this.ch))
+	
+		this.select_cell_idx(this.glyphs, this.ch);
+	};
+	
+	set_fgcol(fg=null)
+	{
+		this.fg = fg == null ? this.get_input_val("fg-key") : fg;
+	
+		let brush_cell = this.panels.brush.get_cell_at(0, 0);
+		let fgcol_cell = this.panels.fgcol.get_cell_at(0, 0);
+	
+		NuruTerm.set_cell_fgcol(brush_cell, this.get_fgcol());
+		NuruTerm.set_cell_bgcol(fgcol_cell, this.get_fgcol());
+	
+		this.select_cell_idx(this.colors, this.fg, "selected-fg");
+	};
+	
+	set_bgcol(bg=null)
+	{
+		this.bg = bg == null ? this.get_input_val("bg-key") : bg;
+	
+		let brush_cell = this.panels.brush.get_cell_at(0, 0);
+		let bgcol_cell = this.panels.bgcol.get_cell_at(0, 0);
+	
+		NuruTerm.set_cell_bgcol(brush_cell, this.get_bgcol());
+		NuruTerm.set_cell_bgcol(bgcol_cell, this.get_bgcol());
+	
+		this.select_cell_idx(this.colors, this.bg, "selected-bg");
+	};
+	
+	set_brush(ch=null, fg=null, bg=null)
+	{
+		if (ch != null && this.panels.brush)
+		{
+			this.set_glyph(ch);
+		}
+		if (fg != null && this.panels.fgcol)
+		{
+			this.set_fgcol(fg);
+		}
+		if (bg != null && this.panels.bgcol)
+		{
+			this.set_bgcol(bg);
+		}
+	};
+	
+	select_cell_idx(panel, idx, classname="selected")
+	{
+		let width = panel.cols;
+	
+		let row = Math.floor(idx / width);
+		let col = idx % width;
+	
+		this.select_cell(panel, row, col, classname);
+	};
+	
+	select_cell(panel, r, c, classname="selected")
+	{
+		// deselect all cells first (should be only one)
+		let cells = panel.root.querySelectorAll("." + classname);
+		for (let c = 0; c < cells.length; ++c)
+		{
+			cells[c].classList.remove(classname);
+		}
+	
+		// select the desired cell
+		let cell = panel.get_cell_at(c, r);
+		cell.classList.add(classname);
+	};
+	
+	select_tool(which="pencil")
+	{
+		if (this.tool)
+		{
+			this.tools[this.tool].classList.remove("selected");
+			this.term.root.classList.remove(this.tool);
+		}
+		this.tool = which;
+		this.tools[this.tool].classList.add("selected");
+		this.term.root.classList.add(this.tool);
+	};
+	
+	select_action(which="set")
+	{
+		this.actions[this.action].classList.remove("selected");
+		this.action = which;
+		this.actions[this.action].classList.add("selected")
+	};
+	
+	select_layer(which="fg")
+	{
+		this.layers[this.layer].classList.remove("selected");
+		this.layer = which;
+		this.layers[this.layer].classList.add("selected")
+	};
+	
+	select_glyph_palette(which=null)
+	{
+		if (which === null) which = this.get_input_val("glyph-pal").toLowerCase();
+		if (!this.glyph_palettes.hasOwnProperty(which)) return false;
+	
+		let data = new Uint8Array(this.glyph_palettes[which]);
+		this.glyph_pal = new NuruPalette(data.buffer);
+	
+		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+	}
 }
 
 // xterm color variants
 // https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
-Nuru.prototype.ANSI4 = [
+NuruUI.prototype.ANSI4 = [
 	0x000000, 0xcd0000, 0x00cd00, 0xcdcd00, 0x0000ee, 0xcd00cd, 0x00cdcd, 0xe5e5e5,
 	0x7f7f7f, 0xff0000, 0x00ff00, 0xffff00, 0x5c5cff, 0xff00ff, 0x00ffff, 0xffffff
 ];
 
 // https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
-Nuru.prototype.ANSI8 = [
+NuruUI.prototype.ANSI8 = [
 	0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0xc0c0c0,
 	0x808080, 0xff0000, 0x00ff00, 0xffff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffffff,
 	0x000000, 0x00005F, 0x000087, 0x0000af, 0x0000d7, 0x0000ff, 0x005f00, 0x005f5f,
@@ -1617,7 +1613,7 @@ Nuru.prototype.ANSI8 = [
 	0xa8a8a8, 0xb2b2b2, 0xbcbcbc, 0xc6c6c6, 0xd0d0d0, 0xdadada, 0xe4e4e4, 0xeeeeee
 ];
 
-Nuru.prototype.color_palettes = {
+NuruUI.prototype.color_palettes = {
 	"aurora": [
 		// header (signature, version, type, ch_key, fg_key, bg_key, userdata)
 		0x4e, 0x55, 0x52, 0x55, 0x50, 0x41, 0x4C, 0x01,	0x03, 0x00, 0x0F, 0x00, 0x64, 0x61, 0x77, 0x6e,
@@ -1689,7 +1685,7 @@ Nuru.prototype.color_palettes = {
 	]
 };
 
-Nuru.prototype.glyph_palettes = {
+NuruUI.prototype.glyph_palettes = {
 	"nurustd": [
 		// header (signature, version, type, ch_key, fg_key, bg_key, userdata)
 		0x4e, 0x55, 0x52, 0x55, 0x50, 0x41, 0x4C, 0x01,	0x02, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
