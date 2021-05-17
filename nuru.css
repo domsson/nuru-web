@@ -72,7 +72,9 @@ body {
 	padding: var(--gap-s);
 	font-family: "Bitstream Vera Sans", sans-serif;
 	color: var(--ui-fg);
-	background: var(--ui-bg);
+	background-color: var(--ui-bg);
+	background-image: url(img/nuru_bg_dark.svg);
+	background-position: center;
 }
 
 main {
@@ -84,8 +86,6 @@ main {
 	width: 100%;
 	height: 100%;
 	font-size: 1.25em;
-	background-image: url(img/nuru_bg_dark.svg);
-	background-position: center;
 }
 
 .help ul {
