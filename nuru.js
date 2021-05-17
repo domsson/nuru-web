@@ -760,7 +760,7 @@ class NuruUI
 	
 		// keyboard / mouse
 		this.drag = false;
-	
+
 		// currently selected tool, layer etc
 		this.tool   = "pencil";
 		this.action = "get";
@@ -958,7 +958,7 @@ class NuruUI
 			if (prop) this[prop][panel.getAttribute(attr)] = term;
 		}
 	}
-	
+
 	init()
 	{
 		// init form input fields
@@ -1009,6 +1009,8 @@ class NuruUI
 		
 		NuruUtils.set_css_var("term-fg", this.get_input_val("term-fg"));
 		NuruUtils.set_css_var("term-bg", this.get_input_val("term-bg"));
+		NuruUtils.set_css_var("term-grid-color", this.get_input_val("term-grid-color"));
+		this.toggle_grid(this.get_input_val("term-grid"));
 		
 		// make sure all cells have ch, fg and bg attributes
 		this.redraw_term();
@@ -1222,7 +1224,7 @@ class NuruUI
 				console.log("Not implemented: " + opt);
 		}
 	};
-	
+
 	on_input(evt)
 	{
 		let opt = this.get_nuru_attr(evt.target, "opt");
@@ -1235,6 +1237,18 @@ class NuruUI
 				break;
 			case "term-bg":
 				NuruUtils.set_css_var("term-bg", evt.target.value);
+				break;
+			case "term-grid":
+				this.toggle_grid(this.get_input_val("term-grid"));
+				break;
+			case "term-grid-color":
+				NuruUtils.set_css_var("term-grid-color", evt.target.value);
+				break;
+			case "term-font":
+				NuruUtils.set_css_var("term-font", evt.target.value);
+				break;
+			case "term-font-size":
+				NuruUtils.set_css_var("term-font-size", evt.target.value);
 				break;
 			case "cols":
 			case "rows":
@@ -1369,7 +1383,13 @@ class NuruUI
 		if (!set) { return; }
 		set.classList.toggle("collapsed");
 	};
-	
+
+	toggle_grid(show=undefined)
+	{
+		console.log(show);
+		this.term.root.classList.toggle("grid", show);
+	}
+
 	set_image_cell(col, row, ch=null, fg=null, bg=null)
 	{
 		let new_ch = ch===null ? this.ch : ch;

@@ -13,7 +13,10 @@
 :root {
 	--term-fg: #cdcdcd; 
 	--term-bg: #283033;
+	--term-grid-color: #333333;
 	--term-border: #678cb1;
+	--term-font: monospace;
+	--term-font-size: 100%;
 	--ui-fg: #ddd;
 	--ui-bg: #222;
 	--label-fg: #fff;
@@ -67,7 +70,7 @@ body {
 	min-height: 100vh;
 	margin: 0;
 	padding: var(--gap-s);
-	font-family: sans-serif;
+	font-family: "Bitstream Vera Sans", sans-serif;
 	color: var(--ui-fg);
 	background: var(--ui-bg);
 }
@@ -359,6 +362,12 @@ nav fieldset.collapsed > label::after {
 	border-radius: var(--border-radius);
 }
 
+input[type="checkbox"] {
+    width: auto;
+    height: auto;
+    margin: 0 var(--gap-m);
+}
+
 input[type="number"],
 select {
 	-webkit-appearance: textfield;
@@ -532,7 +541,7 @@ button.bucket {
 }
 
 .term .nuru {
-	border: 1px dotted #555;
+	border: 1px dotted var(--term-grid-color);
 }
 
 .nuru {
@@ -577,6 +586,15 @@ button.bucket {
 	-moz-user-select: none;
 	color: inherit;
 	background-color: inherit;
+	font-family: var(--term-font), monospace;
+}
+
+.term .cell {
+	font-size: var(--term-font-size);
+}
+
+.term .grid .cell {
+	border: 1px dotted var(--term-grid-color);
 }
 
 .term .pencil {
