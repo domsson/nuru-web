@@ -82,6 +82,7 @@ main {
 	height: 100%;
 	font-size: 1.25em;
 	background-image: url(img/nuru_bg_dark.svg);
+	background-position: center;
 }
 
 .help ul {
