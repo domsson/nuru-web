@@ -296,6 +296,7 @@ class NuruImage
 	set_cell(c, r, glyph=null, color=null, mdata=null)
 	{
 		let cell = this.cells[(this.cols * r) + c];
+		if (!cell) return false;
 		if (glyph !== null) cell.glyph = glyph;
 		if (color !== null) cell.color = color;
 		if (mdata !== null) cell.mdata = mdata;
@@ -868,6 +869,20 @@ Nuru.prototype.init_term = function(attr, w, h, callback)
 	let term_root = this.ele_by_attr(attr, true);
 	if (!term_root) { return false };
 	this.term = new NuruTerm(term_root, w, h);
+
+	/*
+	let attrs = {
+		"ch": this.get_input_val("ch-key"),
+		"fg": this.get_input_val("fg-key"),
+		"bg": this.get_input_val("bg-key"),
+	};
+	
+	let glyph = this.get_glyph(attrs.ch);
+	let fgcol = this.get_fgcol(atrrs.fg);
+	let bgcol = this.get_bgcol(attrs.bg);
+	
+	this.term.resize(w, h, ch, fg, bg, attrs);
+	*/
 	
 	let handler = callback.bind(this);
 	this.term.root.addEventListener("click",      handler);
@@ -1015,6 +1030,9 @@ Nuru.prototype.init = function()
 	NuruUtils.set_css_var("term-fg", this.get_input_val("term-fg"));
 	NuruUtils.set_css_var("term-bg", this.get_input_val("term-bg"));
 	
+	// make sure all cells have ch, fg and bg attributes
+	this.redraw_term();
+
 	this.set_brush(this.ch, this.fg, this.bg);
 	this.select_tool("pencil");
 	this.select_layer("fg");
@@ -1082,6 +1100,7 @@ Nuru.prototype.get_input_val = function(name)
 Nuru.prototype.get_nuru_attr = function(ele, name)
 {
 	let attr = ele.getAttribute("data-nuru-" + name);
+	if (attr === null || attr === "") return null;
 	return isNaN(attr) ? attr : parseInt(attr);
 };
 
@@ -1091,19 +1110,7 @@ Nuru.prototype.redraw_term = function()
 	{
 		for (let c = 0; c < this.term.cols; ++c)
 		{
-			let image_cell = this.image.get_cell(c, r);
-
-			let attrs = {
-				"ch": this.image.get_ch_value(image_cell.glyph),
-				"fg": this.image.get_fg_value(image_cell.color),
-				"bg": this.image.get_bg_value(image_cell.color)
-			}
-
-			let glyph = this.glyph_pal.get_glyph(attrs.ch);
-			let fgcol = this.get_fg_css(attrs.fg);
-			let bgcol = this.get_bg_css(attrs.bg);
-
-			this.term.set_cell_at(c, r, glyph, fgcol, bgcol, attrs);
+			this.redraw_cell(c, r);
 		}
 	}
 };
@@ -1173,17 +1180,16 @@ Nuru.prototype.on_slot = function(evt)
 {
 	let ele = evt.currentTarget;
 
-	let cell = ele.querySelector(".cell");
-	let ch = this.get_nuru_attr(cell, "ch");
-	let fg = this.get_nuru_attr(cell, "fg");
-	let bg = this.get_nuru_attr(cell, "bg");
-
 	if (this.action == "set")
 	{
-		this.set_term_cell(cell);
+		let cell = ele.querySelector(".cell");
+		this.set_cell(cell);
 	}
 	else
 	{
+		let ch = this.get_nuru_attr(cell, "ch");
+		let fg = this.get_nuru_attr(cell, "fg");
+		let bg = this.get_nuru_attr(cell, "bg");
 		this.set_brush(ch, fg, bg);
 	}
 };
@@ -1293,11 +1299,9 @@ Nuru.prototype.on_mouse_term = function(evt)
 		switch (this.tool)
 		{
 			case "pencil":
-				this.set_image_cell(cell);
 				this.set_term_cell(cell);
 				break;
 			case "eraser":
-				this.del_image_cell(cell);
 				this.del_term_cell(cell);
 				break;
 			case "picker":
@@ -1391,25 +1395,8 @@ Nuru.prototype.on_click_fieldset = function(evt)
 	set.classList.toggle("collapsed");
 };
 
-// TODO use current color palette instead, if one in use
-Nuru.prototype.get_fg_css = function(color=null)
+Nuru.prototype.set_image_cell = function(col, row, ch=null, fg=null, bg=null)
 {
-	let fg = color === null ? this.fg : color;
-	return (fg == this.get_input_val("fg-key")) ? "inherit" : this.to_col(this.ANSI8[fg]);
-};
-
-// TODO use current color palette instead, if one in use
-Nuru.prototype.get_bg_css = function(color=null)
-{
-	let bg = color === null ? this.bg : color;
-	return (bg == this.get_input_val("bg-key")) ? "inherit" : this.to_col(this.ANSI8[bg]);
-};
-
-Nuru.prototype.set_image_cell = function(cell, ch=null, fg=null, bg=null)
-{
-	let row = this.get_nuru_attr(cell, "row"); 
-	let col = this.get_nuru_attr(cell, "col");
-
 	let new_ch = ch===null ? this.ch : ch;
 	let new_fg = fg===null ? this.fg : fg;
 	let new_bg = bg===null ? this.bg : bg;
@@ -1419,22 +1406,76 @@ Nuru.prototype.set_image_cell = function(cell, ch=null, fg=null, bg=null)
 	this.image.set_cell(col, row, glyph, color, null);
 };
 
-// TODO set the IMAGE cell, then draw TERM cell accordingly?
-//      although, careful... for panels, there is no IMAGE
 Nuru.prototype.set_term_cell = function(cell, ch=null, fg=null, bg=null)
+{
+	let col = this.get_nuru_attr(cell, "col");
+	let row = this.get_nuru_attr(cell, "row");
+
+	this.set_image_cell(col, row, ch, fg, bg);
+	this.redraw_cell(col, row);
+};
+
+Nuru.prototype.del_term_cell = function(cell)
+{
+	let ch_key = this.get_input_val("ch-key");
+	let fg_key = this.get_input_val("fg-key");
+	let bg_key = this.get_input_val("bg-key");
+
+	this.set_term_cell(cell, ch_key, fg_key, bg_key);
+};
+
+Nuru.prototype.redraw_cell = function(col, row)
+{
+	let image_cell = this.image.get_cell(col, row);
+
+	let attrs = {
+		"ch": this.image.get_ch_value(image_cell.glyph),
+		"fg": this.image.get_fg_value(image_cell.color),
+		"bg": this.image.get_bg_value(image_cell.color)
+	}
+
+	let glyph = this.get_glyph(attrs.ch);
+	let fgcol = this.get_fgcol(attrs.fg);
+	let bgcol = this.get_bgcol(attrs.bg);
+
+	this.term.set_cell_at(col, row, glyph, fgcol, bgcol, attrs);
+};
+
+// TODO we might not be using a palette (depending on glyph_mode)
+Nuru.prototype.get_glyph = function(ch=null)
+{
+	let ch_val = ch === null ? this.ch : ch;
+	return this.glyph_pal.get_glyph(ch_val);
+};
+
+// TODO use current color palette instead, if one in use (depending on color_mode)
+Nuru.prototype.get_fgcol = function(fg=null)
+{
+	let fg_val = fg === null ? this.fg : fg;
+	return (fg_val == this.get_input_val("fg-key")) ? "inherit" : this.to_col(this.ANSI8[fg_val]);
+};
+
+// TODO use current color palette instead, if one in use (depending on color_mode)
+Nuru.prototype.get_bgcol = function(bg=null)
+{
+	let bg_val = bg === null ? this.bg : bg;
+	return (bg_val == this.get_input_val("bg-key")) ? "inherit" : this.to_col(this.ANSI8[bg_val]);
+};
+
+Nuru.prototype.set_cell = function(cell, ch=null, fg=null, bg=null)
 {
 	let new_ch = ch===null ? this.ch : ch;
 	let new_fg = fg===null ? this.fg : fg;
 	let new_bg = bg===null ? this.bg : bg;
 
-	let glyph = this.glyph_pal.get_glyph(new_ch);
-	let fgcol = this.get_fg_css(new_fg);
-	let bgcol = this.get_bg_css(new_bg);
+	let glyph = this.get_glyph(new_ch);
+	let fgcol = this.get_fgcol(new_fg);
+	let bgcol = this.get_bgcol(new_bg);
 
 	let attributes = { "ch": new_ch, "fg": new_fg, "bg": new_bg };
 
 	NuruTerm.set_cell(cell, glyph, fgcol, bgcol, attributes);
-};
+}
 
 Nuru.prototype.set_glyph = function(ch=null)
 {
@@ -1456,8 +1497,8 @@ Nuru.prototype.set_fgcol = function(fg=null)
 	let brush_cell = this.panels.brush.get_cell_at(0, 0);
 	let fgcol_cell = this.panels.fgcol.get_cell_at(0, 0);
 
-	NuruTerm.set_cell_fgcol(brush_cell, this.get_fg_css());
-	NuruTerm.set_cell_bgcol(fgcol_cell, this.get_fg_css());
+	NuruTerm.set_cell_fgcol(brush_cell, this.get_fgcol());
+	NuruTerm.set_cell_bgcol(fgcol_cell, this.get_fgcol());
 
 	this.select_cell_idx(this.colors, this.fg, "selected-fg");
 };
@@ -1469,8 +1510,8 @@ Nuru.prototype.set_bgcol = function(bg=null)
 	let brush_cell = this.panels.brush.get_cell_at(0, 0);
 	let bgcol_cell = this.panels.bgcol.get_cell_at(0, 0);
 
-	NuruTerm.set_cell_bgcol(brush_cell, this.get_bg_css());
-	NuruTerm.set_cell_bgcol(bgcol_cell, this.get_bg_css());
+	NuruTerm.set_cell_bgcol(brush_cell, this.get_bgcol());
+	NuruTerm.set_cell_bgcol(bgcol_cell, this.get_bgcol());
 
 	this.select_cell_idx(this.colors, this.bg, "selected-bg");
 };
@@ -1489,31 +1530,6 @@ Nuru.prototype.set_brush = function(ch=null, fg=null, bg=null)
 	{
 		this.set_bgcol(bg);
 	}
-};
-
-Nuru.prototype.del_image_cell = function(cell)
-{
-	let row = this.get_nuru_attr(cell, "row");
-	let col = this.get_nuru_attr(cell, "col");
-
-	let glyph = this.image.get_glyph_value(this.ch_key);
-	let color = this.image.get_color_value(this.fg_key, this.bg_key);
-	this.image.set_cell(col, row, glyph, color, null);
-};
-
-// TODO del the IMAGE cell, then draw TERM cell accordingly
-Nuru.prototype.del_term_cell = function(cell)
-{
-	let glyph_none = this.glyph_pal.get_glyph(this.get_input_val("ch-key"));
-	let color_none = "inherit"; // TODO should probably use get_fg_css() / get_bg_css() here
-
-	let attributes = { 
-		"ch": this.get_input_val("ch-key"),
-		"fg": this.get_input_val("fg-key"),
-		"bg": this.get_input_val("bg-key")
-	};
-
-	NuruTerm.set_cell(cell, glyph_none, color_none, color_none, attributes);
 };
 
 Nuru.prototype.select_cell_idx = function(panel, idx, classname="selected")
