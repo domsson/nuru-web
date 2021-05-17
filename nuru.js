@@ -406,8 +406,11 @@ class NuruImage
 		return null;
 	}
 
-	clear()
+	clear(fg_key=null, bg_key=null)
 	{
+		if (fg_key !== null) this.fg_key = fg_key;
+		if (bg_key !== null) this.bg_key = bg_key;
+
 		let glyph = this.get_glyph_value(this.ch_key);
 		let color = this.get_color_value(this.fg_key, this.bg_key);
 		let mdata = 0;
@@ -1106,25 +1109,14 @@ Nuru.prototype.resize_term = function()
 	this.redraw_term();
 };
 
-// TODO this ain't right, is it?
-Nuru.prototype.reset_term = function()
+Nuru.prototype.wipe_term = function()
 {
-	/*
-	let glyph_none = this.glyph_pal.get_glyph(this.get_input_val("ch-key"));
-	let color_none = "inherit";
-	let attributes = { 
-		"ch": this.get_input_val("ch-key"),
-		"fg": this.get_input_val("fg-key"),
-		"bg": this.get_input_val("bg-key")
-	};
-
-	this.term.set_all(glyph_none, color_none, color_none, attributes);
-	*/
-	this.image.clear(); // TODO what if current input values for "ch-key" etc are not the same as the ones stored in this.image?
+	this.image.clear(this.fg_key, this.bg_key);
 	this.redraw_term();
 };
 
-// TODO
+// TODO once NuruImage.crop() is implemented, this just needs to call that,
+//      then resize and redraw the terminal accordingly
 Nuru.prototype.crop_term = function()
 {
 	let rows = 1;
@@ -1133,7 +1125,6 @@ Nuru.prototype.crop_term = function()
 	let lines = this.term.root.childNodes;
 	let cells = null;
 
-	//let ch_none = this.glyph_pal.get_space_index();
 	let ch_none = this.get_input_val("ch-key");
 	let fg_none = this.get_input_val("fg-key");
 	let bg_none = this.get_input_val("bg-key");
@@ -1224,7 +1215,7 @@ Nuru.prototype.on_button = function(evt)
 			this.crop_term();
 			break;
 		case "wipe":
-			this.reset_term();
+			this.wipe_term();
 			break;
 		case "pal-save":
 			this.save_pal(this.glyph_pal.name + ".nup");
