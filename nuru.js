@@ -1,3 +1,5 @@
+"use strict";
+
 class NuruUtils
 {
 	static set_css_var(name, value)
@@ -324,9 +326,8 @@ class NuruImage
 
 	get_glyph_value(ch)
 	{
-		/*
 		let glyph = 0;
-		switch (this.glyph_mode)
+		switch (parseInt(this.glyph_mode))
 		{
 			case 0:
 				glyph = this.ch_key;
@@ -338,8 +339,6 @@ class NuruImage
 				break;
 		}
 		return glyph;
-		*/
-		return ch;
 	}
 
 	get_color_value(fg, bg)
@@ -366,18 +365,15 @@ class NuruImage
 
 	get_ch_value(glyph)
 	{
-		/*
-		switch (this.glyph_mode)
+		switch (parseInt(this.glyph_mode))
 		{
 			case 0:
-				return 32;
+				return this.ch_key;
 			case 1:
 			case 2:
 			case 129:
 				return glyph;
 		}
-		*/
-		return glyph;
 	}
 
 	get_fg_value(color)
@@ -410,10 +406,10 @@ class NuruImage
 		return null;
 	}
 
-	clear(ch_key=32, fg_key=15, bg_key=0)
+	clear()
 	{
-		let glyph = this.get_glyph_value(ch_key);
-		let color = this.get_color_value(fg_key, bg_key);
+		let glyph = this.get_glyph_value(this.ch_key);
+		let color = this.get_color_value(this.fg_key, this.bg_key);
 		let mdata = 0;
 
 		for (let r = 0; r < this.rows; ++r)
@@ -869,20 +865,6 @@ Nuru.prototype.init_term = function(attr, w, h, callback)
 	let term_root = this.ele_by_attr(attr, true);
 	if (!term_root) { return false };
 	this.term = new NuruTerm(term_root, w, h);
-
-	/*
-	let attrs = {
-		"ch": this.get_input_val("ch-key"),
-		"fg": this.get_input_val("fg-key"),
-		"bg": this.get_input_val("bg-key"),
-	};
-	
-	let glyph = this.get_glyph(attrs.ch);
-	let fgcol = this.get_fgcol(atrrs.fg);
-	let bgcol = this.get_bgcol(attrs.bg);
-	
-	this.term.resize(w, h, ch, fg, bg, attrs);
-	*/
 	
 	let handler = callback.bind(this);
 	this.term.root.addEventListener("click",      handler);
@@ -1121,10 +1103,13 @@ Nuru.prototype.resize_term = function()
 	let rows = this.get_input_val("rows");
 	this.image.resize(cols, rows);
 	this.term.resize(cols, rows);
+	this.redraw_term();
 };
 
+// TODO this ain't right, is it?
 Nuru.prototype.reset_term = function()
 {
+	/*
 	let glyph_none = this.glyph_pal.get_glyph(this.get_input_val("ch-key"));
 	let color_none = "inherit";
 	let attributes = { 
@@ -1134,6 +1119,9 @@ Nuru.prototype.reset_term = function()
 	};
 
 	this.term.set_all(glyph_none, color_none, color_none, attributes);
+	*/
+	this.image.clear(); // TODO what if current input values for "ch-key" etc are not the same as the ones stored in this.image?
+	this.redraw_term();
 };
 
 // TODO
@@ -1280,7 +1268,6 @@ Nuru.prototype.on_input = function(evt)
 	}
 };
 
-// TODO use NuruTerm methods instead
 Nuru.prototype.on_mouse_term = function(evt)
 {
 	if (!evt.target.classList.contains("cell"))
@@ -1295,14 +1282,16 @@ Nuru.prototype.on_mouse_term = function(evt)
 	if (evt.type == "click" || (evt.type == "mouseover" && this.drag))
 	{
 		let cell = evt.target;
+		let col = this.get_nuru_attr(cell, "col");
+		let row = this.get_nuru_attr(cell, "row");
 
 		switch (this.tool)
 		{
 			case "pencil":
-				this.set_term_cell(cell);
+				this.set_term_cell(col, row);
 				break;
 			case "eraser":
-				this.del_term_cell(cell);
+				this.del_term_cell(col, row);
 				break;
 			case "picker":
 				this.set_brush(this.get_nuru_attr(cell, "ch"),
@@ -1406,22 +1395,23 @@ Nuru.prototype.set_image_cell = function(col, row, ch=null, fg=null, bg=null)
 	this.image.set_cell(col, row, glyph, color, null);
 };
 
-Nuru.prototype.set_term_cell = function(cell, ch=null, fg=null, bg=null)
+/*
+ * Sets the image cell to the given values, then redraws the canvas cell.
+ * If a value is not given, the current brush values will be used.
+ */
+Nuru.prototype.set_term_cell = function(col, row, ch=null, fg=null, bg=null)
 {
-	let col = this.get_nuru_attr(cell, "col");
-	let row = this.get_nuru_attr(cell, "row");
-
 	this.set_image_cell(col, row, ch, fg, bg);
 	this.redraw_cell(col, row);
 };
 
-Nuru.prototype.del_term_cell = function(cell)
+Nuru.prototype.del_term_cell = function(col, row)
 {
 	let ch_key = this.get_input_val("ch-key");
 	let fg_key = this.get_input_val("fg-key");
 	let bg_key = this.get_input_val("bg-key");
 
-	this.set_term_cell(cell, ch_key, fg_key, bg_key);
+	this.set_term_cell(col, row, ch_key, fg_key, bg_key);
 };
 
 Nuru.prototype.redraw_cell = function(col, row)
