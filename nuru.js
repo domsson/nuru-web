@@ -2,6 +2,9 @@
 
 class NuruUtils
 {
+	/*
+	 * Turn an integer representing an RGB color into a CSS hex color.
+	 */
 	static to_hex_col(dec)
 	{
 		let col = dec.toString(16);
@@ -9,22 +12,75 @@ class NuruUtils
 		return "#" + col;
 	};
 
-	static to_glyph(data)
+	/*
+	 * Turn a Unicode/ASCII value into an actual character.
+	 */
+	static to_glyph(cp)
 	{
-		return String.fromCharCode(data);
+		return String.fromCharCode(cp);
 	}
-	
+
+	/*
+	 * Checks if the given Unicode/ASCII value is printable.
+	 */
+	static codepoint_is_printable = function(cp)
+	{
+		if (cp < 0x0020) return false;
+		if (cp > 0x007E && cp < 0x00A0) return false;
+		return true;
+	}
+
+	/*
+	 * Checks if the given character is printable.
+	 */
+	static glyph_is_printable = function(ch)
+	{
+		return NuruUtils.codepoint_is_printable(ch.charCodeAt(0));
+	}
+
+	/*
+	 * Set the CSS variable `--name` to the given value.
+	 */
 	static set_css_var(name, value)
 	{
 		let root = document.querySelector(":root");
 		root.style.setProperty("--" + name, value);
 	}
 
+	/*
+	 * Extract `size` bits from the right-most part of `src`, or from 
+	 * `shift` bits further to the left (higher), if `shift` is given.
+	 */
+	static get_bits(src, size, shift=0)
+	{
+		let mask = (Math.pow(2, size) - 1) << shift;
+		return (src & mask) >> shift;
+	}
+
+	/*
+	 * Set `size` bits of `dest` to `src`. The right-most bits will be 
+	 * read and set, unless `shift` is given, in which case the bits 
+	 * `shift` bits further to the left (higher) will be read and set.
+	 */
+	static set_bits(dest, src, size, shift=0)
+	{
+		let mask = (Math.pow(2, size) - 1);
+		return dest | ((src & mask) << shift);
+	}
+
+	/*
+	 * Turn an Uint8Array of Unicode/ASCII values into a string.
+	 */
 	static array_to_string(array)
 	{
 		return String.fromCharCode(...array);
 	}
 	
+	/*
+	 * Turn a string into an Uint8Array of Unicode/ASCII values.
+	 * If `len` is given and exceeds the string's length, then the array 
+	 * will be filled with `space` (defaults to 32) up to size `len`.
+	 */
 	static string_to_array(str, len=0, space=32)
 	{
 		let strlen = str.length;
@@ -60,18 +116,10 @@ class NuruUtils
 		return data;
 	}
 
-	static get_bits(src, size, shift=0)
-	{
-		let mask = (Math.pow(2, size) - 1) << shift;
-		return (src & mask) >> shift;
-	}
-
-	static set_bits(dest, src, size, shift=0)
-	{
-		let mask = (Math.pow(2, size) - 1);
-		return dest | ((src & mask) << shift);
-	}
-
+	/*
+	 * Turn the given binary `data` into a downloadable blob and offer it 
+	 * as a download, with the given `filename` as suggested file name.
+	 */
 	static download_data(data, filename, mime="application/octet-stream")
 	{
 		let link = document.createElement("a");
@@ -83,27 +131,16 @@ class NuruUtils
 		window.URL.revokeObjectURL(ourl);
 	}
 
-	static codepoint_is_printable = function(cp)
-	{
-		if (cp < 0x0020) return false;
-		if (cp > 0x007E && cp < 0x00A0) return false;
-		return true;
-	}
-
-	static glyph_is_printable = function(ch)
-	{
-		return this.codepoint_is_printable(ch.charCodeAt(0));
-	}
-
-	static prompt_for_file = function(type, multiple, handler)
+	/*
+	 * Prompt the user to upload a file (or multiple), then calls `handler`
+	 * once the user had selected a file. The attributes given in `attrs` 
+	 * will be set on the input element and can later be read by `handler`.
+	 */
+	static prompt_for_file = function(multiple, handler, attrs)
 	{
 		let input = document.createElement("input");
-		input.setAttribute("type", "file");
-		input.setAttribute("data-nuru-type", type);
-		if (multiple)
-		{
-			input.setAttribute("multiple", "");
-		}
+		if (multiple) input.setAttribute("multiple", "");
+		for (let name in attrs) input.setAttribute(name, attrs[name]);
 		input.click();
 		input.addEventListener("change", handler);
 	}
@@ -796,12 +833,14 @@ class NuruUI
 	
 	open_img()
 	{
-		NuruUtils.prompt_for_file("img", false, this.on_files.bind(this));
+		let attrs = { "data-nuru-type": "img" };
+		NuruUtils.prompt_for_file(false, this.on_files.bind(this), attrs);
 	};
 	
 	open_pal()
 	{
-		NuruUtils.prompt_for_file("pal", false, this.on_files.bind(this));
+		let attrs = { "data-nuru-type": "pal" };
+		NuruUtils.prompt_for_file(false, this.on_files.bind(this), attrs);
 	};
 	
 	save_img(filename)
@@ -826,7 +865,6 @@ class NuruUI
 		this.glyph_pal.load_from_buffer(buffer);
 	};
 	
-		
 	ele_by_attr(attr, singular=false)
 	{
 		let eles = document.querySelectorAll("[" + attr + "]");
