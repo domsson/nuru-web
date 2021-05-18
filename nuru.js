@@ -2,6 +2,18 @@
 
 class NuruUtils
 {
+	static to_hex_col(dec)
+	{
+		let col = dec.toString(16);
+		while (col.length < 6) { col = "0" + col; }
+		return "#" + col;
+	};
+
+	static to_glyph(data)
+	{
+		return String.fromCharCode(data);
+	}
+	
 	static set_css_var(name, value)
 	{
 		let root = document.querySelector(":root");
@@ -128,29 +140,14 @@ class NuruPalette
 		return NuruPalette.VERSION;
 	}
 
-	get_glyph(index)
-	{
-		return String.fromCharCode(this.data[index]);
-	}
-	
-	get_codepoint(index)
+	get_data(index)
 	{
 		return this.data[index];
 	}
 
-	get_space_index()
+	get data_size()
 	{
-		return this.ch_key;
-	}
-
-	get_space_glyph()
-	{
-		return this.get_glyph(this.ch_key);
-	}
-
-	get_space_codepoint()
-	{
-		return this.get_codepoint(this.ch_key);
+		return this.type & 0x0F;
 	}
 
 	load_from_buffer(buffer)
@@ -194,13 +191,13 @@ class NuruPalette
 		// payload: unicode code points
 		for (let i = 0; i < 256; ++i)
 		{
-			switch (this.type)
+			switch (this.data_size)
 			{
 				case 1:
 					// TODO
 					break;
 				case 2:
-					this.data[i] = view.getUint16((i*this.type + 16), false);
+					this.data[i] = view.getUint16((i*this.data_size + 16), false);
 					break;
 				case 3:
 					// TODO
@@ -241,7 +238,7 @@ class NuruPalette
 		for (let d = 0; d < size; ++d)
 		{
 			entry = this.data[d];
-			i = NuruUtils.data_to_buffer(entry, this.type, data, i);
+			i = NuruUtils.data_to_buffer(entry, this.data_size, data, i);
 		}
 	
 		return data;
@@ -739,6 +736,8 @@ class NuruTerm
 
 class NuruUI
 {
+	static ATTR_PREFIX  = "data-nuru";
+
 	constructor()
 	{
 		this.image = null; // NuruImage instance
@@ -827,13 +826,7 @@ class NuruUI
 		this.glyph_pal.load_from_buffer(buffer);
 	};
 	
-	to_col(hex)
-	{
-		let col = hex.toString(16);
-		while (col.length < 6) { col = "0" + col; }
-		return "#" + col;
-	};
-	
+		
 	ele_by_attr(attr, singular=false)
 	{
 		let eles = document.querySelectorAll("[" + attr + "]");
@@ -881,8 +874,8 @@ class NuruUI
 			for (let c = 0; c < w; ++c)
 			{
 				let idx = r * w + c;
-				let ch = this.glyph_pal.get_codepoint(idx);
-				let glyph = this.glyph_pal.get_glyph(idx);
+				let ch = this.glyph_pal.get_data(idx);
+				let glyph = NuruUtils.to_glyph(ch);
 	
 				let cell = this.glyphs.get_cell_at(c, r);
 				let cell_attrs = { "np": 0, "ch": ch };
@@ -896,7 +889,7 @@ class NuruUI
 				{
 					cell.classList.add("non-printable");
 					cell_attrs.np = 1;
-					glyph = this.glyph_pal.get_space_glyph();
+					glyph = NuruUtils.to_glyph(this.glyph_pal.get_data(this.glyph_pal.get_fg_key));
 				}
 	
 				NuruTerm.set_cell(cell, glyph, null, null, cell_attrs);
@@ -915,7 +908,7 @@ class NuruUI
 			for (let c = 0; c < w; ++c)
 			{
 				let idx = r * w +c;
-				let col = this.to_col(this.ANSI8[idx]); // TODO
+				let col = NuruUtils.to_hex_col(this.ANSI8[idx]); // TODO
 	
 				let cell = this.colors.get_cell_at(c, r);
 				let cell_attrs = { "ch": 32, "bg": idx };
@@ -1081,7 +1074,7 @@ class NuruUI
 	
 	get_nuru_attr(ele, name)
 	{
-		let attr = ele.getAttribute("data-nuru-" + name);
+		let attr = ele.getAttribute(NuruUI.ATTR_PREFIX + "-" + name);
 		if (attr === null || attr === "") return null;
 		return isNaN(attr) ? attr : parseInt(attr);
 	};
@@ -1386,7 +1379,6 @@ class NuruUI
 
 	toggle_grid(show=undefined)
 	{
-		console.log(show);
 		this.term.root.classList.toggle("grid", show);
 	}
 
@@ -1437,25 +1429,56 @@ class NuruUI
 		this.term.set_cell_at(col, row, glyph, fgcol, bgcol, attrs);
 	};
 	
-	// TODO we might not be using a palette (depending on glyph_mode)
 	get_glyph(ch=null)
 	{
 		let ch_val = ch === null ? this.ch : ch;
-		return this.glyph_pal.get_glyph(ch_val);
+		switch (parseInt(this.image.glyph_mode))
+		{
+			case 0:   // spaces only
+				return " ";
+			case 1:   // ASCII
+				return NuruUtils.to_glyph(ch_val);
+			case 129: // palette
+				return NuruUtils.to_glyph(this.glyph_pal.get_data(ch_val));
+		}
+
+		return " "; // fallback in case of unknown glyph mode
 	};
-	
-	// TODO use current color palette instead, if one in use (depending on color_mode)
+
 	get_fgcol(fg=null)
 	{
 		let fg_val = fg === null ? this.fg : fg;
-		return (fg_val == this.get_input_val("fg-key")) ? "inherit" : this.to_col(this.ANSI8[fg_val]);
+		let fg_key = this.image.fg_key;
+		switch (parseInt(this.image.color_mode))
+		{
+			case 0:   // monochrome
+				return "inherit";
+			case 1:   // 4-bit ANSI colors
+				return (fg_val == fg_key) ? "inherit" : NuruUtils.to_hex_col(this.ANSI4[fg_val]);
+			case 2:   // 8-bit ANSI colors
+				return (fg_val == fg_key) ? "inherit" : NuruUtils.to_hex_col(this.ANSI8[fg_val]);
+			case 130: // palette
+				return (fg_val == fg_key) ? "inherit" : NuruUtils.to_hex_col(this.color_pal.get_data(fg_val));
+		}
+		return "inherit"; // fallback in case of unknown color mode
 	};
 	
-	// TODO use current color palette instead, if one in use (depending on color_mode)
 	get_bgcol(bg=null)
 	{
 		let bg_val = bg === null ? this.bg : bg;
-		return (bg_val == this.get_input_val("bg-key")) ? "inherit" : this.to_col(this.ANSI8[bg_val]);
+		let bg_key = this.image.bg_key;
+		switch (parseInt(this.image.color_mode))
+		{
+			case 0:   // monochrome
+				return "inherit";
+			case 1:   // 4-bit ANSI colors
+				return (bg_val == bg_key) ? "inherit" : NuruUtils.to_hex_col(this.ANSI4[bg_val]);
+			case 2:   // 8-bit ANSI colors
+				return (bg_val == bg_key) ? "inherit" : NuruUtils.to_hex_col(this.ANSI8[bg_val]);
+			case 130: // palette
+				return (bg_val == bg_key) ? "inherit" : NuruUtils.to_hex_col(this.color_pal.get_data(bg_val));
+		}
+		return "inherit"; // fallback in case of unknown color mode
 	};
 	
 	set_cell(cell, ch=null, fg=null, bg=null)
@@ -1480,8 +1503,8 @@ class NuruUI
 		let brush_cell = this.panels.brush.get_cell_at(0, 0);
 		let glyph_cell = this.panels.glyph.get_cell_at(0, 0);
 	
-		NuruTerm.set_cell_glyph(brush_cell, this.glyph_pal.get_glyph(this.ch))
-		NuruTerm.set_cell_glyph(glyph_cell, this.glyph_pal.get_glyph(this.ch))
+		NuruTerm.set_cell_glyph(brush_cell, NuruUtils.to_glyph(this.glyph_pal.get_data(this.ch)));
+		NuruTerm.set_cell_glyph(glyph_cell, NuruUtils.to_glyph(this.glyph_pal.get_data(this.ch)));
 	
 		this.select_cell_idx(this.glyphs, this.ch);
 	};
