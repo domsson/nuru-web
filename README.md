@@ -1,4 +1,4 @@
-<img width="100%" src="svg/nuru_logo_outline.svg" alt="nuru web"> 
+<img width="100%" src="img/nuru_header.svg" alt="nuru web"> 
  
 nuru image editor for the browser. Currently very early work-in-progress. 
 Check back later or [try the current state](https://domsson.github.io/nuru-web/).
