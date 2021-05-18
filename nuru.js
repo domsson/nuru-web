@@ -1489,6 +1489,9 @@ class NuruUI
 		let fgcol = this.get_fgcol(attrs.fg);
 		let bgcol = this.get_bgcol(attrs.bg);
 	
+		// prevent printing non-printable things like `\t` or `\n`
+		if (!NuruUtils.glyph_is_printable(glyph)) glyph = " ";
+
 		this.term.set_cell_at(col, row, glyph, fgcol, bgcol, attrs);
 	};
 	
@@ -1501,8 +1504,7 @@ class NuruUI
 				return " ";
 			case 1:   // ASCII
 			case 2:   // unicode
-				return NuruUtils.to_glyph(ch_val);
-				return NuruUtils.to_glyph(ch_val);
+				return	NuruUtils.to_glyph(ch_val);
 			case 129: // palette
 				return NuruUtils.to_glyph(this.glyph_pal.get_data(ch_val));
 		}
@@ -1519,11 +1521,14 @@ class NuruUI
 			case 0:   // monochrome
 				return "inherit";
 			case 1:   // 4-bit ANSI colors
-				return (fg_val == fg_key) ? "inherit" : NuruUtils.to_hex_col(this.ANSI4[fg_val]);
+				return (fg_val == fg_key) ? "inherit" : 
+					NuruUtils.to_hex_col(this.ANSI4[fg_val]);
 			case 2:   // 8-bit ANSI colors
-				return (fg_val == fg_key) ? "inherit" : NuruUtils.to_hex_col(this.ANSI8[fg_val]);
+				return (fg_val == fg_key) ? "inherit" : 
+					NuruUtils.to_hex_col(this.ANSI8[fg_val]);
 			case 130: // palette
-				return (fg_val == fg_key) ? "inherit" : NuruUtils.to_hex_col(this.color_pal.get_data(fg_val));
+				return (fg_val == fg_key) ? "inherit" : 
+					NuruUtils.to_hex_col(this.color_pal.get_data(fg_val));
 		}
 		return "inherit"; // fallback in case of unknown color mode
 	};
@@ -1537,11 +1542,14 @@ class NuruUI
 			case 0:   // monochrome
 				return "inherit";
 			case 1:   // 4-bit ANSI colors
-				return (bg_val == bg_key) ? "inherit" : NuruUtils.to_hex_col(this.ANSI4[bg_val]);
+				return (bg_val == bg_key) ? "inherit" : 
+					NuruUtils.to_hex_col(this.ANSI4[bg_val]);
 			case 2:   // 8-bit ANSI colors
-				return (bg_val == bg_key) ? "inherit" : NuruUtils.to_hex_col(this.ANSI8[bg_val]);
+				return (bg_val == bg_key) ? "inherit" : 
+					NuruUtils.to_hex_col(this.ANSI8[bg_val]);
 			case 130: // palette
-				return (bg_val == bg_key) ? "inherit" : NuruUtils.to_hex_col(this.color_pal.get_data(bg_val));
+				return (bg_val == bg_key) ? "inherit" :
+					NuruUtils.to_hex_col(this.color_pal.get_data(bg_val));
 		}
 		return "inherit"; // fallback in case of unknown color mode
 	};
@@ -1567,9 +1575,11 @@ class NuruUI
 	
 		let brush_cell = this.panels.brush.get_cell_at(0, 0);
 		let glyph_cell = this.panels.glyph.get_cell_at(0, 0);
+		//let glyph= NuruUtils.to_glyph(this.glyph_pal.get_data(this.ch)));
+		let glyph = this.get_glyph();
 	
-		NuruTerm.set_cell_glyph(brush_cell, NuruUtils.to_glyph(this.glyph_pal.get_data(this.ch)));
-		NuruTerm.set_cell_glyph(glyph_cell, NuruUtils.to_glyph(this.glyph_pal.get_data(this.ch)));
+		NuruTerm.set_cell_glyph(brush_cell, glyph);
+		NuruTerm.set_cell_glyph(glyph_cell, glyph);
 	
 		this.select_cell_idx(this.glyphs, this.ch);
 	};
@@ -1580,9 +1590,10 @@ class NuruUI
 	
 		let brush_cell = this.panels.brush.get_cell_at(0, 0);
 		let fgcol_cell = this.panels.fgcol.get_cell_at(0, 0);
+		let fgcol = this.get_fgcol();
 	
-		NuruTerm.set_cell_fgcol(brush_cell, this.get_fgcol());
-		NuruTerm.set_cell_bgcol(fgcol_cell, this.get_fgcol());
+		NuruTerm.set_cell_fgcol(brush_cell, fgcol);
+		NuruTerm.set_cell_bgcol(fgcol_cell, fgcol);
 	
 		this.select_cell_idx(this.colors, this.fg, "selected-fg");
 	};
@@ -1593,9 +1604,10 @@ class NuruUI
 	
 		let brush_cell = this.panels.brush.get_cell_at(0, 0);
 		let bgcol_cell = this.panels.bgcol.get_cell_at(0, 0);
+		let bgcol = this.get_bgcol();
 	
-		NuruTerm.set_cell_bgcol(brush_cell, this.get_bgcol());
-		NuruTerm.set_cell_bgcol(bgcol_cell, this.get_bgcol());
+		NuruTerm.set_cell_bgcol(brush_cell, bgcol);
+		NuruTerm.set_cell_bgcol(bgcol_cell, bgcol);
 	
 		this.select_cell_idx(this.colors, this.bg, "selected-bg");
 	};
@@ -1685,6 +1697,14 @@ class NuruUI
 	//      for example by going over all cells and setting them to the 
 	//      ch_key; however, this means we also will have to update the
 	//      ch_key first, depending on the new glyph_mode!
+	// TODO Then again... it might be better to leave the invalid glyphs
+	//      in the image, as this allows switching forth-and-back between 
+	//      glyph palettes, without destroying parts of the image, plus it 
+	//      will be much faster; we would then, however, need to make sure 
+	//      to sanitize the image before actually saving it to a file or 
+	//      otherwise processing it; we could build a image.sanitize() 
+	//      method to take care of this, plus we could have a flag that 
+	//      indicates whether or not the image is "dirty".
 	change_glyph_mode(mode)
 	{
 		console.log("nani");

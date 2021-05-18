@@ -15,9 +15,9 @@
 	<body>
 		<header><h1>ヌル</h1></header>
 		<nav class="menu">
-			<button class="open" data-nuru-btn="open" title="Load an image from disk"><span class="label">Open</span></button>
-			<button class="save" data-nuru-btn="save" title="Save this image to disk"><span class="label">Save</span></button>
-			<button class="crop" data-nuru-btn="crop" title="Crop canvas to contents"><span class="label">Crop</span></button>
+			<button class="open" data-nuru-btn="open" title="Load an image from disk" disabled><span class="label">Open</span></button>
+			<button class="save" data-nuru-btn="save" title="Save this image to disk" disabled><span class="label">Save</span></button>
+			<button class="crop" data-nuru-btn="crop" title="Crop canvas to contents" disabled><span class="label">Crop</span></button>
 			<button class="wipe" data-nuru-btn="wipe" title="Erase the entire canvas"><span class="label">Wipe</span></button>
 		</nav>
 		<aside class="options">
@@ -79,15 +79,15 @@
 					</div>
 					<div class="input">
 						<label for="ch-key">Char key</label>
-						<input id="ch-key" type="number" data-nuru-opt="ch-key" value="32">
+						<input id="ch-key" type="number" data-nuru-opt="ch-key" value="32" disabled>
 					</div>
 					<div class="input">
 						<label for="fg-key">FG key</label>
-						<input id="fg-key" type="number" data-nuru-opt="fg-key" value="15">
+						<input id="fg-key" type="number" data-nuru-opt="fg-key" value="15" disabled>
 					</div>
 					<div class="input">
 						<label for="bg-key">BG key</label>
-						<input id="bg-key" type="number" data-nuru-opt="bg-key" value="0">
+						<input id="bg-key" type="number" data-nuru-opt="bg-key" value="0" disabled>
 					</div>
 					<div class="input">
 						<label for="glyph-mode">Glyphs</label>
@@ -138,8 +138,8 @@
 			<fieldset class="palettes-options" data-nuru-set="palettes-options">
 				<label data-nuru-set-trigger="palettes-options"><span>Palettes</span></label>
 				<div class="fields">
-					<button class="pal-open" data-nuru-btn="pal-open"><span class="label">Import</span></button>
-					<button class="pal-save" data-nuru-btn="pal-save"><span class="label">Export</span></button>
+					<button class="pal-open" data-nuru-btn="pal-open" disabled><span class="label">Import</span></button>
+					<button class="pal-save" data-nuru-btn="pal-save" disabled><span class="label">Export</span></button>
 				</div>
 			</fieldset>
 		</aside>

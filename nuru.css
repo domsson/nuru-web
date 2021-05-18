@@ -646,3 +646,7 @@ button.bucket {
 	cursor: not-allowed;
 	outline: .0625rem dotted var(--warning);
 }
+
+[disabled] {
+	cursor: not-allowed;
+}
