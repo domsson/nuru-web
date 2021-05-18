@@ -645,7 +645,7 @@ class NuruTerm
 		this.cols  = cols;
 		this.rows  = rows;
 
-		this.resize(this.cols, this.rows);
+		this.init();
 	}
 
 	static set_cell(cell, glyph, fgcol, bgcol, attrs)
@@ -699,6 +699,27 @@ class NuruTerm
 		return cell;
 	}
 
+	init(cols, rows, glyph, fgcol, bgcol, attrs)
+	{
+		// remove all children, if any
+		this.root.replaceChildren();
+
+		let line = null;
+		let cell = null;
+		for (let r = 0; r < this.rows; ++r)
+		{
+			line = NuruTerm.new_line(r);
+			for (let c = 0; c < this.cols; ++c)
+			{
+				cell = NuruTerm.new_cell(c, r, glyph, fgcol, bgcol, attrs);
+				line.appendChild(cell);
+			}
+			this.root.appendChild(line);
+		}
+	}
+
+	// TODO the if in the loop can be simplified using the old `cols` and `rows` value
+	//      instead of checking for the existence of child nodes on the cloned element
 	resize(cols, rows, glyph, fgcol, bgcol, attrs)
 	{
 		this.cols = cols;
@@ -708,7 +729,7 @@ class NuruTerm
 		let clone = this.root.cloneNode(true);
 	
 		// remove all children, if any
-		this.root.textContent = '';
+		this.root.replaceChildren(); // deletes all children
 	
 		// create new lines and cells, but copy over existing cells
 		let line = null;
@@ -905,20 +926,22 @@ class NuruUI
 	
 	init_glyphs_panel(attr, w, h, callback)
 	{
-		let glyphs_root = this.ele_by_attr(attr, true);
-		this.glyphs = new NuruTerm(glyphs_root, w, h);
+		let root = this.ele_by_attr(attr, true);
+		root.setAttribute(attr, this.image.glyph_mode);
+		this.glyphs = new NuruTerm(root, w, h);
+		root.addEventListener("click", callback.bind(this));
+
 		for (let r = 0; r < h; ++r)
 		{
 			for (let c = 0; c < w; ++c)
 			{
-				let idx = r * w + c;
-				let ch = this.glyph_pal.get_data(idx);
-				let glyph = NuruUtils.to_glyph(ch);
+				let ch = r * w + c;
+				let glyph = this.get_glyph(ch);
 	
 				let cell = this.glyphs.get_cell_at(c, r);
-				let cell_attrs = { "np": 0, "ch": ch };
+				let attrs = { "np": 0, "ch": ch };
 				
-				if (idx == this.ch)
+				if (ch == this.ch)
 				{
 					cell.classList.add("selected");
 				}
@@ -926,21 +949,21 @@ class NuruUI
 				if (!NuruUtils.glyph_is_printable(glyph))
 				{
 					cell.classList.add("non-printable");
-					cell_attrs.np = 1;
-					glyph = NuruUtils.to_glyph(this.glyph_pal.get_data(this.glyph_pal.get_fg_key));
+					attrs.np = 1;
+					glyph = this.get_glyph(this.image.ch_key);
 				}
 	
-				NuruTerm.set_cell(cell, glyph, null, null, cell_attrs);
+				NuruTerm.set_cell(cell, glyph, null, null, attrs);
 			}
 		}
-	
-		glyphs_root.addEventListener("click", callback.bind(this));
 	};
 	
 	init_colors_panel(attr, w, h, callback)
 	{
-		let colors_root = this.ele_by_attr(attr, true);
-		this.colors = new NuruTerm(colors_root, w, h);
+		let root = this.ele_by_attr(attr, true);
+		this.colors = new NuruTerm(root, w, h);
+		root.addEventListener("click", callback.bind(this));
+
 		for (let r = 0; r < h; ++r)
 		{
 			for (let c = 0; c < w; ++c)
@@ -965,7 +988,6 @@ class NuruUI
 			}
 		}
 	
-		colors_root.addEventListener("click", callback.bind(this));
 	};
 	
 	init_ui_elements(attr, prop, callback, action="click")
@@ -1290,6 +1312,9 @@ class NuruUI
 			case "bg-key":
 				this.redraw_term();
 				break;
+			case "glyph-mode":
+				this.change_glyph_mode(val);
+				break;
 			case "glyph-pal":
 				this.select_glyph_palette();
 				this.redraw_term();
@@ -1475,6 +1500,8 @@ class NuruUI
 			case 0:   // spaces only
 				return " ";
 			case 1:   // ASCII
+			case 2:   // unicode
+				return NuruUtils.to_glyph(ch_val);
 				return NuruUtils.to_glyph(ch_val);
 			case 129: // palette
 				return NuruUtils.to_glyph(this.glyph_pal.get_data(ch_val));
@@ -1648,6 +1675,22 @@ class NuruUI
 		this.glyph_pal = new NuruPalette(data.buffer);
 	
 		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+	}
+
+	// TODO when changing glyph modes, it is possbile that existing glyphs
+	//      in the image will turn from printable to non-printable glyphs, 
+	//      which makes for an undefined state and printing the image will 
+	//      break (overly wide characters, like tab); we therefore need to 
+	//      have a image.set_glyph_mode() method that takes care of this, 
+	//      for example by going over all cells and setting them to the 
+	//      ch_key; however, this means we also will have to update the
+	//      ch_key first, depending on the new glyph_mode!
+	change_glyph_mode(mode)
+	{
+		console.log("nani");
+		this.image.glyph_mode = parseInt(mode);
+		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+		this.redraw_term();
 	}
 }
 

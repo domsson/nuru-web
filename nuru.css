@@ -619,8 +619,8 @@ button.bucket {
 	outline: .125rem solid var(--highlight);
 }
 
-.glyphs .cell.non-printable {
-	outline: .125rem solid var(--warning);
+.glyphs [data-nuru-glyphs="0"] {
+	display: none;
 }
 
 .colors .cell.selected-fg,
@@ -644,4 +644,5 @@ button.bucket {
 
 .glyphs .cell.non-printable {
 	cursor: not-allowed;
+	outline: .0625rem dotted var(--warning);
 }
