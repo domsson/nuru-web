@@ -149,8 +149,9 @@ class NuruUtils
 class NuruPalette
 {
 	// supported file format
-	static SIGNATURE = "NURUPAL";
-	static VERSION   = 1;
+	static SIGNATURE   = "NURUPAL";
+	static VERSION     = 1;
+	static DATA_LENGTH = 256;
 
 	constructor(buffer=null)
 	{
@@ -226,7 +227,7 @@ class NuruPalette
 		this.userdata = view.getUint32(12);
 
 		// payload: unicode code points
-		for (let i = 0; i < 256; ++i)
+		for (let i = 0; i < NuruPalette.DATA_LENGTH; ++i)
 		{
 			switch (this.data_size)
 			{
