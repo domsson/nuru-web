@@ -8,8 +8,7 @@ class NuruUtils
 	static to_hex_col(dec)
 	{
 		let col = dec.toString(16);
-		while (col.length < 6) { col = "0" + col; }
-		return "#" + col;
+		return "#" + col.padStart(6, "0").toUpperCase();
 	};
 
 	/*
@@ -26,6 +25,15 @@ class NuruUtils
 	static to_codepoint(glyph)
 	{
 		return glyph.charCodeAt(0);
+	}
+
+	/*
+	 * Turn a Unicode/ASCII code point into a Unicode hex string.
+	 */
+	static to_unicode_hex(cp)
+	{
+		let ucp = cp.toString(16);
+		return "U+" + ucp.padStart(4, "0").toUpperCase();
 	}
 
 	/*
@@ -946,10 +954,13 @@ class NuruUI
 			{
 				let ch = r * w + c;
 				let glyph = this.get_glyph(ch);
+				let cp = NuruUtils.to_codepoint(glyph)
+				let ucp = NuruUtils.to_unicode_hex(cp);
 	
 				let cell = this.glyphs.get_cell_at(c, r);
 				let attrs = { "np": 0, "ch": ch };
-				
+				cell.setAttribute("title", ch + ": " + ucp);
+
 				if (ch == this.ch)
 				{
 					cell.classList.add("selected");
@@ -962,7 +973,6 @@ class NuruUI
 					glyph = this.get_glyph(this.image.ch_key);
 				}
 	
-				cell.setAttribute("title", ch + ": " + NuruUtils.to_codepoint(glyph));
 				NuruTerm.set_cell(cell, glyph, null, null, attrs);
 			}
 		}
