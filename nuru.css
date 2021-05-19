@@ -649,4 +649,5 @@ button.bucket {
 
 [disabled] {
 	cursor: not-allowed;
+	filter: contrast(80%) brightness(80%);
 }

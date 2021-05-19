@@ -21,6 +21,14 @@ class NuruUtils
 	}
 
 	/*
+	 * Turn a character into a Unicode/ASCII code point.
+	 */
+	static to_codepoint(glyph)
+	{
+		return glyph.charCodeAt(0);
+	}
+
+	/*
 	 * Checks if the given Unicode/ASCII value is printable.
 	 */
 	static codepoint_is_printable = function(cp)
@@ -954,6 +962,7 @@ class NuruUI
 					glyph = this.get_glyph(this.image.ch_key);
 				}
 	
+				cell.setAttribute("title", ch + ": " + NuruUtils.to_codepoint(glyph));
 				NuruTerm.set_cell(cell, glyph, null, null, attrs);
 			}
 		}
