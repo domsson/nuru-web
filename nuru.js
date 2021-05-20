@@ -1,5 +1,9 @@
 "use strict";
 
+// TODO we should consider not creating/updating the NuruImage instance
+//      UNTIL the user wants to actually save the image; until then, just 
+//      setting attributes on the NuruTerm should be sufficient, no?
+
 class NuruUtils
 {
 	/*
@@ -909,7 +913,7 @@ class NuruUI
 		this.set_input_val("color-mode", this.image.color_mode);
 		this.set_input_val("mdata-mode", this.image.mdata_mode);
 		
-		this.select_glyph_palette();
+		this.change_glyph_mode(null, false);
 		this.resize_term();
 		this.redraw_term();
 	}
@@ -1077,7 +1081,7 @@ class NuruUI
 	
 		this.sel_input_opt("glyph-pal", first);
 	
-		this.select_glyph_palette();
+		this.change_glyph_pal();
 	
 		// TODO
 		// init color palette
@@ -1120,8 +1124,8 @@ class NuruUI
 	set_input_val(name, val)
 	{
 		let input = this.inputs[name];
-		if (!input) return;
-		input.value = val;
+		if (!input) return null;
+		return input.value = val;
 	};
 	
 	add_input_opt(name, val, txt)
@@ -1181,7 +1185,17 @@ class NuruUI
 		if (attr === null || attr === "") return null;
 		return isNaN(attr) ? attr : parseInt(attr);
 	};
-	
+
+	redraw_glyphs_panel()
+	{
+		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+	}
+
+	redraw_colors_panel()
+	{
+		this.init_colors_panel("data-nuru-colors", 16, 16, this.on_click_colors);
+	}
+
 	redraw_term()
 	{
 		for (let r = 0; r < this.term.rows; ++r)
@@ -1347,20 +1361,25 @@ class NuruUI
 				NuruUtils.set_css_var("term-font-size", evt.target.value);
 				break;
 			case "cols":
+				this.change_term_size(val, null, true);
+				break;
 			case "rows":
-				this.resize_term();
+				this.change_term_size(null, val, true);
 				break;
 			case "ch-key":
+				this.change_chkey(val, true);
+				break;
 			case "fg-key":
+				this.change_fgkey(val, true);
+				break;
 			case "bg-key":
-				this.redraw_term();
+				this.change_bgkey(val, true);
 				break;
 			case "glyph-mode":
-				this.change_glyph_mode(val);
+				this.change_glyph_mode(val, true);
 				break;
 			case "glyph-pal":
-				this.select_glyph_palette();
-				this.redraw_term();
+				this.change_glyph_pal(val, true);
 				break;
 			default:
 				console.log("Not implemented: " + opt);
@@ -1618,7 +1637,6 @@ class NuruUI
 	
 		let brush_cell = this.panels.brush.get_cell_at(0, 0);
 		let glyph_cell = this.panels.glyph.get_cell_at(0, 0);
-		//let glyph= NuruUtils.to_glyph(this.glyph_pal.get_data(this.ch)));
 		let glyph = this.get_glyph();
 	
 		NuruTerm.set_cell_glyph(brush_cell, glyph);
@@ -1721,15 +1739,19 @@ class NuruUI
 		this.layers[this.layer].classList.add("selected")
 	};
 	
-	select_glyph_palette(which=null)
+	set_image_prop(prop, val=null)
 	{
-		if (which === null) which = this.get_input_val("glyph-pal").toLowerCase();
-		if (!this.glyph_palettes.hasOwnProperty(which)) return false;
-	
-		let data = new Uint8Array(this.glyph_palettes[which]);
-		this.glyph_pal = new NuruPalette(data.buffer);
-	
-		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+		if (val === null)
+		{
+			val = this.get_input_val(prop);
+		}
+		else
+		{
+			this.set_input_val(prop, val); // TODO should this function really do this?
+		}
+
+		this.image[prop.replace('-', '_')] = isNaN(val) ? val : parseInt(val);
+		return val;
 	}
 
 	// TODO when changing glyph modes, it is possbile that existing glyphs
@@ -1748,12 +1770,63 @@ class NuruUI
 	//      otherwise processing it; we could build a image.sanitize() 
 	//      method to take care of this, plus we could have a flag that 
 	//      indicates whether or not the image is "dirty".
-	change_glyph_mode(mode)
+	change_glyph_mode(mode=null, redraw=false)
 	{
-		console.log("nani");
-		this.image.glyph_mode = parseInt(mode);
-		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
-		this.redraw_term();
+		this.set_image_prop("glyph-mode", mode);
+
+		// recreate the glyphs panel
+		this.redraw_glyphs_panel();
+		
+		// redraw the terminal - if requested
+		if (redraw) this.redraw_term();
+	}
+	
+	change_color_mode(mode=null, redraw=false)
+	{
+		this.set_image_prop("color-mode", mode);
+		
+		// recreate the glyphs panel
+		this.redraw_colors_panel();
+		
+		// redraw the terminal - if requested
+		if (redraw) this.redraw_term();
+	}
+	
+	change_glyph_pal(which=null)
+	{
+		if (which === null) which = this.get_input_val("glyph-pal").toLowerCase();
+		if (!this.glyph_palettes.hasOwnProperty(which)) return false;
+	
+		let data = new Uint8Array(this.glyph_palettes[which]);
+		this.glyph_pal = new NuruPalette(data.buffer);
+	
+		// recreate the glyphs panel
+		this.redraw_glyphs_panel();
+	}
+
+	change_term_size(cols=null, rows=null, resize=false)
+	{
+		this.set_image_prop("cols", cols);
+		this.set_image_prop("rows", rows);
+		if (resize) this.resize_term();
+	}
+
+	change_chkey(chkey=null, redraw=false)
+	{
+		this.set_image_prop("ch-key", chkey);
+		if (redraw) this.redraw_term();
+	}
+
+	change_fgkey(fgkey=null, redraw=false)
+	{
+		this.set_image_prop("fg-key", fgkey);
+		if (redraw) this.redraw_term();
+	}
+	
+	change_bgkey(bgkey=null, redraw=false)
+	{
+		this.set_image_prop("bg-key", bgkey);
+		if (redraw) this.redraw_term();
 	}
 }
 
