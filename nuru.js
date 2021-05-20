@@ -907,11 +907,6 @@ class NuruUI
 		let buffer = evt.target.result;
 		this.image.load_from_buffer(buffer);
 
-		// TODO need to update terminal and UI according to:
-		//	- cols, rows
-		//      - ch_key, fg_key, bg_key
-		//      - glyph_mode, color_mode, mdata_mode
-
 		this.set_input_val("cols", this.image.cols);
 		this.set_input_val("rows", this.image.rows);
 		this.set_input_val("ch-key", this.image.ch_key);
@@ -922,6 +917,7 @@ class NuruUI
 		this.set_input_val("mdata-mode", this.image.mdata_mode);
 		
 		this.change_glyph_mode(null, false);
+		this.change_color_mode(null, false);
 		this.resize_term();
 		this.redraw_term();
 	}
