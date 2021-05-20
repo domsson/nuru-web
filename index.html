@@ -100,10 +100,10 @@
 					</div>
 					<div class="input">
 						<label for="color-mode">Colors</label>
-						<select id="color-mode" data-nuru-opt="color-mode" disabled>
-							<option value="0">Mono</option>
+						<select id="color-mode" data-nuru-opt="color-mode">
+							<option value="0" selected>Mono</option>
 							<option value="1">4-bit</option>
-							<option value="2" selected>8-bit</option>
+							<option value="2">8-bit</option>
 							<option value="130">Palette</option>
 						</select>
 					</div>
@@ -120,14 +120,12 @@
 						<select id="glyph-pal" data-nuru-opt="glyph-pal">
 							<!--
 							<option value="">default</option>
-							<option value="NURUSTD" selected>NURUSTD</option>
-							<option value="CP437">CP437</option>
 							-->
 						</select>
 					</div>
 					<div class="input">
 						<label for="color-pal">Color Palette</label>
-						<select id="color-pal" data-nuru-opt="color-pal" disabled>
+						<select id="color-pal" data-nuru-opt="color-pal">
 							<!--
 							<option value="">default</option>
 							-->
@@ -149,8 +147,8 @@
 			</div>
 		</main>
 		<aside class="palettes">
-			<fieldset data-nuru-set="palettes">
-				<label data-nuru-set-trigger="palettes"><span>Glyphs</span></label>
+			<fieldset data-nuru-set="glyphs">
+				<label data-nuru-set-trigger="glyphs"><span>Glyphs</span></label>
 				<div class="fields">
 					<div class="glyphs">
 						<div class="nuru" data-nuru-glyphs=""></div>
