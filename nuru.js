@@ -114,7 +114,7 @@ class NuruUtils
 		let shift = 0;
 		for (let i = 0; i < size; ++i)
 		{
-			shift = 8 * (size - i);
+			shift = 8 * ((size - 1) - i);
 			buffer[offset++] = 0xFF & (data >> shift);
 		}
 		return offset;
@@ -126,7 +126,7 @@ class NuruUtils
 		let shift = 0;
 		for (let i = 0; i < size; ++i)
 		{
-			shift = 8 * (size - i);
+			shift = 8 * ((size - 1) - i);
 			data |= view.getUint8(offset++) << shift;
 		}
 		return data;
@@ -155,10 +155,11 @@ class NuruUtils
 	static prompt_for_file = function(multiple, handler, attrs)
 	{
 		let input = document.createElement("input");
-		if (multiple) input.setAttribute("multiple", "");
-		for (let name in attrs) input.setAttribute(name, attrs[name]);
-		input.click();
+		input.type = "file";
+		if (multiple) { input.setAttribute("multiple", "") };
+		for (let name in attrs) { input.setAttribute(name, attrs[name]) };
 		input.addEventListener("change", handler);
+		input.click();
 	}
 };
 
@@ -348,7 +349,7 @@ class NuruImage
 
 	set_cell(c, r, glyph=null, color=null, mdata=null)
 	{
-		let cell = this.cells[(this.cols * r) + c];
+		let cell = this.get_cell(c, r);
 		if (!cell) return false;
 		if (glyph !== null) cell.glyph = glyph;
 		if (color !== null) cell.color = color;
@@ -357,7 +358,10 @@ class NuruImage
 
 	get_cell(c, r)
 	{
+		if (c >= this.cols) return null;
+		if (r >= this.rows) return null;
 		return this.cells[(this.cols * r) + c];
+		//return this.cells[r] ?  this.cells[r][c] : null;
 	}
 
 	get_cell_ch(c, r)
@@ -477,11 +481,10 @@ class NuruImage
 
 	resize(cols=this.cols, rows=this.rows, ch_key=32, fg_key=15, bg_key=0)
 	{
-		if (!cols || !rows) { return false; }
+		if (!cols || !rows) return false;
 
 		let cells = [];
-		let new_idx = 0;
-		let old_idx = 0;
+		let idx = 0;
 
 		let glyph_none = this.get_glyph_value(this.ch_key);
 		let color_none = this.get_color_value(this.fg_key, this.bg_key);
@@ -491,21 +494,21 @@ class NuruImage
 		{
 			for (let c = 0; c < cols; ++c)
 			{
-				new_idx = (cols * r) + c;
-				old_idx = (this.cols * r) + c;
-				cells[new_idx] = {};
+				idx = (cols * r) + c;
+				cells[idx] = {};
+				let old_cell = this.get_cell(c, r);
 
-				if (this.cells[old_idx])
+				if (old_cell)
 				{
-					cells[new_idx].glyph = this.cells[old_idx].glyph;
-					cells[new_idx].color = this.cells[old_idx].color;
-					cells[new_idx].mdata = this.cells[old_idx].mdata;
+					cells[idx].glyph = old_cell.glyph;
+					cells[idx].color = old_cell.color;
+					cells[idx].mdata = old_cell.mdata;
 				}
 				else
 				{
-					cells[new_idx].glyph = glyph_none;
-					cells[new_idx].color = color_none;
-					cells[new_idx].mdata = mdata_none;
+					cells[idx].glyph = glyph_none;
+					cells[idx].color = color_none;
+					cells[idx].mdata = mdata_none;
 				}
 			}
 		}
@@ -560,11 +563,11 @@ class NuruImage
 		let glyph = 0;
 		let color = 0;
 		let mdata = 0;
-	
+
 		let i = 32;
-		for (let r = 0; r < rows; ++r)
+		for (let r = 0; r < this.rows; ++r)
 		{
-			for (let c = 0; c < cols; ++c)
+			for (let c = 0; c < this.cols; ++c)
 			{
 				glyph = NuruUtils.data_from_view(glyph_size, view, i);
 				i += glyph_size;
@@ -633,7 +636,8 @@ class NuruImage
 		{
 			for (let c = 0; c < this.cols; ++c)
 			{
-				cell = this.cells[(this.cols * r) + c];
+				//cell = this.cells[(this.cols * r) + c];
+				cell = this.get_cell(c, r);
 
 				i = NuruUtils.data_to_buffer(cell.glyph, glyph_size, data, i);
 				i = NuruUtils.data_to_buffer(cell.color, color_size, data, i);
@@ -888,7 +892,26 @@ class NuruUI
 	
 	load_img(evt)
 	{
-		console.log("load_img() not implemented");
+		let buffer = evt.target.result;
+		this.image.load_from_buffer(buffer);
+
+		// TODO need to update terminal and UI according to:
+		//	- cols, rows
+		//      - ch_key, fg_key, bg_key
+		//      - glyph_mode, color_mode, mdata_mode
+
+		this.set_input_val("cols", this.image.cols);
+		this.set_input_val("rows", this.image.rows);
+		this.set_input_val("ch-key", this.image.ch_key);
+		this.set_input_val("fg-key", this.image.fg_key);
+		this.set_input_val("bg-key", this.image.bg_key);
+		this.set_input_val("glyph-mode", this.image.glyph_mode);
+		this.set_input_val("color-mode", this.image.color_mode);
+		this.set_input_val("mdata-mode", this.image.mdata_mode);
+		
+		this.select_glyph_palette();
+		this.resize_term();
+		this.redraw_term();
 	}
 	
 	save_pal(filename)
