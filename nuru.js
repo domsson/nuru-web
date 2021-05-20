@@ -981,11 +981,13 @@ class NuruUI
 		this.glyphs = new NuruTerm(root, w, h);
 		root.addEventListener("click", callback.bind(this));
 
+		let page = (w * h) * (this.get_input_val("glyphs-page") - 1);
+
 		for (let r = 0; r < h; ++r)
 		{
 			for (let c = 0; c < w; ++c)
 			{
-				let ch = r * w + c;
+				let ch = (r * w + c) + page;
 				let glyph = this.get_glyph_raw(ch);
 				let cp = NuruUtils.to_codepoint(glyph)
 				let ucp = NuruUtils.to_unicode_hex(cp);
@@ -1345,6 +1347,12 @@ class NuruUI
 			case "pal-open":
 				this.open_pal();
 				break;
+			case "glyphs-prev":
+				this.change_glyphs_page(this.get_input_val("glyphs-page") - 1, true);
+				break;
+			case "glyphs-next":
+				this.change_glyphs_page(this.get_input_val("glyphs-page") + 1, true);
+				break;
 			default:
 				console.log("Not implemented: " + opt);
 		}
@@ -1401,6 +1409,9 @@ class NuruUI
 				break;
 			case "color-pal":
 				this.change_color_pal(val, true);
+				break;
+			case "glyphs-page":
+				this.redraw_glyphs_panel();
 				break;
 			default:
 				console.log("Not implemented: " + opt);
@@ -1865,6 +1876,16 @@ class NuruUI
 		this.set_image_prop("bg-key", bgkey);
 		if (redraw) this.redraw_term();
 	}
+
+	change_glyphs_page(page, redraw=false)
+	{
+		if (page < 1) return;
+		if (page > 256) return;
+		this.set_input_val("glyphs-page", page);
+		if (redraw) this.redraw_glyphs_panel();
+	}
+
+
 }
 
 // xterm color variants

@@ -449,14 +449,22 @@ button.pal-open {
 }
 
 .layers button,
-.actions button {
+.actions button,
+.palettes button {
 	width: auto;
 	height: auto;
 	padding: var(--gap-m) var(--gap-l);
-	padding-left: 1.5rem;
+	font-size: .675rem;
+}
+
+.layers button,
+.actions button {
 	background-position: var(--gap-l) center;
 	background-size: .5rem .5rem;
-	font-size: .675rem;
+}
+
+.layers button {
+	padding-left: 1.5rem;
 }
 
 .actions button {
@@ -645,6 +653,21 @@ button.bucket {
 .glyphs .cell.non-printable {
 	cursor: not-allowed;
 	outline: .0625rem dotted var(--warning);
+}
+
+.pagination {
+	display: flex;
+	justify-content: space-between;
+}
+
+.pagination button {
+	width: 3rem;
+}
+
+.pagination input {
+	min-height: 1.5rem;
+	text-align: center;
+	font-size: .675rem;
 }
 
 [disabled] {
