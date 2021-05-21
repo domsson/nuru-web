@@ -16,6 +16,22 @@ class NuruUtils
 	};
 
 	/*
+	 * Turn a 4-bit color index (0...15) to an ANSI4 color number.
+	 */
+	static to_ansi4_col(idx, bg=false)
+	{
+		// fg:
+		// 0 =>  30, 1 =>  31, ...  7 =>  37
+		// 8 =>  90, 8 =>  91, ... 15 =>  97
+		
+		// bg:
+		// 0 =>  40, 1 =>  41, ...  7 =>  47
+		// 8 => 100, 9 => 101, ... 15 => 107
+
+		return (idx < 8 ? idx + 30 : idx + 82) + (bg * 10);
+	}
+
+	/*
 	 * Turn a Unicode/ASCII value into an actual character.
 	 */
 	static to_glyph(cp)
@@ -67,20 +83,16 @@ class NuruUtils
 		root.style.setProperty("--" + name, value);
 	}
 
-	/*
-	 * Turn a 4-bit color index (0...15) to an ANSI4 color number.
-	 */
-	static to_ansi4_col(idx, bg=false)
+	static set_attr(ele, name, value="")
 	{
-		// fg:
-		// 0 =>  30, 1 =>  31, ...  7 =>  37
-		// 8 =>  90, 8 =>  91, ... 15 =>  97
-		
-		// bg:
-		// 0 =>  40, 1 =>  41, ...  7 =>  47
-		// 8 => 100, 9 => 101, ... 15 => 107
+		ele.setAttribute(name, value);
+	}
 
-		return (idx < 8 ? idx + 30 : idx + 82) + (bg * 10);
+	static get_attr(ele, name)
+	{
+		let attr = ele.getAttribute(name);
+		if (attr === null || attr === "") return null;
+		return isNaN(attr) ? attr : parseInt(attr);
 	}
 
 	/*
@@ -915,9 +927,9 @@ class NuruUI
 		this.set_input_val("glyph-mode", this.image.glyph_mode);
 		this.set_input_val("color-mode", this.image.color_mode);
 		this.set_input_val("mdata-mode", this.image.mdata_mode);
-		
-		this.change_glyph_mode(null, false);
-		this.change_color_mode(null, false);
+
+		this.change_glyph_mode();
+		this.change_color_mode();
 		this.resize_term();
 		this.redraw_term();
 	}
@@ -1083,17 +1095,17 @@ class NuruUI
 		this.init_term("data-nuru-term", this.image.cols, this.image.rows, this.on_mouse_term);
 	
 		// init glyph palette
-		
 		let first = null;
 		for (let name in this.glyph_palettes)
 		{
 			if (first === null) first = name;
 			this.add_input_opt("glyph-pal", name.toLowerCase(), name.toUpperCase());
 		}
-	
+
 		this.sel_input_opt("glyph-pal", first);
 		this.change_glyph_pal();
 
+		// init color palette
 		first = null;
 		for (let name in this.color_palettes)
 		{
@@ -1103,7 +1115,11 @@ class NuruUI
 
 		this.sel_input_opt("color-pal", first);
 		this.change_color_pal();
-		
+
+		// init the glyph and color modes (needs to happen AFTER palettes init)
+		this.change_glyph_mode();
+		this.change_color_mode();
+	
 		// init palettes panels
 		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
 		this.init_colors_panel("data-nuru-colors", 16, 16, this.on_click_colors);
@@ -1194,14 +1210,17 @@ class NuruUI
 				console.log("get_input_val(): input type not supported");
 				return undefined;
 		}
-	};
-	
+	}
+
+	set_nuru_attr(ele, name, value)
+	{
+		return NuruUtils.set_attr(ele, NuruUI.ATTR_PREFIX + "-" + name, value);
+	}
+
 	get_nuru_attr(ele, name)
 	{
-		let attr = ele.getAttribute(NuruUI.ATTR_PREFIX + "-" + name);
-		if (attr === null || attr === "") return null;
-		return isNaN(attr) ? attr : parseInt(attr);
-	};
+		return NuruUtils.get_attr(ele, NuruUI.ATTR_PREFIX + "-" + name);
+	}
 
 	redraw_glyphs_panel()
 	{
@@ -1222,7 +1241,7 @@ class NuruUI
 				this.redraw_cell(c, r);
 			}
 		}
-	};
+	}
 	
 	resize_term()
 	{
@@ -1231,13 +1250,13 @@ class NuruUI
 		this.image.resize(cols, rows);
 		this.term.resize(cols, rows);
 		this.redraw_term();
-	};
-	
+	}
+
 	wipe_term()
 	{
 		this.image.clear(this.fg_key, this.bg_key);
 		this.redraw_term();
-	};
+	}
 	
 	// TODO once NuruImage.crop() is implemented, this just needs to call that,
 	//      then resize and redraw the terminal accordingly
@@ -1277,7 +1296,7 @@ class NuruUI
 		this.set_input_val("rows", rows);
 		this.set_input_val("cols", cols);
 		this.resize_term();
-	};
+	}
 	
 	on_slot(evt)
 	{
@@ -1295,7 +1314,7 @@ class NuruUI
 			let bg = this.get_nuru_attr(cell, "bg");
 			this.set_brush(ch, fg, bg);
 		}
-	};
+	}
 	
 	on_tool(evt)
 	{
@@ -1303,7 +1322,7 @@ class NuruUI
 		let opt = this.get_nuru_attr(btn, "tool");
 	
 		this.select_tool(opt);
-	};
+	}
 	
 	on_action(evt)
 	{
@@ -1356,7 +1375,7 @@ class NuruUI
 			default:
 				console.log("Not implemented: " + opt);
 		}
-	};
+	}
 
 	on_input(evt)
 	{
@@ -1366,22 +1385,14 @@ class NuruUI
 		switch (opt)
 		{
 			case "term-fg":
-				NuruUtils.set_css_var("term-fg", evt.target.value);
-				break;
 			case "term-bg":
-				NuruUtils.set_css_var("term-bg", evt.target.value);
+			case "term-grid-color":
+			case "term-font":
+			case "term-font-size":
+				this.change_term_opt(opt, val);
 				break;
 			case "term-grid":
 				this.toggle_grid(this.get_input_val("term-grid"));
-				break;
-			case "term-grid-color":
-				NuruUtils.set_css_var("term-grid-color", evt.target.value);
-				break;
-			case "term-font":
-				NuruUtils.set_css_var("term-font", "'" + evt.target.value + "'");
-				break;
-			case "term-font-size":
-				NuruUtils.set_css_var("term-font-size", evt.target.value);
 				break;
 			case "cols":
 				this.change_term_size(val, null, true);
@@ -1416,7 +1427,7 @@ class NuruUI
 			default:
 				console.log("Not implemented: " + opt);
 		}
-	};
+	}
 	
 	on_mouse_term(evt)
 	{
@@ -1466,7 +1477,7 @@ class NuruUI
 			this.drag = false;
 			return;
 		}
-	};
+	}
 	
 	on_key(evt)
 	{
@@ -1489,7 +1500,7 @@ class NuruUI
 				this.hotkeys[key].click();
 			}
 		}
-	};
+	}
 	
 	on_click_glyphs(evt)
 	{
@@ -1504,7 +1515,7 @@ class NuruUI
 		let c = this.get_nuru_attr(cell, "col");
 		let r = this.get_nuru_attr(cell, "row");
 		this.set_brush(r*16+c, null, null);
-	};
+	}
 	
 	on_click_colors(evt)
 	{
@@ -1523,7 +1534,7 @@ class NuruUI
 		{
 			this.set_brush(null, null, i);
 		}
-	};
+	}
 	
 	on_click_fieldset(evt)
 	{
@@ -1532,7 +1543,7 @@ class NuruUI
 		let set = document.querySelector("[data-nuru-set='" + set_name + "']");
 		if (!set) { return; }
 		set.classList.toggle("collapsed");
-	};
+	}
 
 	toggle_grid(show=undefined)
 	{
@@ -1548,7 +1559,7 @@ class NuruUI
 		let glyph = this.image.get_glyph_value(new_ch);
 		let color = this.image.get_color_value(new_fg, new_bg);
 		this.image.set_cell(col, row, glyph, color, null);
-	};
+	}
 	
 	/*
 	 * Sets the image cell to the given values, then redraws the canvas cell.
@@ -1558,7 +1569,7 @@ class NuruUI
 	{
 		this.set_image_cell(col, row, ch, fg, bg);
 		this.redraw_cell(col, row);
-	};
+	}
 	
 	del_term_cell(col, row)
 	{
@@ -1567,7 +1578,7 @@ class NuruUI
 		let bg_key = this.get_input_val("bg-key");
 	
 		this.set_term_cell(col, row, ch_key, fg_key, bg_key);
-	};
+	}
 	
 	redraw_cell(col, row)
 	{
@@ -1587,10 +1598,11 @@ class NuruUI
 		if (!NuruUtils.glyph_is_printable(glyph)) glyph = " ";
 
 		this.term.set_cell_at(col, row, glyph, fgcol, bgcol, attrs);
-	};
+	}
 
-	get_glyph_raw(ch)
+	get_glyph_raw(ch, pal=null)
 	{
+		if (pal === null) pal = this.glyph_pal;
 		switch (parseInt(this.image.glyph_mode))
 		{
 			case 0:   // spaces only
@@ -1599,7 +1611,7 @@ class NuruUI
 			case 2:   // unicode
 				return	NuruUtils.to_glyph(ch);
 			case 129: // palette
-				return NuruUtils.to_glyph(this.glyph_pal.get_data(ch));
+				return NuruUtils.to_glyph(pal.get_data(ch));
 		}
 		return " "; // fallback in case of unknown glyph mode
 	}
@@ -1611,8 +1623,9 @@ class NuruUI
 		return (ch_val == ch_key) ? " " : this.get_glyph_raw(ch_val);
 	}
 
-	get_color_raw(color)
+	get_color_raw(color, pal=null)
 	{
+		pal = pal === null ? this.color_pal : pal;
 		switch (parseInt(this.image.color_mode))
 		{
 			case 0:   // monochrome
@@ -1622,7 +1635,7 @@ class NuruUI
 			case 2:   // 8-bit ANSI colors
 				return NuruUtils.to_hex_col(this.ANSI8[color]);
 			case 130: // palette
-				return NuruUtils.to_hex_col(this.color_pal.get_data(color));
+				return NuruUtils.to_hex_col(pal.get_data(color));
 		}
 		return "inherit"; // fallback in case of unknown color mode
 
@@ -1713,7 +1726,7 @@ class NuruUI
 		{
 			this.set_bgcol(bg);
 		}
-	};
+	}
 	
 	select_cell_idx(panel, idx, classname="selected")
 	{
@@ -1724,7 +1737,7 @@ class NuruUI
 		let col = idx % width;
 	
 		this.select_cell(panel, row, col, classname);
-	};
+	}
 	
 	select_cell(panel, r, c, classname="selected")
 	{
@@ -1739,7 +1752,7 @@ class NuruUI
 		let cell = panel.get_cell_at(c, r);
 		if (!cell) return;
 		cell.classList.add(classname);
-	};
+	}
 	
 	select_tool(which="pencil")
 	{
@@ -1751,21 +1764,21 @@ class NuruUI
 		this.tool = which;
 		this.tools[this.tool].classList.add("selected");
 		this.term.root.classList.add(this.tool);
-	};
+	}
 	
 	select_action(which="set")
 	{
 		this.actions[this.action].classList.remove("selected");
 		this.action = which;
 		this.actions[this.action].classList.add("selected")
-	};
+	}
 	
 	select_layer(which="fg")
 	{
 		this.layers[this.layer].classList.remove("selected");
 		this.layer = which;
 		this.layers[this.layer].classList.add("selected")
-	};
+	}
 	
 	set_image_prop(prop, val=null)
 	{
@@ -1800,7 +1813,9 @@ class NuruUI
 	//      indicates whether or not the image is "dirty".
 	change_glyph_mode(mode=null, redraw=false)
 	{
+		if (mode === null) mode = this.get_input_val("glyph-mode");
 		this.set_image_prop("glyph-mode", mode);
+		this.set_nuru_attr(document.body, "glyph-mode", mode);
 
 		// recreate the glyphs panel
 		this.redraw_glyphs_panel();
@@ -1811,8 +1826,10 @@ class NuruUI
 	
 	change_color_mode(mode=null, redraw=false)
 	{
+		if (mode === null) mode = this.get_input_val("color-mode");
 		this.set_image_prop("color-mode", mode);
-		
+		this.set_nuru_attr(document.body, "color-mode", mode);
+
 		// recreate the glyphs panel
 		this.redraw_colors_panel();
 		
@@ -1852,8 +1869,16 @@ class NuruUI
 		this.redraw_colors_panel();
 	}
 
+	change_term_opt(name, value=null)
+	{
+		if (value === null) value = this.get_input_val(name);
+		NuruUtils.set_css_var(name, value);
+	}
+
 	change_term_size(cols=null, rows=null, resize=false)
 	{
+		if (cols === null) cols = this.get_input_val("cols");
+		if (rows === null) rows = this.get_input_val("rows");
 		this.set_image_prop("cols", cols);
 		this.set_image_prop("rows", rows);
 		if (resize) this.resize_term();
@@ -1861,18 +1886,21 @@ class NuruUI
 
 	change_chkey(chkey=null, redraw=false)
 	{
+		if (chkey === null) chkey = this.get_input_val("chkey");
 		this.set_image_prop("ch-key", chkey);
 		if (redraw) this.redraw_term();
 	}
 
 	change_fgkey(fgkey=null, redraw=false)
 	{
+		if (fgkey === null) fgkey = this.get_input_val("fgkey");
 		this.set_image_prop("fg-key", fgkey);
 		if (redraw) this.redraw_term();
 	}
 	
 	change_bgkey(bgkey=null, redraw=false)
 	{
+		if (bgkey === null) bgkey = this.get_input_val("bgkey");
 		this.set_image_prop("bg-key", bgkey);
 		if (redraw) this.redraw_term();
 	}
@@ -1884,8 +1912,6 @@ class NuruUI
 		this.set_input_val("glyphs-page", page);
 		if (redraw) this.redraw_glyphs_panel();
 	}
-
-
 }
 
 // xterm color variants

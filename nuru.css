@@ -656,7 +656,7 @@ button.bucket {
 }
 
 .pagination {
-	display: flex;
+	display: none;
 	justify-content: space-between;
 }
 
@@ -668,6 +668,10 @@ button.bucket {
 	min-height: 1.5rem;
 	text-align: center;
 	font-size: .675rem;
+}
+
+[data-nuru-glyph-mode="2"] .pagination {
+	display: flex;
 }
 
 [disabled] {
