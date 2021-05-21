@@ -1512,9 +1512,11 @@ class NuruUI
 		let np = this.get_nuru_attr(cell, "np");
 		if (np) return;
 	
-		let c = this.get_nuru_attr(cell, "col");
-		let r = this.get_nuru_attr(cell, "row");
-		this.set_brush(r*16+c, null, null);
+		//let c = this.get_nuru_attr(cell, "col");
+		//let r = this.get_nuru_attr(cell, "row");
+		let ch = this.get_nuru_attr(cell, "ch");
+		//this.set_brush(r*16+c, null, null);
+		this.set_brush(ch, null, null);
 	}
 	
 	on_click_colors(evt)
@@ -1681,7 +1683,7 @@ class NuruUI
 		NuruTerm.set_cell_glyph(brush_cell, glyph);
 		NuruTerm.set_cell_glyph(glyph_cell, glyph);
 	
-		this.select_cell_idx(this.glyphs, this.ch);
+		this.select_cell_by_attr(this.glyphs, "ch", this.ch);
 	}
 	
 	set_fgcol(fg=null)
@@ -1695,7 +1697,7 @@ class NuruUI
 		NuruTerm.set_cell_fgcol(brush_cell, fgcol);
 		NuruTerm.set_cell_bgcol(fgcol_cell, fgcol);
 	
-		this.select_cell_idx(this.colors, this.fg, "selected-fg");
+		this.select_cell_by_attr(this.colors, "bg", this.fg, "selected-fg");
 	}
 
 	set_bgcol(bg=null)
@@ -1709,7 +1711,7 @@ class NuruUI
 		NuruTerm.set_cell_bgcol(brush_cell, bgcol);
 		NuruTerm.set_cell_bgcol(bgcol_cell, bgcol);
 	
-		this.select_cell_idx(this.colors, this.bg, "selected-bg");
+		this.select_cell_by_attr(this.colors, "bg", this.bg, "selected-bg");
 	}
 	
 	set_brush(ch=null, fg=null, bg=null)
@@ -1727,29 +1729,16 @@ class NuruUI
 			this.set_bgcol(bg);
 		}
 	}
-	
-	select_cell_idx(panel, idx, classname="selected")
+
+	select_cell_by_attr(panel, attr_name, attr_value, classname="selected")
 	{
-		if (!panel) return;
-		let width = panel.cols;
-	
-		let row = Math.floor(idx / width);
-		let col = idx % width;
-	
-		this.select_cell(panel, row, col, classname);
-	}
-	
-	select_cell(panel, r, c, classname="selected")
-	{
-		// deselect all cells first (should be only one)
-		let cells = panel.root.querySelectorAll("." + classname);
+		let cells = panel.root.querySelectorAll(".cell." + classname);
 		for (let c = 0; c < cells.length; ++c)
 		{
 			cells[c].classList.remove(classname);
 		}
-	
-		// select the desired cell
-		let cell = panel.get_cell_at(c, r);
+		let selector = `[${NuruUI.ATTR_PREFIX}-${attr_name}='${attr_value}']`;
+		let cell = panel.root.querySelector(selector);
 		if (!cell) return;
 		cell.classList.add(classname);
 	}
