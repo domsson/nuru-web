@@ -477,6 +477,7 @@ class NuruImage
 		return null;
 	}
 
+	/*
 	clear(fg_key=null, bg_key=null)
 	{
 		if (fg_key !== null) this.fg_key = fg_key;
@@ -533,6 +534,7 @@ class NuruImage
 		this.cols = cols;
 		this.cells = cells;
 	}
+	*/
 	
 	load_from_buffer(buffer)
 	{
@@ -673,9 +675,9 @@ class NuruTerm
 
 	constructor(root, cols=1, rows=1, glyph, fgcol, bgcol, attrs={})
 	{
-		this.root  = root;
-		this.cols  = cols;
-		this.rows  = rows;
+		this.root = root;
+		this.cols = cols;
+		this.rows = rows;
 
 		this.init(glyph, fgcol, bgcol, attrs);
 	}
@@ -731,9 +733,11 @@ class NuruTerm
 		return cell;
 	}
 
-	// TODO parameters not being used, being null, ...
 	init(glyph, fgcol, bgcol, attrs)
 	{
+		NuruUtils.set_attr(this.root, "data-nuru-cols", this.cols);
+		NuruUtils.set_attr(this.root, "data-nuru-rows", this.rows);
+
 		// remove all children, if any
 		this.root.replaceChildren();
 
@@ -757,6 +761,9 @@ class NuruTerm
 	{
 		this.cols = cols;
 		this.rows = rows;
+
+		NuruUtils.set_attr(this.root, "data-nuru-cols", this.cols);
+		NuruUtils.set_attr(this.root, "data-nuru-rows", this.rows);
 
 		// make a copy of the current term
 		let clone = this.root.cloneNode(true);
@@ -1779,6 +1786,16 @@ class NuruUI
 
 		// recreate the glyphs panel
 		this.redraw_glyphs_panel();
+
+		let pal_opt = document.querySelector("[data-nuru-opt='glyph-pal']");
+		if (mode & 128) // palette mode
+		{
+			pal_opt.removeAttribute("disabled");
+		}
+		else
+		{
+			pal_opt.setAttribute("disabled", "");
+		}
 		
 		// redraw the terminal - if requested
 		if (redraw) this.redraw_term();
@@ -1791,12 +1808,22 @@ class NuruUI
 
 		// recreate the glyphs panel
 		this.redraw_colors_panel();
-		
+
+		let pal_opt = document.querySelector("[data-nuru-opt='color-pal']");
+		if (mode & 128) // palette mode
+		{
+			pal_opt.removeAttribute("disabled");
+		}
+		else
+		{
+			pal_opt.setAttribute("disabled", "");
+		}
+	
 		// redraw the terminal - if requested
 		if (redraw) this.redraw_term();
 	}
 	
-	change_glyph_pal(which=null)
+	change_glyph_pal(which=null, redraw=false)
 	{
 		if (which === null) which = this.get_input_val("glyph-pal").toLowerCase();
 		if (!this.glyph_palettes.hasOwnProperty(which)) return false;
@@ -1810,9 +1837,10 @@ class NuruUI
 	
 		// recreate the glyphs panel
 		this.redraw_glyphs_panel();
+		if (redraw) this.redraw_term();
 	}
 
-	change_color_pal(which=null)
+	change_color_pal(which=null, redraw=false)
 	{
 		if (which === null) which = this.get_input_val("color-pal").toLowerCase();
 		if (!this.color_palettes.hasOwnProperty(which)) return false;
@@ -1828,6 +1856,7 @@ class NuruUI
 	
 		// recreate the colors panel
 		this.redraw_colors_panel();
+		if (redraw) this.redraw_term();
 	}
 
 	change_term_opt(name, value=null)
