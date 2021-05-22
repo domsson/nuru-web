@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
 		<meta charset="utf-8">
 		<title>nuru web editor</title>
@@ -15,7 +15,7 @@
 	<body>
 		<header><h1>ヌル</h1></header>
 		<nav class="menu">
-			<button class="open" data-nuru-btn="open" title="Load an image from disk"><span class="label">Open</span></button>
+			<button class="open" data-nuru-btn="open" title="Load an image from disk" disabled><span class="label">Open</span></button>
 			<button class="save" data-nuru-btn="save" title="Save this image to disk" disabled><span class="label">Save</span></button>
 			<button class="crop" data-nuru-btn="crop" title="Crop canvas to contents" disabled><span class="label">Crop</span></button>
 			<button class="wipe" data-nuru-btn="wipe" title="Erase the entire canvas"><span class="label">Wipe</span></button>
@@ -77,20 +77,20 @@
 						<label for="rows">Height</label>
 						<input id="rows" type="number" data-nuru-opt="rows" value="16">
 					</div>
-					<div class="input">
+					<div class="input" title="Char index for 'no char' (space)">
 						<label for="ch-key">Char key</label>
 						<input id="ch-key" type="number" data-nuru-opt="ch-key" value="32">
 					</div>
-					<div class="input">
+					<div class="input" title="Color index for 'no color' (default foreground color)">
 						<label for="fg-key">FG key</label>
 						<input id="fg-key" type="number" data-nuru-opt="fg-key" value="15">
 					</div>
-					<div class="input">
+					<div class="input" title="Color index for 'no color' (default background color)">
 						<label for="bg-key">BG key</label>
 						<input id="bg-key" type="number" data-nuru-opt="bg-key" value="0">
 					</div>
-					<div class="input">
-						<label for="glyph-mode">Glyphs</label>
+					<div class="input" title="Glyph mode">
+						<label for="glyph-mode" >Glyphs</label>
 						<select id="glyph-mode" data-nuru-opt="glyph-mode">
 							<option value="0">None</option>
 							<option value="1">ASCII</option>
@@ -98,7 +98,7 @@
 							<option value="129" selected>Palette</option>
 						</select>
 					</div>
-					<div class="input">
+					<div class="input" title="Color mode">
 						<label for="color-mode">Colors</label>
 						<select id="color-mode" data-nuru-opt="color-mode">
 							<option value="0">Mono</option>
@@ -107,7 +107,7 @@
 							<option value="130">Palette</option>
 						</select>
 					</div>
-					<div class="input">
+					<div class="input" title="Meta data mode">
 						<label for="mdata-mode">Meta Data</label>
 						<select id="mdata-mode" data-nuru-opt="mdata-mode" disabled>
 							<option value="0" selected>None</option>
@@ -214,7 +214,7 @@
 			</fieldset>
 		</nav>
 		<footer>
-			<span class="version"><a class="about" href="https://github.com/domsson/nuru-web" target="_blank">v0.1.1</a></span>
+			<span class="version"><a class="about" href="https://github.com/domsson/nuru-web" target="_blank">v0.1.2</a></span>
 		</footer>
 	</body>
 </html>
