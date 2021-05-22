@@ -1619,8 +1619,9 @@ class NuruUI
 			case 0:   // spaces only
 				return " ";
 			case 1:   // ASCII
+				return ch < 256 ? NuruUtils.to_glyph(ch) : " ";
 			case 2:   // unicode
-				return	NuruUtils.to_glyph(ch);
+				return NuruUtils.to_glyph(ch);
 			case 129: // palette
 				return NuruUtils.to_glyph(pal.get_data(ch));
 		}
@@ -1643,7 +1644,7 @@ class NuruUI
 			case 0:   // monochrome
 				return "inherit";
 			case 1:   // 4-bit ANSI colors
-				return NuruUtils.to_hex_col(this.ANSI4[color]);
+				return color < 16 ? NuruUtils.to_hex_col(this.ANSI4[color]) : "inherit";
 			case 2:   // 8-bit ANSI colors
 				return NuruUtils.to_hex_col(this.ANSI8[color]);
 			case 130: // palette
