@@ -366,17 +366,20 @@ class NuruImage
 
 	set_cell(c, r, glyph=null, color=null, mdata=null)
 	{
-		let cell = this.get_cell(c, r);
-		if (!cell) return false;
-		if (glyph !== null) cell.glyph = glyph;
-		if (color !== null) cell.color = color;
-		if (mdata !== null) cell.mdata = mdata;
+		if (c >= this.cols) return false;
+		if (r >= this.rows) return false;
+		let idx = (this.cols * r) + c;	
+		if (!this.cells[idx]) this.cells[idx] = {};
+		if (glyph !== null) this.cells[idx].glyph = glyph;
+		if (color !== null) this.cells[idx].color = color;
+		if (mdata !== null) this.cells[idx].mdata = mdata;
 	}
 
 	get_cell(c, r)
 	{
 		if (c >= this.cols) return null;
 		if (r >= this.rows) return null;
+		let idx = (this.cols * r) + c;
 		return this.cells[(this.cols * r) + c];
 	}
 
@@ -476,65 +479,6 @@ class NuruImage
 		}
 		return null;
 	}
-
-	/*
-	clear(fg_key=null, bg_key=null)
-	{
-		if (fg_key !== null) this.fg_key = fg_key;
-		if (bg_key !== null) this.bg_key = bg_key;
-
-		let glyph = NuruImage.get_glyph_value(ch_key, this.glyph_mode, ch_key);
-		let color = NuruImage.get_color_value(fg_key, bg_key, this.color_mode);
-		let mdata = 0;
-
-		for (let r = 0; r < this.rows; ++r)
-		{
-			for (let c = 0; c < this.cols; ++c)
-			{
-				this.set_cell(c, r, glyph, color, mdata);
-			}
-		}
-	}
-
-	resize(cols=this.cols, rows=this.rows, ch_key=32, fg_key=15, bg_key=0)
-	{
-		if (!cols || !rows) return false;
-
-		let cells = [];
-		let idx = 0;
-
-		let glyph_none = NuruImage.get_glyph_value(ch_key, this.glyph_mode, ch_key);
-		let color_none = NuruImage.get_color_value(fg_key, bg_key, this.color_mode);
-		let mdata_none = 0;
-
-		for (let r = 0; r < rows; ++r)
-		{
-			for (let c = 0; c < cols; ++c)
-			{
-				idx = (cols * r) + c;
-				cells[idx] = {};
-				let old_cell = this.get_cell(c, r);
-
-				if (old_cell)
-				{
-					cells[idx].glyph = old_cell.glyph;
-					cells[idx].color = old_cell.color;
-					cells[idx].mdata = old_cell.mdata;
-				}
-				else
-				{
-					cells[idx].glyph = glyph_none;
-					cells[idx].color = color_none;
-					cells[idx].mdata = mdata_none;
-				}
-			}
-		}
-
-		this.rows = rows;
-		this.cols = cols;
-		this.cells = cells;
-	}
-	*/
 	
 	load_from_buffer(buffer)
 	{
@@ -927,7 +871,8 @@ class NuruUI
 		this.change_glyph_mode(null, false);
 		this.change_color_mode(null, false);
 		this.change_term_size(null, null, false);
-		this.redraw_term();
+
+		this.redraw_term_from_image(image);
 	}
 	
 	save_pal(filename)
@@ -1249,6 +1194,26 @@ class NuruUI
 			for (let c = 0; c < this.term.cols; ++c)
 			{
 				this.redraw_cell(c, r);
+			}
+		}
+	}
+
+	redraw_term_from_image(image)
+	{
+		let cell = null;
+		let ch = null;
+		let fg = null;
+		let bg = null;
+
+		for (let r = 0; r < this.term.rows; ++r)
+		{
+			for (let c = 0; c < this.term.cols; ++c)
+			{
+				cell = image.get_cell(c, r);
+				ch = image.get_ch_value(cell.glyph);
+				fg = image.get_fg_value(cell.color);
+				bg = image.get_bg_value(cell.color);
+				this.set_term_cell(c, r, ch, fg, bg);
 			}
 		}
 	}
