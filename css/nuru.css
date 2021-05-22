@@ -73,7 +73,7 @@ body {
 	font-family: "Bitstream Vera Sans", sans-serif;
 	color: var(--ui-fg);
 	background-color: var(--ui-bg);
-	background-image: url(img/nuru_bg_dark.svg);
+	background-image: url(../img/nuru_bg_dark.svg);
 	background-position: center;
 }
 
@@ -120,7 +120,7 @@ header {
 	grid-row: 1;
 	color: var(--tooltip-fg);
 	background-color: var(--tooltip-bg);
-	background-image: url(img/nuru_logo_outline.svg);
+	background-image: url(../img/nuru_logo_outline.svg);
 	background-repeat: no-repeat;
 	background-position: center center;
 	background-size: auto 2rem;
@@ -413,11 +413,11 @@ button:focus,
 }
 
 button.pal-save {
-	background-image: url(img/icon_save.svg);
+	background-image: url(../img/icon_save.svg);
 }
 
 button.pal-open {
-	background-image: url(img/icon_open.svg);
+	background-image: url(../img/icon_open.svg);
 }
 
 .palettes-options .fields {
@@ -488,51 +488,51 @@ button.selected {
 }
 
 button.set {
-	background-image: url(img/icon_arrow_right.svg);
+	background-image: url(../img/icon_arrow_right.svg);
 }
 
 button.get {
-	background-image: url(img/icon_arrow_left.svg);
+	background-image: url(../img/icon_arrow_left.svg);
 }
 
 button.fg {
-	background-image: url(img/icon_fg.svg);
+	background-image: url(../img/icon_fg.svg);
 }
 
 button.bg {
-	background-image: url(img/icon_bg.svg);
+	background-image: url(../img/icon_bg.svg);
 }
 
 button.open {
-	background-image: url(img/icon_open.svg);
+	background-image: url(../img/icon_open.svg);
 }
 
 button.save {
-	background-image: url(img/icon_save.svg);
+	background-image: url(../img/icon_save.svg);
 }
 
 button.crop {
-	background-image: url(img/icon_crop.svg);
+	background-image: url(../img/icon_crop.svg);
 }
 
 button.wipe {
-	background-image: url(img/icon_wipe.svg);
+	background-image: url(../img/icon_wipe.svg);
 }
 
 button.pencil {
-	background-image: url(img/icon_pencil.svg);
+	background-image: url(../img/icon_pencil.svg);
 }
 
 button.eraser {
-	background-image: url(img/icon_eraser.svg);
+	background-image: url(../img/icon_eraser.svg);
 }
 
 button.picker {
-	background-image: url(img/icon_pipette.svg);
+	background-image: url(../img/icon_pipette.svg);
 }
 
 button.bucket {
-	background-image: url(img/icon_bucket.svg);
+	background-image: url(../img/icon_bucket.svg);
 }
 
 .term,
@@ -556,7 +556,7 @@ button.bucket {
 	display: table;
 	position: relative;
 	border-collapse: collapse;
-	cursor: url(img/cursor_crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
+	cursor: url(../img/cursor_crosshair.png) 8 8, crosshair; /* svg doesn't display at correct size :( */
 	color: var(--term-fg);
 	background: var(--term-bg);
 }
@@ -606,15 +606,15 @@ button.bucket {
 }
 
 .term .pencil {
-	cursor: url(img/cursor_pencil.png) 0 0, crosshair;
+	cursor: url(../img/cursor_pencil.png) 0 0, crosshair;
 }
 
 .term .eraser {
-	cursor: url(img/cursor_eraser.png) 1 6, crosshair;
+	cursor: url(../img/cursor_eraser.png) 1 6, crosshair;
 }
 
 .term .picker {
-	cursor: url(img/cursor_picker.png) 0 0, crosshair;
+	cursor: url(../img/cursor_picker.png) 0 0, crosshair;
 }
 
 .glyphs .cell,
@@ -639,15 +639,15 @@ button.bucket {
 }
 
 .colors .cell.selected-fg {
-	background-image: url(img/icon_fg.svg);
+	background-image: url(../img/icon_fg.svg);
 }
 
 .colors .cell.selected-bg {
-	background-image: url(img/icon_bg.svg);
+	background-image: url(../img/icon_bg.svg);
 }
 
 .colors .cell.selected-fg.selected-bg {
-	background-image: url(img/icon_fgbg.svg);
+	background-image: url(../img/icon_fgbg.svg);
 }
 
 .glyphs .cell.non-printable {
