@@ -1309,9 +1309,9 @@ class NuruUI
 	{
 		let ele = evt.currentTarget;
 	
+		let cell = ele.querySelector(".cell");
 		if (this.action == "set")
 		{
-			let cell = ele.querySelector(".cell");
 			this.set_cell(cell);
 		}
 		else
