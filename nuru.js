@@ -671,13 +671,13 @@ class NuruTerm
 	static GLYPH_NONE = " ";
 	static COLOR_NONE = "inherit";
 
-	constructor(root, cols=64, rows=16)
+	constructor(root, cols=1, rows=1, glyph, fgcol, bgcol, attrs={})
 	{
 		this.root  = root;
 		this.cols  = cols;
 		this.rows  = rows;
 
-		this.init();
+		this.init(glyph, fgcol, bgcol, attrs);
 	}
 
 	static set_cell(cell, glyph, fgcol, bgcol, attrs)
@@ -718,7 +718,7 @@ class NuruTerm
 		return line;
 	}
 
-	static new_cell(col, row, glyph, fgcol, bgcol, attrs={})
+	static new_cell(col, row, glyph=" ", fgcol=15, bgcol=0, attrs={})
 	{
 		let cell = document.createElement(NuruTerm.CELL_ELEMENT);
 		cell.classList.add(NuruTerm.CELL_CLASS);
@@ -731,7 +731,8 @@ class NuruTerm
 		return cell;
 	}
 
-	init(cols, rows, glyph, fgcol, bgcol, attrs)
+	// TODO parameters not being used, being null, ...
+	init(glyph, fgcol, bgcol, attrs)
 	{
 		// remove all children, if any
 		this.root.replaceChildren();
@@ -964,7 +965,18 @@ class NuruUI
 	{
 		let root = this.ele_by_attr(attr, true);
 		if (!root) { return false };
-		this.term = new NuruTerm(root, w, h);
+
+		let glyph = " ";
+		let fgcol = "inherit";
+		let bgcol = "inherit";
+		
+		let attrs = {
+			"ch": this.get_input_val("ch-key"),
+			"fg": this.get_input_val("fg-key"),
+			"bg": this.get_input_val("bg-key")
+		}
+
+		this.term = new NuruTerm(root, w, h, glyph, fgcol, bgcol, attrs);
 		
 		let handler = callback.bind(this);
 		this.term.root.addEventListener("click",      handler);
@@ -1229,7 +1241,7 @@ class NuruUI
 		{
 			for (let c = 0; c < this.term.cols; ++c)
 			{
-				this.set_term_cell(c, r);
+				this.redraw_cell(c, r);
 			}
 		}
 	}
@@ -1540,6 +1552,29 @@ class NuruUI
 		this.term.root.classList.toggle("grid", show);
 	}
 
+	redraw_cell(col, row)
+	{
+		// TODO get cell, get ch fg bg
+		let cell = this.term.get_cell_at(col, row);
+
+		let ch = this.get_nuru_attr(cell, "ch");
+		let fg = this.get_nuru_attr(cell, "fg");
+		let bg = this.get_nuru_attr(cell, "bg");
+
+		let glyph = this.get_glyph(ch);
+		let fgcol = this.get_fgcol(fg);
+		let bgcol = this.get_bgcol(bg);
+
+		let attrs = {
+			"ch": ch,
+			"fg": fg,
+			"bg": bg 
+		}
+
+		this.term.set_cell_at(col, row, glyph, fgcol, bgcol, attrs);
+
+	}
+
 	set_term_cell(col, row, ch=null, fg=null, bg=null)
 	{
 		if (ch === null) ch = this.ch;
@@ -1589,7 +1624,7 @@ class NuruUI
 	{
 		let ch_val = ch === null ? this.ch : ch;
 		let ch_key = this.get_input_val("ch-key");
-		return (ch_val == ch_key) ? " " : this.get_glyph_raw(ch_val);
+		return (ch_val == ch_key) ? " " : this.get_glyph_raw(ch_val, this.glyph_pal);
 	}
 
 	get_color_raw(color, pal=null)
@@ -1737,15 +1772,6 @@ class NuruUI
 		this.layers[this.layer].classList.add("selected")
 	}
 	
-	/*
-	set_image_prop(prop, val=null)
-	{
-		if (val === null) val = this.get_input_val(prop);
-		this.image[prop.replace('-', '_')] = isNaN(val) ? val : parseInt(val);
-		return val;
-	}
-	*/
-
 	change_glyph_mode(mode=null, redraw=false)
 	{
 		if (mode === null) mode = this.get_input_val("glyph-mode");
@@ -1778,6 +1804,7 @@ class NuruUI
 		let data = new Uint8Array(this.glyph_palettes[which]);
 		this.glyph_pal = new NuruPalette(data.buffer);
 
+		// TODO should we or shouldn't we?
 		//this.set_input_val("ch-key", this.glyph_pal.ch_key);
 		//this.set_chkey(this.glyph_pal.ch_key);
 	
@@ -1793,6 +1820,7 @@ class NuruUI
 		let data = new Uint8Array(this.color_palettes[which]);
 		this.color_pal = new NuruPalette(data.buffer);
 		
+		// TODO should we or shouldn't we?
 		//this.set_input_val("fg-key", this.color_pal.fg_key);
 		//this.set_input_val("bg-key", this.color_pal.bg_key);
 		//this.change_fgkey(this.color_pal.fg_key);
