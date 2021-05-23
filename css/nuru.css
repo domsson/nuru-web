@@ -655,6 +655,12 @@ button.bucket {
 	outline: .0625rem dotted var(--warning);
 }
 
+.glyphs .cell.ch-key,
+.colors .cell.fg-key,
+.colors .cell.bg-key {
+	outline: .0625rem dotted var(--highlight);
+}
+
 .pagination {
 	display: none;
 	justify-content: space-between;

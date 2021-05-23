@@ -1035,7 +1035,7 @@ class NuruUI
 				let ucp = NuruUtils.to_unicode_hex(cp);
 	
 				let cell = this.glyphs.get_cell_at(c, r);
-				let attrs = { "np": 0, "ch": ch };
+				let attrs = { "idx": ch, "np": 0, "ch": ch };
 				cell.setAttribute("title", ch + ": " + ucp);
 
 				if (ch == this.ch)
@@ -1074,7 +1074,7 @@ class NuruUI
 				let col = this.get_color_raw(idx);
 
 				let cell = this.colors.get_cell_at(c, r);
-				let attrs = { "ch": 32, "bg": idx };
+				let attrs = { "idx": idx, "ch": 32, "bg": idx };
 				cell.setAttribute("title", idx + ": " + col);
 
 				if (idx == this.fg)
@@ -1153,6 +1153,7 @@ class NuruUI
 		// init palettes panels
 		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
 		this.init_colors_panel("data-nuru-colors", 16, 16, this.on_click_colors);
+
 		
 		// init brush panels (1x1 cell terminals)
 		this.init_ui_panels("data-nuru-panel", "panels", null);
@@ -1182,6 +1183,11 @@ class NuruUI
 		this.select_tool("pencil");
 		this.select_layer("fg");
 		this.select_action("set");
+		
+		// make sure key indices are highlighted
+		this.change_chkey();
+		this.change_fgkey();
+		this.change_bgkey();
 	}
 	
 	set_input_val(name, val)
@@ -1255,11 +1261,14 @@ class NuruUI
 	redraw_glyphs_panel()
 	{
 		this.init_glyphs_panel("data-nuru-glyphs", 16, 16, this.on_click_glyphs);
+		this.change_chkey();
 	}
 
 	redraw_colors_panel()
 	{
 		this.init_colors_panel("data-nuru-colors", 16, 16, this.on_click_colors);
+		this.change_fgkey();
+		this.change_bgkey();
 	}
 
 	redraw_term()
@@ -1920,19 +1929,22 @@ class NuruUI
 
 	change_chkey(chkey=null, redraw=false)
 	{
-		if (chkey === null) chkey = this.get_input_val("chkey");
+		if (chkey === null) chkey = this.get_input_val("ch-key");
+		this.select_cell_by_attr(this.glyphs, "idx", chkey, "ch-key");
 		if (redraw) this.redraw_term();
 	}
 
 	change_fgkey(fgkey=null, redraw=false)
 	{
-		if (fgkey === null) fgkey = this.get_input_val("fgkey");
+		if (fgkey === null) fgkey = this.get_input_val("fg-key");
+		this.select_cell_by_attr(this.colors, "idx", fgkey, "fg-key");
 		if (redraw) this.redraw_term();
 	}
 	
 	change_bgkey(bgkey=null, redraw=false)
 	{
-		if (bgkey === null) bgkey = this.get_input_val("bgkey");
+		if (bgkey === null) bgkey = this.get_input_val("bg-key");
+		this.select_cell_by_attr(this.colors, "idx", bgkey, "bg-key");
 		if (redraw) this.redraw_term();
 	}
 
