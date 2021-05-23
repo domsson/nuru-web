@@ -1318,40 +1318,91 @@ class NuruUI
 		}
 	}
 	
-	// TODO doesn't work properly, needs complete rewrite
+	// TODO I think there is lots of potential for improvement here;
+	//      after all, I've thrown this together at 6 in the morning...
 	crop_term()
 	{
-		let rows = 1;
-		let cols = 1;
-	
-		let lines = this.term.root.childNodes;
-		let cells = null;
-	
-		let ch_none = this.get_input_val("ch-key");
-		let fg_none = this.get_input_val("fg-key");
-		let bg_none = this.get_input_val("bg-key");
-	
+		let ch_key = this.get_input_val("ch-key");
+		let fg_key = this.get_input_val("fg-key");
+		let bg_key = this.get_input_val("bg-key");
+
+		let filled_cells = 0;
+
+		let first_col = this.term.cols;
+		let first_row = this.term.rows;
+
+		let last_col = 0;
+		let last_row = 0;
+
 		let ch = null;
 		let fg = null;
 		let bg = null;
-	
-		for (let r = 0; r < lines.length; ++r)
+
+		for (let r = 0; r < this.term.rows; ++r)
 		{
-			cells = lines[r].childNodes;
-			for (let c = 0; c < cells.length; ++c)
+			for (let c = 0; c < this.term.cols; ++c)
 			{
-				ch = this.get_nuru_attr(cells[c], "ch");
-				fg = this.get_nuru_attr(cells[c], "fg");
-				bg = this.get_nuru_attr(cells[c], "bg");
-	
-				if (ch != ch_none || fg != fg_none || bg != bg_none)
+				ch = this.term.get_cell_attr_at(c, r, "data-nuru-ch");
+				fg = this.term.get_cell_attr_at(c, r, "data-nuru-fg");
+				bg = this.term.get_cell_attr_at(c, r, "data-nuru-bg");
+
+				// is there something in this cell?
+				if (ch != ch_key || fg != fg_key || bg != bg_key)
 				{
-					rows = Math.max(rows, r+1);
-					cols = Math.max(cols, c+1);
+					++filled_cells;
+
+					first_col = Math.min(first_col, c);
+					first_row = Math.min(first_row, r);
+
+					last_col = Math.max(last_col, c);
+					last_row = Math.max(last_row, r);
 				}
 			}
 		}
-	
+
+		if (filled_cells == 0)
+		{
+			return false;
+		}
+
+		let cols = (last_col - first_col) + 1;
+		let rows = (last_row - first_row) + 1;
+
+		if (cols == this.term.cols && rows == this.term.rows)
+		{
+			return false;
+		}
+
+		let source_col = 0;
+		let source_row = 0;
+
+		let glyph = null;
+		let fgcol = null;
+		let bgcol = null;
+
+		for (let r = 0; r < rows; ++r)
+		{
+			for (let c = 0; c < cols; ++c)
+			{
+				source_col = first_col + c;
+				source_row = first_row + r;
+
+				let attrs = {
+					"ch": this.term.get_cell_attr_at(source_col, source_row, "data-nuru-ch"),
+					"fg": this.term.get_cell_attr_at(source_col, source_row, "data-nuru-fg"),
+					"bg": this.term.get_cell_attr_at(source_col, source_row, "data-nuru-bg")
+				};
+
+				glyph = this.get_glyph(attrs.ch);
+				fgcol = this.get_fgcol(attrs.fg);
+				bgcol = this.get_bgcol(attrs.bg);
+
+				this.term.set_cell_at(c, r, glyph, fgcol, bgcol, attrs);
+			}
+		}
+
+		this.set_input_val("cols", cols);
+		this.set_input_val("rows", rows);
 		this.change_term_size(cols, rows, true);
 	}
 	
