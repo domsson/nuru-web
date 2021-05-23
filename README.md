@@ -55,7 +55,7 @@ the terminal to decide which color value to use to display that color.
 
 Images usually have a way of encoding the absence of pixel data; also known 
 as transparency. In case of text mode images, the same can be achieved by 
-printing a space characters without a background color. This would mean that 
+printing a space character without a background color. This would mean that 
 the terminal will simply display its native background color and nothing else. 
 
 In a nuru file, this is not necessarily encoded as the actual space character, 
@@ -66,7 +66,7 @@ the space character both in ASCII as well as Unicode). Changing it to another
 number will make the character at that index of the current character palette 
 the one that will be _displayed as_ space.
 
-Similarly, as terminals have their native background foreground colors, the 
+Similarly, as terminals have their native background and foreground colors, the
 need to encode "no specific color" and "no specific background color" arises. 
 This can be achieved via the "fg key" and "bg key" values. These are also just 
 indices into the currently used colors/ color palette. Whenever you use the 

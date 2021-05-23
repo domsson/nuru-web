@@ -1613,7 +1613,6 @@ class NuruUI
 
 	redraw_cell(col, row)
 	{
-		// TODO get cell, get ch fg bg
 		let cell = this.term.get_cell_at(col, row);
 
 		let ch = this.get_nuru_attr(cell, "ch");
@@ -1631,7 +1630,6 @@ class NuruUI
 		}
 
 		this.term.set_cell_at(col, row, glyph, fgcol, bgcol, attrs);
-
 	}
 
 	set_term_cell(col, row, ch=null, fg=null, bg=null)
