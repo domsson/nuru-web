@@ -1174,6 +1174,7 @@ class NuruUI
 		NuruUtils.set_css_var("term-fg", this.get_input_val("term-fg"));
 		NuruUtils.set_css_var("term-bg", this.get_input_val("term-bg"));
 		NuruUtils.set_css_var("term-grid-color", this.get_input_val("term-grid-color"));
+		this.toggle_background(this.get_input_val("term-show-bg"));
 		this.toggle_grid(this.get_input_val("term-grid"));
 		
 		// make sure all cells have ch, fg and bg attributes
@@ -1447,6 +1448,9 @@ class NuruUI
 			case "term-font-size":
 				this.change_term_opt(opt, val);
 				break;
+			case "term-show-bg":
+				this.toggle_background(this.get_input_val("term-show-bg"));
+				break;
 			case "term-grid":
 				this.toggle_grid(this.get_input_val("term-grid"));
 				break;
@@ -1606,9 +1610,14 @@ class NuruUI
 		set.classList.toggle("collapsed");
 	}
 
+	toggle_background(show=undefined)
+	{
+		this.term.root.parentElement.classList.toggle("alpha", !show);
+	}
+
 	toggle_grid(show=undefined)
 	{
-		this.term.root.classList.toggle("grid", show);
+		this.term.root.parentElement.classList.toggle("grid", show);
 	}
 
 	redraw_cell(col, row)

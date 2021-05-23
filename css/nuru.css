@@ -548,10 +548,6 @@ button.bucket {
 	border-radius: var(--border-radius);
 }
 
-.term .nuru {
-	border: 1px dotted var(--term-grid-color);
-}
-
 .nuru {
 	display: table;
 	position: relative;
@@ -601,8 +597,17 @@ button.bucket {
 	font-size: var(--term-font-size);
 }
 
-.term .grid .cell {
+.term.grid .cell {
 	border: 1px dotted var(--term-grid-color);
+}
+
+.term.alpha {
+	box-shadow: 0 0 var(--gap-l) var(--term-bg);
+}
+
+.term.alpha,
+.term.alpha .nuru {
+	background-color: transparent;
 }
 
 .term .pencil {
