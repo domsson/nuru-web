@@ -398,13 +398,13 @@ class NuruImage
 		return this.get_bg_value(get_cell(c, r).color);
 	}
 
-	static get_glyph_value(ch, glyph_mode, ch_key=32)
+	get_glyph_value(ch)
 	{
 		let glyph = 0;
-		switch (parseInt(glyph_mode))
+		switch (parseInt(this.glyph_mode))
 		{
 			case 0:
-				glyph = ch_key;
+				glyph = this.ch_key;
 				break;
 			case 1:
 			case 2:
@@ -415,10 +415,10 @@ class NuruImage
 		return glyph;
 	}
 
-	static get_color_value(fg, bg, color_mode)
+	get_color_value(fg, bg)
 	{
 		let color = 0;
-		switch (parseInt(color_mode))
+		switch (parseInt(this.color_mode))
 		{
 			case 0:
 				color = 0;
@@ -479,7 +479,46 @@ class NuruImage
 		}
 		return null;
 	}
-	
+
+	resize(cols=this.cols, rows=this.rows)
+	{
+		if (!cols || !rows) return false;
+
+		let cells = [];
+		let idx = 0;
+
+		let glyph_none = this.get_glyph_value(this.ch_key);
+		let color_none = this.get_color_value(this.fg_key, this.bg_key);
+		let mdata_none = 0;
+
+		for (let r = 0; r < rows; ++r)
+		{
+			for (let c = 0; c < cols; ++c)
+			{
+				idx = (cols * r) + c;
+				cells[idx] = {};
+				let old_cell = this.get_cell(c, r);
+
+				if (old_cell)
+				{
+					cells[idx].glyph = old_cell.glyph;
+					cells[idx].color = old_cell.color;
+					cells[idx].mdata = old_cell.mdata;
+				}
+				else
+				{
+					cells[idx].glyph = glyph_none;
+					cells[idx].color = color_none;
+					cells[idx].mdata = mdata_none;
+				}
+			}
+		}
+
+		this.rows = rows;
+		this.cols = cols;
+		this.cells = cells;
+	}
+
 	load_from_buffer(buffer)
 	{
 		let view = new DataView(buffer);
@@ -849,7 +888,44 @@ class NuruUI
 	
 	save_img(filename)
 	{
-		console.log("save_img() not implemented");
+		let image = new NuruImage();
+		image.cols       = this.get_input_val("cols");
+		image.rows       = this.get_input_val("rows");
+		image.glyph_mode = this.get_input_val("glyph-mode");
+		image.color_mode = this.get_input_val("color-mode");
+		image.mdata_mode = this.get_input_val("mdata-mode");
+		image.ch_key     = this.get_input_val("ch-key");
+		image.fg_key     = this.get_input_val("fg-key");
+		image.bg_key     = this.get_input_val("bg-key");
+		image.glyph_pal  = this.get_input_val("glyph-pal");
+		image.color_pal  = this.get_input_val("color-pal");
+	
+		image.resize();
+
+		let ch = null;
+		let fg = null;
+		let bg = null;
+		let glyph = 0;
+		let color = 0;
+		let mdata = 0;
+
+		for (let r = 0; r < this.term.rows; ++r)
+		{
+			for (let c = 0; c < this.term.cols; ++c)
+			{
+				ch = this.term.get_cell_attr_at(c, r, "data-nuru-ch");
+				fg = this.term.get_cell_attr_at(c, r, "data-nuru-fg");
+				bg = this.term.get_cell_attr_at(c, r, "data-nuru-bg");
+
+				glyph = image.get_glyph_value(ch);
+				color = image.get_color_value(fg, bg);
+
+				image.set_cell(c, r, glyph, color, mdata);
+			}
+		}
+
+		let buffer = image.save_to_buffer();
+		NuruUtils.download_data(buffer, "test_download.nui");
 	}
 	
 	load_img(evt)
