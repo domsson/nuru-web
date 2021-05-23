@@ -632,7 +632,6 @@ class NuruImage
 		{
 			for (let c = 0; c < this.cols; ++c)
 			{
-				//cell = this.cells[(this.cols * r) + c];
 				cell = this.get_cell(c, r);
 
 				i = NuruUtils.data_to_buffer(cell.glyph, glyph_size, data, i);
@@ -1531,6 +1530,9 @@ class NuruUI
 	{
 		//evt.preventDefault();
 		//console.log("key = " + evt.key + " | code = " + evt.code);
+
+		// don't process keyboard input if we're in an input field 
+		if (document.activeElement.nodeName == "INPUT") return;
 	
 		let key = evt.key.toLowerCase();
 		
