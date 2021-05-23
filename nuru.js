@@ -1894,6 +1894,7 @@ class NuruUI
 	{
 		if (mode === null) mode = this.get_input_val("glyph-mode");
 		this.set_nuru_attr(document.body, "glyph-mode", mode);
+		this.change_glyphs_page(1);
 
 		// recreate the glyphs panel
 		this.redraw_glyphs_panel();
