@@ -32,13 +32,13 @@ The following glyph modes are available:
  - **None**: only the space character is used (this requires a color mode)
  - **ASCII**: the first 256 [ASCII characters](https://en.wikipedia.org/wiki/ASCII#Printable_characters) (as per Unicode) can be used 
  - **Unicode**: any character from [Unicode](https://en.wikipedia.org/wiki/List_of_Unicode_characters) Plane 0 can be used (U+0000 - U+FFFF, 65535 characters)
- - **Palette**: a separate palette file is used to provide the 256 available glyphs
+ - **Palette**: a separate palette file is used to provide 256 available glyphs
 
 ## Color modes
 
 The following color modes are available:
 
- - **None**: no colors available (this requies a glyph mode other than 'None')
+ - **None**: no colors available (this requires a glyph mode other than 'None')
  - **4 bit**: 16 colors as per [4-bit ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit) can be used
  - **8 bit**: 256 colors as per [8-bit ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit) can be used 
  - **Palette**: a separate palette file is used to provide 256 available colors
@@ -53,7 +53,7 @@ the terminal to decide which color value to use to display that color.
 
 ## Key elements (Glyph key, FG key, BG key)
 
-Images usually have a way of encoding the absence of pixel data; also known  
+Images usually have a way of encoding the absence of pixel data; also known 
 as transparency. In case of text mode images, the same can be achieved by 
 printing a space characters without a background color. This would mean that 
 the terminal will simply display its native background color and nothing else. 
