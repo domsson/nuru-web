@@ -1,7 +1,7 @@
 <img width="100%" src="img/nuru_header.svg" alt="nuru web"> 
  
-nuru image editor for the browser. Currently very early work-in-progress. 
-Check back later or [try the current state](https://domsson.github.io/nuru-web/).
+nuru image editor for the browser. Still a work-in-progress, but already fun!
+Why not [try out the current state](https://domsson.github.io/nuru-web/)?
 
 ---
 
@@ -74,4 +74,8 @@ foreground color at position "fg key" to draw, then the terminal's default
 foreground color will be used _to render_ that cell. The same goes for the 
 background color. This means that at least one of the available colors has to 
 be sacrificed to become the one to signify the absence of any particular color.
+
+# Support
+
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L22BUD8)
 
