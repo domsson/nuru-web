@@ -288,7 +288,7 @@ class NuruPalette
 		let i = 0;
 	
 		// header: file format signature (7 bytes)
-		data.set(NuruUtils.string_to_array(this.signature, 7, ' '), i, 0);
+		data.set(NuruUtils.string_to_array(this.signature, 7, 0), i, 0);
 		i += 7;
 
 		// header: file format verison (1 byte)
@@ -592,7 +592,7 @@ class NuruImage
 		let i = 0;
 	
 		// file format signature (7 bytes)
-		data.set(NuruUtils.string_to_array(this.signature, 7), i);
+		data.set(NuruUtils.string_to_array(this.signature, 7, 0), i);
 		i += 7;
 
 		// file format version (1 byte)
@@ -615,11 +615,17 @@ class NuruImage
 		data[i++] = 0xFF & this.bg_key; // background color 
 	
 		// glyph palette name (7 bytes)
-		data.set(NuruUtils.string_to_array(this.glyph_pal, 7), i);
+		if (this.glyph_mode == 129)
+		{
+			data.set(NuruUtils.string_to_array(this.glyph_pal, 7, 0), i);
+		}
 		i += 7;
 	
 		// color palette name (7 bytes)
-		data.set(NuruUtils.string_to_array(this.color_pal, 7), i);
+		if (this.color_mode == 130)
+		{
+			data.set(NuruUtils.string_to_array(this.color_pal, 7, 0), i);
+		}
 		i += 7;
 	
 		// image data
