@@ -75,6 +75,11 @@ foreground color will be used _to render_ that cell. The same goes for the
 background color. This means that at least one of the available colors has to 
 be sacrificed to become the one to signify the absence of any particular color.
 
+# Related Projects
+
+ - [Charaster](https://github.com/Technicism/Charaster)
+ - [cadubi](https://github.com/statico/cadubi)
+
 # Support
 
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L22BUD8)
