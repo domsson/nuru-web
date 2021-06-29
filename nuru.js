@@ -829,7 +829,7 @@ class NuruUI
 		this.color_pals = {};
 	
 		// current brush values
-		this.ch = 32;
+		this.ch = 8;
 		this.fg = 15;
 		this.bg = 0;
 	
